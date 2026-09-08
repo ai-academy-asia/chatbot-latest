@@ -214,8 +214,8 @@ async function sendProgramActions(object, recipientId) {
   await sendMenuCard(
     object,
     recipientId,
-    'Дараагийн алхам',
     'Та үргэлжлүүлэн юу мэдэхийг хүсэж байна вэ?',
+    undefined,
     PROGRAM_ACTION_OPTIONS,
   )
 }
@@ -224,8 +224,8 @@ async function sendDetailActions(object, recipientId) {
   await sendMenuCard(
     object,
     recipientId,
-    'Дараагийн алхам',
     'Бүртгүүлэх эсвэл үндсэн цэс рүү буцна уу.',
+    undefined,
     DETAIL_ACTION_OPTIONS,
   )
 }
@@ -238,12 +238,6 @@ async function sendIntentAnswer(object, recipientId, prediction) {
 
   for (const chunk of splitMessage(prediction.answer)) {
     await sendMetaMessage(object, recipientId, { text: chunk })
-  }
-
-  if (prediction.intentId === 'surgaltiin_medeelel') {
-    await sendProgramActions(object, recipientId)
-  } else if (prediction.intentId !== 'register') {
-    await sendDetailActions(object, recipientId)
   }
 }
 
