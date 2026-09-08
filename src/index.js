@@ -334,7 +334,9 @@ app.post('/webhook', (req, res) => {
 
   for (const entry of body.entry || []) {
     for (const event of entry.messaging || []) {
-      console.log(`${body.object} message from ${event.sender?.id || 'unknown'}`)
+      console.log(
+        `${body.object} ${entry.id || 'unknown-page'} message from ${event.sender?.id || 'unknown'}`,
+      )
       handleMessagingEvent(body.object, event).catch(error => {
         console.error('Webhook event handling failed:', error.message)
       })

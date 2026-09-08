@@ -224,6 +224,20 @@
       }
     },
     {
+      "id": "result",
+      "examples": [],
+      "answers": {
+        "default": ""
+      }
+    },
+    {
+      "id": "curriculum",
+      "examples": [],
+      "answers": {
+        "default": ""
+      }
+    },
+    {
       "id": "age_limit",
       "examples": ["nasnii hayzgaar", "насны хязгаар"],
       "answers": {
