@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const { randomUUID: uuidv4 } = require('node:crypto')
+const { classifyIntent, warmIntentClassifier } = require('./intent-classifier')
 require('dotenv').config()
 
 const app = express()
@@ -193,8 +194,8 @@ async function sendWelcomeMenu(object, recipientId) {
   await sendMenuCard(
     object,
     recipientId,
-    'AI Acceleration Program',
     'Та ямар мэдээлэл авахыг хүсэж байна вэ?',
+    undefined,
     MAIN_MENU_OPTIONS,
   )
 }
@@ -229,6 +230,23 @@ async function sendDetailActions(object, recipientId) {
   )
 }
 
+async function sendIntentAnswer(object, recipientId, prediction) {
+  if (prediction.intentId === 'greeting') {
+    await sendWelcomeMenu(object, recipientId)
+    return
+  }
+
+  for (const chunk of splitMessage(prediction.answer)) {
+    await sendMetaMessage(object, recipientId, { text: chunk })
+  }
+
+  if (prediction.intentId === 'surgaltiin_medeelel') {
+    await sendProgramActions(object, recipientId)
+  } else if (prediction.intentId !== 'register') {
+    await sendDetailActions(object, recipientId)
+  }
+}
+
 async function handleMessagingEvent(object, event) {
   if (!event.sender || event.message?.is_echo) return
 
@@ -256,6 +274,25 @@ async function handleMessagingEvent(object, event) {
       await sendDetailActions(object, senderId)
     }
     return
+  }
+
+  if (event.message?.text) {
+    try {
+      const prediction = await classifyIntent(event.message.text)
+
+      if (prediction) {
+        console.log('Intent detected:', {
+          intent: prediction.intentId,
+          score: prediction.score.toFixed(3),
+          margin: prediction.margin.toFixed(3),
+          matchedExample: prediction.matchedExample,
+        })
+        await sendIntentAnswer(object, senderId, prediction)
+        return
+      }
+    } catch (error) {
+      console.error('Intent classification failed:', error.message)
+    }
   }
 
   if (event.message || event.postback) {
@@ -330,4 +367,8 @@ app.post('/api/chat/message', (req, res) => {
 const port = process.env.PORT || 8010
 app.listen(port, '0.0.0.0', () => {
   console.log(`Running on port ${port}`)
+})
+
+warmIntentClassifier().catch(error => {
+  console.error('Intent classifier warmup failed:', error.message)
 })

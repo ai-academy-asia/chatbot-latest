@@ -14,6 +14,9 @@ module.exports = {
       FB_PAGE_ACCESS_TOKEN: process.env.FB_PAGE_ACCESS_TOKEN,
       IG_ACCESS_TOKEN: process.env.IG_ACCESS_TOKEN,
       META_API_VERSION: process.env.META_API_VERSION || 'v25.0',
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      INTENT_MIN_SIMILARITY: process.env.INTENT_MIN_SIMILARITY || '0.70',
+      INTENT_MIN_MARGIN: process.env.INTENT_MIN_MARGIN || '0.02',
     },
   }],
 }
