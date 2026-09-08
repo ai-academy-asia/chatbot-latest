@@ -23,12 +23,27 @@ const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
 const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
-const MENU_OPTIONS = [
+const MAIN_MENU_OPTIONS = [
   { title: 'AI Agents мэдээлэл', payload: 'PROGRAM_AI_AGENTS' },
   { title: 'AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
+  { title: 'Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
+]
+
+const MORE_MENU_OPTIONS = [
   { title: 'Төлбөр', payload: 'PAYMENT' },
   { title: 'Хаяг байршил', payload: 'LOCATION' },
   { title: 'Бүртгүүлэх', payload: 'REGISTER' },
+]
+
+const PROGRAM_ACTION_OPTIONS = [
+  { title: 'Төлбөр', payload: 'PAYMENT' },
+  { title: 'Бүртгүүлэх', payload: 'REGISTER' },
+  { title: 'Үндсэн цэс', payload: 'MAIN_MENU' },
+]
+
+const DETAIL_ACTION_OPTIONS = [
+  { title: 'Бүртгүүлэх', payload: 'REGISTER' },
+  { title: 'Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
 
 const MENU_RESPONSES = {
@@ -154,15 +169,64 @@ function splitMessage(text, maxLength = 900) {
   return chunks
 }
 
-async function sendWelcomeMenu(object, recipientId) {
+async function sendMenuCard(object, recipientId, title, subtitle, options) {
   await sendMetaMessage(object, recipientId, {
-    text: 'Сайн байна уу! Та ямар мэдээлэл авахыг хүсэж байна вэ?',
-    quick_replies: MENU_OPTIONS.map(option => ({
-      content_type: 'text',
-      title: option.title,
-      payload: option.payload,
-    })),
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'generic',
+        elements: [{
+          title,
+          subtitle,
+          buttons: options.map(option => ({
+            type: 'postback',
+            title: option.title,
+            payload: option.payload,
+          })),
+        }],
+      },
+    },
   })
+}
+
+async function sendWelcomeMenu(object, recipientId) {
+  await sendMenuCard(
+    object,
+    recipientId,
+    'AI Acceleration Program',
+    'Та ямар мэдээлэл авахыг хүсэж байна вэ?',
+    MAIN_MENU_OPTIONS,
+  )
+}
+
+async function sendMoreMenu(object, recipientId) {
+  await sendMenuCard(
+    object,
+    recipientId,
+    'Нэмэлт мэдээлэл',
+    'Доорх сонголтоос сонгоно уу.',
+    MORE_MENU_OPTIONS,
+  )
+}
+
+async function sendProgramActions(object, recipientId) {
+  await sendMenuCard(
+    object,
+    recipientId,
+    'Дараагийн алхам',
+    'Та үргэлжлүүлэн юу мэдэхийг хүсэж байна вэ?',
+    PROGRAM_ACTION_OPTIONS,
+  )
+}
+
+async function sendDetailActions(object, recipientId) {
+  await sendMenuCard(
+    object,
+    recipientId,
+    'Дараагийн алхам',
+    'Бүртгүүлэх эсвэл үндсэн цэс рүү буцна уу.',
+    DETAIL_ACTION_OPTIONS,
+  )
 }
 
 async function handleMessagingEvent(object, event) {
@@ -171,11 +235,26 @@ async function handleMessagingEvent(object, event) {
   const senderId = event.sender.id
   const payload = event.message?.quick_reply?.payload || event.postback?.payload
 
+  if (payload === 'MAIN_MENU') {
+    await sendWelcomeMenu(object, senderId)
+    return
+  }
+
+  if (payload === 'MORE_OPTIONS') {
+    await sendMoreMenu(object, senderId)
+    return
+  }
+
   if (payload && MENU_RESPONSES[payload]) {
     for (const chunk of splitMessage(MENU_RESPONSES[payload])) {
       await sendMetaMessage(object, senderId, { text: chunk })
     }
-    await sendWelcomeMenu(object, senderId)
+
+    if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
+      await sendProgramActions(object, senderId)
+    } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
+      await sendDetailActions(object, senderId)
+    }
     return
   }
 
