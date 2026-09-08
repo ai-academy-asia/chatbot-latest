@@ -174,8 +174,8 @@
       "id": "surgaltiin_medeelel",
       "examples": [
         "ai agent",
-          "мэдээлэл",
-          "мэдээлэл өгөөч",
+          "мэдээлэл", "medeelel avii", "medeelel abii", 
+          "мэдээлэл өгөөч", "medeelel uguuch", 
           "мэдээлэл өгнө үү",
           "дэлгэрэнгүй мэдээлэл",
           "дэлгэрэнгүй мэдээлэл өгөөч",
@@ -225,16 +225,55 @@
     },
     {
       "id": "result",
-      "examples": [],
+      "examples": ["vr dvn", "ur dun","ur dvn", "үр дүн", "yu surah", "yamar ym zaah ve", "yamar hicheel oroh ve", 
+      "үр дүнтэй", "her vr dvntei", "yamar medleg olj avah", "yu surah ve", 
+      "yamar ym zaah ve", "юу сурах", "ямар хичээл", "юу сурах",  "ямар юм заах",  
+      "vr dvntei yu", "ymar medleg olj avah ve", "ямар мэдлэг олж авах", "ямар чадвар эзэмших", "vr dv her", "ymar medleg"  ],
       "answers": {
-        "default": ""
+        "default": "AI Agents: Гол үр дүн (Highlight): Компанидаа Anthropic Claude-д суурилсан AI агент болон Хүний нөөцийн (HR) бүрэн автоматжуулалтын систем нэвтрүүлнэ.\nАжилт сонгон шалгаруулах, анкетад дүн шинжилгээ хийх, онбординг процессоос эхлээд дотоод сургалтыг AI-аар автоматжуулах.\nБайгууллагын датад суурилан орлого өсгөх стратегийн шийдвэрүүдийг Claude AI ашиглан гаргах.\nAI for Business: Гол үр дүн (Highlight): Суралцагч бүр өөрийн бизнест зориулсан Facebook-ийн бүрэн циклийн AI автоматжуулалт угсарна.\nAI контент бэлтгэх болон автоматаар сошиалд түгээх.\nЧатботоор дамжуулан хэрэглэгчийн асуултад 24/7 хариулж, борлуулалт хаах, лид цуглуулах."
       }
     },
     {
       "id": "curriculum",
-      "examples": [],
+      "examples": [
+        "хичээлийн хөтөлбөр",
+        "хичээлийн хөтөлбөрийн мэдээлэл",
+        "хичээлийн хөтөлбөрөө",
+        "хичээлийн хөтөлбөрийн талаар",
+        "хичээлийн хөтөлбөрийг үзэх",
+        "хичээлийн агуулга",
+        "хичээлийн агуулгын талаар",
+        "сургалтын хөтөлбөр",
+        "сургалтын хөтөлбөрийн мэдээлэл",
+        "сургалтын хөтөлбөрөө",
+        "сургалтын хөтөлбөрийн талаар",
+        "сургалтын агуулга",
+        "сургалтын хичээлүүд",
+        "ямар хичээл заах вэ",
+        "ямар хичээл ордог вэ",
+        "хичээлүүдийн талаар",
+        "хичээлээр юу заах вэ",
+        "юу заах вэ",
+        "хөтөлбөрт юу багтдаг вэ",
+        "хөтөлбөрт ямар хичээлүүд багтдаг вэ",
+        "hicheeliin hutulbur",
+        "hicheeliin hutulburiin medeelel",
+        "hicheeliin hutulburiin talaar",
+        "hicheeliin aguulga",
+        "surgaltiin hutulbur",
+        "surgaltiin hutulburiin medeelel",
+        "surgaltiin hutulburiin talaar",
+        "surgaltiin aguulga",
+        "surgaltiin hicheeluud",
+        "yamar hicheel zaah ve",
+        "yamar hicheel ordog ve",
+        "hicheeleer yu zaah ve",
+        "yu zaah ve",
+        "hutulburt yu bagtdag ve",
+        "hutulburt yamar hicheeluud bagtdag ve"
+      ],
       "answers": {
-        "default": ""
+        "default": "Багшлах бүрэлдэхүүн: Стэнфорд, Оксфорд, Бостоны Их Сургуульд академик болон практик туршлага хуримтлуулсан багш нар.\nБүтэц: Нийт 6 долоо хоног | 14 Лайв хичээл (Монгол хэлээр) + 3-р долоо хоногт Офлайн воркшоп + Capstone төслийн хамгаалалт ба Арга хэмжээ.\nГол концепц: \"Зөвхөн онол биш. Бодит нэвтрүүлэлт.\" (Суралцагчид онол үзэх биш, өөрийн бизнест шууд ажиллах AI систем бүтээж төгсөнө)."
       }
     },
     {
@@ -294,7 +333,7 @@
     },
     {
       "id": "schedule",
-      "examples": [[
+      "examples": [
         "цагийн хуваарь",
         "цагийн хуваарь хэд вэ",
         "хичээлийн цагийн хуваарь",
@@ -329,14 +368,14 @@
         "surgalt doloo honogt heden udur ve",
         "surgalt heden udur ve",
         "heden udur hicheelleh ve"
-      ]],
+      ],
       "answers": {
         "default": "AI Agents: Даваа, Лхагва · 12:00–13:30\nAI for Business: Мягмар, Пүрэв · 07:30–09:00, 6 долоо хоног хичээллэнэ."
       }
     },
     {
       "id": "start_date",
-      "examples": [[
+      "examples": [
         "хэзээ эхлэх вэ",
         "хэзээ эхлэх",
         "хэзээнээс эхлэх вэ",
@@ -369,9 +408,71 @@
         "ehleh ognoo",
         "ehleh odor",
         "ehleh hugatsaa"
-      ]],
+      ],
       "answers": {
         "default": "Хөтөлбөр 2026 оны 9-р сарын 25-нд эхэлнэ."
+      }
+    },
+    {
+      "id": "base_knowledge",
+      "examples": [
+        "англи хэл мэддэг байх шаардлагатай юу",
+        "англи хэл мэддэг байх ёстой юу",
+        "англи хэлний мэдлэг шаардлагатай юу",
+        "англи хэл мэдэх шаардлагатай юу",
+        "англи хэл заавал мэддэг байх уу",
+        "англи хэл заавал хэрэгтэй юу",
+        "англи хэл мэдэхгүй бол болох уу",
+        "англи хэл мэдэхгүй хүн хамрагдаж болох уу",
+        "код мэддэг байх шаардлагатай юу",
+        "код мэддэг байх ёстой юу",
+        "код бичиж чаддаг байх шаардлагатай юу",
+        "програмчлал мэддэг байх хэрэгтэй юу",
+        "програмчлалын мэдлэг шаардлагатай юу",
+        "код мэдэхгүй бол болох уу",
+        "код мэдэхгүй хүн хамрагдаж болох уу",
+        "анхан шатнаас заах уу",
+        "анхан шатнаас заадаг уу",
+        "анхан шатнаас эхлэх үү",
+        "сууриас нь заах уу",
+        "суурь мэдлэг шаардлагатай юу",
+        "ямар нэгэн суурь мэдлэг хэрэгтэй юу",
+        "ямар ч мэдлэггүй хүн хамрагдаж болох уу",
+        "ямар ч суурь мэдлэггүй хүн болох уу",
+        "өмнө нь мэдлэгтэй байх шаардлагатай юу",
+        "өмнө нь код бичиж байсан байх ёстой юу",
+        "туршлага шаардлагатай юу",
+        "код бичиж үзээгүй хүн хамрагдаж болох уу",
+        "програмчлал огт мэдэхгүй бол болох уу",
+        "англи хэл болон код мэдэхгүй бол болох уу",
+        "анхан шатны хүн хамрагдаж болох уу",
+        "эхлэгчдэд зориулсан уу",
+        "эхлэгч хүн хамрагдаж болох уу",
+        "анхлан суралцагч хамрагдаж болох уу",
+        "англи hel meddeg baih shaardlagatai yu",
+        "angli hel meddeg baih ystoi yu",
+        "angli hel medeh shaardlagatai yu",
+        "angli hel zaaval heregtei yu",
+        "angli hel medehgui bol boloh uu",
+        "angli hel medehgui hun hamragdaj boloh uu",
+        "kod meddeg baih shaardlagatai yu",
+        "kod meddeg baih ystoi yu",
+        "kod bichij chaddag baih heregtei yu",
+        "programchlaliin medleg shaardlagatai yu",
+        "kod medehgui bol boloh uu",
+        "kod medehgui hun hamragdaj boloh uu",
+        "anhnii shatnaas zaah uu",
+        "anhnii shatnaas zaadag uu",
+        "suuri aas ni zaah uu",
+        "suuri medleg shaardlagatai yu",
+        "yamar ch medleggui hun hamragdaj boloh uu",
+        "yamar ch suuri medleggui hun boloh uu",
+        "turshlaga shaardlagatai yu",
+        "ehlegch hun hamragdaj boloh uu",
+        "anhlaгч suraltsagch hamragdaj boloh uu"
+      ],
+      "answers": {
+        "default": "Англи хэл болон программчлалын ямар нэгэн суурь мэдлэг шаардахгүй. Бид танд сууриас нь эхлэн заах болно."
       }
     }
   ]
