@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { v4: uuidv4 } = require('uuid')
+const { randomUUID: uuidv4 } = require('node:crypto')
 require('dotenv').config()
 
 const app = express()
