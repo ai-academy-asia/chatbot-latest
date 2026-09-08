@@ -24,26 +24,26 @@ const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
 const MAIN_MENU_OPTIONS = [
-  { title: 'AI Agents мэдээлэл', payload: 'PROGRAM_AI_AGENTS' },
-  { title: 'AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
-  { title: 'Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
+  { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
+  { title: '💼 AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
+  { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
 
 const MORE_MENU_OPTIONS = [
-  { title: 'Төлбөр', payload: 'PAYMENT' },
-  { title: 'Хаяг байршил', payload: 'LOCATION' },
-  { title: 'Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '💳 Төлбөр', payload: 'PAYMENT' },
+  { title: '📍 Хаяг байршил', payload: 'LOCATION' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
 ]
 
 const PROGRAM_ACTION_OPTIONS = [
-  { title: 'Төлбөр', payload: 'PAYMENT' },
-  { title: 'Бүртгүүлэх', payload: 'REGISTER' },
-  { title: 'Үндсэн цэс', payload: 'MAIN_MENU' },
+  { title: '💳 Төлбөр', payload: 'PAYMENT' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
 
 const DETAIL_ACTION_OPTIONS = [
-  { title: 'Бүртгүүлэх', payload: 'REGISTER' },
-  { title: 'Үндсэн цэс', payload: 'MAIN_MENU' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
 
 const MENU_RESPONSES = {
