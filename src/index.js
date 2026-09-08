@@ -247,6 +247,16 @@ async function handleMessagingEvent(object, event) {
   const senderId = event.sender.id
   const payload = event.message?.quick_reply?.payload || event.postback?.payload
 
+  console.log('Incoming user message:', {
+    channel: object,
+    senderId,
+    text: event.message?.text || null,
+    payload: payload || null,
+    attachments: event.message?.attachments?.map(attachment => attachment.type) || [],
+    referral: event.referral || event.message?.referral || null,
+    timestamp: event.timestamp ? new Date(event.timestamp).toISOString() : null,
+  })
+
   if (payload === 'MAIN_MENU') {
     await sendWelcomeMenu(object, senderId)
     return
