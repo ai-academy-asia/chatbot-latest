@@ -507,6 +507,16 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
+  if (event.message_edit) {
+    console.log('Messaging event ignored: message edit does not open reply window', {
+      channel: object,
+      senderId: event.sender.id,
+      editCount: event.message_edit.num_edit ?? null,
+      hasText: Boolean(event.message_edit.text),
+    })
+    return
+  }
+
   const senderId = event.sender.id
   const payload = message?.quick_reply?.payload || event.postback?.payload
 
