@@ -682,9 +682,34 @@ app.post('/webhook', (req, res) => {
 
   for (const entry of entries) {
     for (const event of entry.messaging || []) {
-      console.log(
-        `${body.object} ${entry.id || 'unknown-page'} message from ${event.sender?.id || 'unknown'}`,
-      )
+      const eventTypes = [
+        'message',
+        'message_edit',
+        'postback',
+        'read',
+        'delivery',
+        'reaction',
+        'referral',
+      ].filter(type => event[type] !== undefined)
+
+      if (body.object === 'instagram') {
+        console.log('Instagram webhook event received:', {
+          receivedAt: new Date().toISOString(),
+          accountId: entry.id || null,
+          senderId: event.sender?.id || null,
+          recipientId: event.recipient?.id || null,
+          eventTypes,
+          hasText: Boolean(event.message?.text || event.message_edit?.text),
+          isEcho: Boolean(event.message?.is_echo),
+          messageEditCount: event.message_edit?.num_edit ?? null,
+          note: 'Meta does not include sender app-role status in webhook payloads',
+        })
+      } else {
+        console.log(
+          `page ${entry.id || 'unknown-page'} message from ${event.sender?.id || 'unknown'}`,
+        )
+      }
+
       handleMessagingEvent(body.object, event).catch(error => {
         console.error('Webhook event handling failed:', error.message)
       })
