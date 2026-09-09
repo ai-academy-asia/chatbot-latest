@@ -30,7 +30,7 @@ app.use(express.json())
 
 const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN
 const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
-const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN
+const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 
@@ -167,15 +167,19 @@ if (!VERIFY_TOKEN) {
 }
 
 async function validateInstagramConnection() {
-  if (!IG_ACCESS_TOKEN) {
-    console.error('Instagram startup check failed: IG_ACCESS_TOKEN is not set')
+  if (!IG_PAGE_ACCESS_TOKEN) {
+    console.error('Instagram startup check failed: IG_PAGE_ACCESS_TOKEN is not set')
     return
   }
 
-  const headers = { Authorization: `Bearer ${IG_ACCESS_TOKEN}` }
+  const headers = { Authorization: `Bearer ${IG_PAGE_ACCESS_TOKEN}` }
   const [identityResponse, subscriptionsResponse] = await Promise.all([
-    fetch(`https://graph.instagram.com/${META_API_VERSION}/me?fields=id,username`, { headers }),
-    fetch(`https://graph.instagram.com/${META_API_VERSION}/me/subscribed_apps`, { headers }),
+    fetch(
+      `https://graph.facebook.com/${META_API_VERSION}/me`
+      + '?fields=id,name,instagram_business_account{id,username}',
+      { headers },
+    ),
+    fetch(`https://graph.facebook.com/${META_API_VERSION}/me/subscribed_apps`, { headers }),
   ])
 
   const identity = await identityResponse.json()
@@ -204,8 +208,10 @@ async function validateInstagramConnection() {
   ]
 
   console.log('Instagram connection ready:', {
-    accountId: identity.id,
-    username: identity.username || null,
+    pageId: identity.id,
+    pageName: identity.name || null,
+    accountId: identity.instagram_business_account?.id || null,
+    username: identity.instagram_business_account?.username || null,
     subscribedFields,
     postbacksEnabled: subscribedFields.includes('messaging_postbacks'),
   })
@@ -216,13 +222,15 @@ function getChannelConfig(object) {
     return {
       accessToken: FB_PAGE_ACCESS_TOKEN,
       apiBase: 'https://graph.facebook.com',
+      tokenName: 'FB_PAGE_ACCESS_TOKEN',
     }
   }
 
   if (object === 'instagram') {
     return {
-      accessToken: IG_ACCESS_TOKEN,
-      apiBase: 'https://graph.instagram.com',
+      accessToken: IG_PAGE_ACCESS_TOKEN,
+      apiBase: 'https://graph.facebook.com',
+      tokenName: 'IG_PAGE_ACCESS_TOKEN',
     }
   }
 
@@ -234,7 +242,7 @@ async function sendMetaMessage(object, recipientId, message) {
 
   if (!channel) return
   if (!channel.accessToken) {
-    throw new Error(`${object === 'page' ? 'FB_PAGE_ACCESS_TOKEN' : 'IG_ACCESS_TOKEN'} is not set`)
+    throw new Error(`${channel.tokenName} is not set`)
   }
 
   const body = {
@@ -748,7 +756,7 @@ async function start() {
       metaApiVersion: META_API_VERSION,
       verifyTokenSet: Boolean(VERIFY_TOKEN),
       facebookTokenSet: Boolean(FB_PAGE_ACCESS_TOKEN),
-      instagramTokenSet: Boolean(IG_ACCESS_TOKEN),
+      instagramPageTokenSet: Boolean(IG_PAGE_ACCESS_TOKEN),
     })
 
     validateInstagramConnection().catch(error => {
