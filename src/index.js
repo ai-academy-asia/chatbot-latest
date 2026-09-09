@@ -591,21 +591,23 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (message?.text) {
-    try {
-      const prediction = await classifyIntent(message.text)
+    let prediction = null
 
-      if (prediction) {
-        console.log('Intent detected:', {
-          intent: prediction.intentId,
-          score: prediction.score.toFixed(3),
-          margin: prediction.margin.toFixed(3),
-          matchedExample: prediction.matchedExample,
-        })
-        await sendIntentAnswer(object, senderId, prediction)
-        return
-      }
+    try {
+      prediction = await classifyIntent(message.text)
     } catch (error) {
       console.error('Intent classification failed:', error.message)
+    }
+
+    if (prediction) {
+      console.log('Intent detected:', {
+        intent: prediction.intentId,
+        score: prediction.score.toFixed(3),
+        margin: prediction.margin.toFixed(3),
+        matchedExample: prediction.matchedExample,
+      })
+      await sendIntentAnswer(object, senderId, prediction)
+      return
     }
   }
 
