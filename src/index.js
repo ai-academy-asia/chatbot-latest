@@ -1,10 +1,17 @@
+require('dotenv').config()
+
 const express = require('express')
 const cors = require('cors')
 const path = require('node:path')
 const { readFile } = require('node:fs/promises')
 const { randomUUID: uuidv4 } = require('node:crypto')
 const { classifyIntent, warmIntentClassifier } = require('./intent-classifier')
-require('dotenv').config()
+const {
+  initializeDatabase,
+  getOrCreateConversation,
+  recordConversationMessage,
+  recordThreadMessage,
+} = require('./database')
 
 const app = express()
 
@@ -159,6 +166,51 @@ if (!VERIFY_TOKEN) {
   console.error('FB_VERIFY_TOKEN is not set — webhook verification will fail')
 }
 
+async function validateInstagramConnection() {
+  if (!IG_ACCESS_TOKEN) {
+    console.error('Instagram startup check failed: IG_ACCESS_TOKEN is not set')
+    return
+  }
+
+  const headers = { Authorization: `Bearer ${IG_ACCESS_TOKEN}` }
+  const [identityResponse, subscriptionsResponse] = await Promise.all([
+    fetch(`https://graph.instagram.com/${META_API_VERSION}/me?fields=id,username`, { headers }),
+    fetch(`https://graph.instagram.com/${META_API_VERSION}/me/subscribed_apps`, { headers }),
+  ])
+
+  const identity = await identityResponse.json()
+  const subscriptions = await subscriptionsResponse.json()
+
+  if (!identityResponse.ok) {
+    console.error('Instagram token validation failed:', {
+      status: identityResponse.status,
+      code: identity.error?.code || null,
+      message: identity.error?.message || 'Unknown error',
+    })
+    return
+  }
+
+  if (!subscriptionsResponse.ok) {
+    console.error('Instagram subscription check failed:', {
+      status: subscriptionsResponse.status,
+      code: subscriptions.error?.code || null,
+      message: subscriptions.error?.message || 'Unknown error',
+    })
+    return
+  }
+
+  const subscribedFields = [
+    ...new Set((subscriptions.data || []).flatMap(item => item.subscribed_fields || [])),
+  ]
+
+  console.log('Instagram connection ready:', {
+    accountId: identity.id,
+    username: identity.username || null,
+    subscribedFields,
+    postbacksEnabled: subscribedFields.includes('messaging_postbacks'),
+  })
+}
+
 function getChannelConfig(object) {
   if (object === 'page') {
     return {
@@ -182,8 +234,7 @@ async function sendMetaMessage(object, recipientId, message) {
 
   if (!channel) return
   if (!channel.accessToken) {
-    console.error(`${object === 'page' ? 'FB_PAGE_ACCESS_TOKEN' : 'IG_ACCESS_TOKEN'} is not set`)
-    return
+    throw new Error(`${object === 'page' ? 'FB_PAGE_ACCESS_TOKEN' : 'IG_ACCESS_TOKEN'} is not set`)
   }
 
   const body = {
@@ -221,6 +272,22 @@ async function sendMetaMessage(object, recipientId, message) {
     channel: object,
     recipientId,
     messageId: result.message_id || null,
+  })
+
+  const messageType = message.text
+    ? 'text'
+    : message.attachment?.payload?.template_type || message.attachment?.type || 'unknown'
+  const content = message.text
+    || message.attachment?.payload?.elements?.[0]?.title
+    || (message.attachment?.type ? `[${message.attachment.type}]` : null)
+
+  await recordConversationMessage({
+    channel: object,
+    userId: recipientId,
+    direction: 'outgoing',
+    messageType,
+    content,
+    metadata: { metaMessageId: result.message_id || null },
   })
 }
 
@@ -390,7 +457,18 @@ async function sendIntentAnswer(object, recipientId, prediction) {
 }
 
 async function handleMessagingEvent(object, event) {
-  if (!event.sender || event.message?.is_echo) return
+  if (!event.sender) {
+    console.warn('Messaging event ignored: missing sender', { channel: object })
+    return
+  }
+
+  if (event.message?.is_echo) {
+    console.log('Messaging event ignored: echo', {
+      channel: object,
+      senderId: event.sender.id,
+    })
+    return
+  }
 
   const senderId = event.sender.id
   const payload = event.message?.quick_reply?.payload || event.postback?.payload
@@ -403,6 +481,26 @@ async function handleMessagingEvent(object, event) {
     attachments: event.message?.attachments?.map(attachment => attachment.type) || [],
     referral: event.referral || event.message?.referral || null,
     timestamp: event.timestamp ? new Date(event.timestamp).toISOString() : null,
+  })
+
+  const incomingType = event.message?.text
+    ? 'text'
+    : event.postback
+      ? 'postback'
+      : event.message?.attachments?.[0]?.type || 'unknown'
+  const incomingContent = event.message?.text || payload || `[${incomingType}]`
+
+  await recordConversationMessage({
+    channel: object,
+    userId: senderId,
+    direction: 'incoming',
+    messageType: incomingType,
+    content: incomingContent,
+    metadata: {
+      metaMessageId: event.message?.mid || null,
+      timestamp: event.timestamp || null,
+      attachmentTypes: event.message?.attachments?.map(attachment => attachment.type) || [],
+    },
   })
 
   if (SILENT_MESSAGES.has(event.message?.text)) {
@@ -503,9 +601,26 @@ app.post('/webhook', (req, res) => {
   // Meta requires 200 quickly — always respond first
   res.sendStatus(200)
 
-  if (!['page', 'instagram'].includes(body.object)) return
+  const entries = Array.isArray(body.entry) ? body.entry : []
+  const messagingEventCount = entries.reduce(
+    (count, entry) => count + (Array.isArray(entry.messaging) ? entry.messaging.length : 0),
+    0,
+  )
 
-  for (const entry of body.entry || []) {
+  console.log('Webhook delivery received:', {
+    object: body.object || null,
+    entryCount: entries.length,
+    messagingEventCount,
+  })
+
+  if (!['page', 'instagram'].includes(body.object)) {
+    console.warn('Webhook delivery ignored: unsupported object', {
+      object: body.object || null,
+    })
+    return
+  }
+
+  for (const entry of entries) {
     for (const event of entry.messaging || []) {
       console.log(
         `${body.object} ${entry.id || 'unknown-page'} message from ${event.sender?.id || 'unknown'}`,
@@ -517,27 +632,86 @@ app.post('/webhook', (req, res) => {
   }
 })
 
-// ── Your existing chat API (unchanged) ──────────────
-app.post('/api/chat/create', (req, res) => {
-  res.json({ success: true, threadId: uuidv4() })
+// ── Website chat API ────────────────────────────────
+app.post('/api/chat/create', async (req, res) => {
+  try {
+    const userId = req.body.userId || uuidv4()
+    const conversationId = await getOrCreateConversation('web', userId)
+    res.json({
+      success: true,
+      threadId: conversationId || uuidv4(),
+      userId,
+    })
+  } catch (error) {
+    console.error('Conversation creation failed:', error.message)
+    res.status(500).json({ success: false, error: 'Could not create conversation' })
+  }
 })
 
-app.post('/api/chat/message', (req, res) => {
-  const { message } = req.body
-  res.json({
-    success: true,
-    response: {
+app.post('/api/chat/message', async (req, res) => {
+  const { threadId, message } = req.body
+
+  if (!threadId || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({
+      success: false,
+      error: 'threadId and message are required',
+    })
+  }
+
+  try {
+    await recordThreadMessage({
+      conversationId: threadId,
+      direction: 'incoming',
+      content: message.trim(),
+    })
+
+    const response = {
       messageId: uuidv4(),
-      content: `Та "${message}" гэж бичлээ.`,
-    },
-  })
+      content: `Та "${message.trim()}" гэж бичлээ.`,
+    }
+
+    await recordThreadMessage({
+      conversationId: threadId,
+      direction: 'outgoing',
+      content: response.content,
+      metadata: { messageId: response.messageId },
+    })
+
+    res.json({ success: true, response })
+  } catch (error) {
+    if (error.code === 'CONVERSATION_NOT_FOUND') {
+      return res.status(404).json({
+        success: false,
+        error: 'Conversation not found or expired',
+      })
+    }
+    console.error('Conversation message storage failed:', error.message)
+    res.status(500).json({ success: false, error: 'Could not save message' })
+  }
 })
 
 const port = process.env.PORT || 8010
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Running on port ${port}`)
-})
+async function start() {
+  await initializeDatabase()
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Running on port ${port}`, {
+      metaApiVersion: META_API_VERSION,
+      verifyTokenSet: Boolean(VERIFY_TOKEN),
+      facebookTokenSet: Boolean(FB_PAGE_ACCESS_TOKEN),
+      instagramTokenSet: Boolean(IG_ACCESS_TOKEN),
+    })
 
-warmIntentClassifier().catch(error => {
-  console.error('Intent classifier warmup failed:', error.message)
+    validateInstagramConnection().catch(error => {
+      console.error('Instagram startup check failed:', error.message)
+    })
+  })
+
+  warmIntentClassifier().catch(error => {
+    console.error('Intent classifier warmup failed:', error.message)
+  })
+}
+
+start().catch(error => {
+  console.error('Application startup failed:', error.message)
+  process.exit(1)
 })
