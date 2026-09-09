@@ -282,18 +282,19 @@ async function sendMetaMessage(object, recipientId, message) {
   }
 
   const result = await response.json()
-  logEvent('reply_sent', {
-    channel: object,
-    recipientId,
-    type: message.text ? 'text' : message.attachment?.type || 'unknown',
-  })
-
   const messageType = message.text
     ? 'text'
     : message.attachment?.payload?.template_type || message.attachment?.type || 'unknown'
   const content = message.text
     || message.attachment?.payload?.elements?.[0]?.title
     || (message.attachment?.type ? `[${message.attachment.type}]` : null)
+
+  logEvent('reply_sent', {
+    channel: object,
+    recipientId,
+    type: messageType,
+    answer: content,
+  })
 
   await recordConversationMessage({
     channel: object,
