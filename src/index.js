@@ -43,6 +43,14 @@ const PROGRAM_BROCHURES = {
   PROGRAM_AI_BUSINESS: 'AI-for-Business-brochure.pdf',
 }
 
+const BROCHURE_INTENTS = new Set([
+  'surgaltiin_medeelel',
+  'result',
+  'curriculum',
+  'program_recommendation',
+])
+const BROCHURE_INTRO = '📄 Та дараах брошуртай танилцана уу.'
+
 const brochureAttachmentIds = new Map()
 
 const MAIN_MENU_OPTIONS = [
@@ -106,7 +114,7 @@ PDF, Excel, тайлан, имэйл, маягттай холбоотой дав
 💻 Танхим + онлайн хосолсон
 💰 2,880,000₮
 
-`,
+${BROCHURE_INTRO}`,
   PROGRAM_AI_BUSINESS: `💚 AI FOR BUSINESS
 
 Сошиал контент, чат, захиалгын 24/7 автомат систем бүтээх хөтөлбөр.
@@ -127,7 +135,9 @@ Facebook API · Meta for Developers · n8n · Supabase · Vibe Coding
 🎥 12 лайв хичээл
 🏫 Офлайн воркшоп
 
-💡 23:41 цагт ирсэн чат маргааш өглөөг хүлээхгүй — таны борлуулалтын систем 24/7 ажиллана.`,
+💡 23:41 цагт ирсэн чат маргааш өглөөг хүлээхгүй — таны борлуулалтын систем 24/7 ажиллана.
+
+${BROCHURE_INTRO}`,
   PAYMENT: `💳 СУРГАЛТЫН ТӨЛБӨР
 
 💰 20% хөнгөлөлттэй үнэ: 2,880,000₮
@@ -362,8 +372,20 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
-  for (const chunk of splitMessage(prediction.answer)) {
+  const answer = BROCHURE_INTENTS.has(prediction.intentId)
+    ? prediction.answer.replace(
+      /\n\n📄 (?:Мөн хөтөлбөрүүдийн брошуртай танилцаарай\.|Та дараах брошуртай танилцана уу\.)[\s\S]*$/,
+      `\n\n${BROCHURE_INTRO}`,
+    )
+    : prediction.answer
+
+  for (const chunk of splitMessage(answer)) {
     await sendMetaMessage(object, recipientId, { text: chunk })
+  }
+
+  if (BROCHURE_INTENTS.has(prediction.intentId)) {
+    await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_AGENTS')
+    await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_BUSINESS')
   }
 }
 
