@@ -462,10 +462,13 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
-  const eventType = event.message
-    ? event.message.is_echo
+  const message = event.message || event.message_edit
+  const eventType = event.message_edit
+    ? 'message_edit'
+    : message
+      ? message.is_echo
       ? 'echo'
-      : event.message.is_deleted
+      : message.is_deleted
         ? 'message_deleted'
         : 'message'
     : event.postback
@@ -478,7 +481,7 @@ async function handleMessagingEvent(object, event) {
             ? 'reaction'
             : 'unknown'
 
-  if (event.message?.is_echo) {
+  if (message?.is_echo) {
     console.log('Messaging event ignored: echo', {
       channel: object,
       senderId: event.sender.id,
@@ -486,7 +489,7 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
-  if (!event.message && !event.postback) {
+  if (!message && !event.postback) {
     console.log('Messaging event ignored: no actionable message', {
       channel: object,
       senderId: event.sender.id,
@@ -496,7 +499,7 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
-  if (event.message?.is_deleted) {
+  if (message?.is_deleted) {
     console.log('Messaging event ignored: deleted message', {
       channel: object,
       senderId: event.sender.id,
@@ -505,25 +508,26 @@ async function handleMessagingEvent(object, event) {
   }
 
   const senderId = event.sender.id
-  const payload = event.message?.quick_reply?.payload || event.postback?.payload
+  const payload = message?.quick_reply?.payload || event.postback?.payload
 
   console.log('Incoming user message:', {
     channel: object,
     senderId,
     eventType,
-    text: event.message?.text || null,
+    text: message?.text || null,
+    editCount: event.message_edit?.num_edit ?? null,
     payload: payload || null,
-    attachments: event.message?.attachments?.map(attachment => attachment.type) || [],
-    referral: event.referral || event.message?.referral || null,
+    attachments: message?.attachments?.map(attachment => attachment.type) || [],
+    referral: event.referral || message?.referral || null,
     timestamp: event.timestamp ? new Date(event.timestamp).toISOString() : null,
   })
 
-  const incomingType = event.message?.text
+  const incomingType = message?.text
     ? 'text'
     : event.postback
       ? 'postback'
-      : event.message?.attachments?.[0]?.type || 'unknown'
-  const incomingContent = event.message?.text || payload || `[${incomingType}]`
+      : message?.attachments?.[0]?.type || eventType
+  const incomingContent = message?.text || payload || `[${incomingType}]`
 
   await recordConversationMessage({
     channel: object,
@@ -532,13 +536,14 @@ async function handleMessagingEvent(object, event) {
     messageType: incomingType,
     content: incomingContent,
     metadata: {
-      metaMessageId: event.message?.mid || null,
+      metaMessageId: message?.mid || null,
       timestamp: event.timestamp || null,
-      attachmentTypes: event.message?.attachments?.map(attachment => attachment.type) || [],
+      editCount: event.message_edit?.num_edit ?? null,
+      attachmentTypes: message?.attachments?.map(attachment => attachment.type) || [],
     },
   })
 
-  if (SILENT_MESSAGES.has(event.message?.text)) {
+  if (SILENT_MESSAGES.has(message?.text)) {
     console.log('Message intentionally ignored:', { channel: object, senderId })
     return
   }
@@ -567,9 +572,9 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
-  if (event.message?.text) {
+  if (message?.text) {
     try {
-      const prediction = await classifyIntent(event.message.text)
+      const prediction = await classifyIntent(message.text)
 
       if (prediction) {
         console.log('Intent detected:', {
@@ -586,7 +591,7 @@ async function handleMessagingEvent(object, event) {
     }
   }
 
-  if (event.message || event.postback) {
+  if (message || event.postback) {
     await sendWelcomeMenu(object, senderId)
   }
 }
