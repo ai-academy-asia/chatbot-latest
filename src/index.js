@@ -34,6 +34,14 @@ const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 
+function logEvent(event, details) {
+  process.stdout.write(`${JSON.stringify({
+    time: new Date().toISOString(),
+    event,
+    ...details,
+  })}\n`)
+}
+
 const SILENT_MESSAGES = new Set([
   'AI Agents хөтөлбөр яг юу заах вэ?',
   'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
@@ -166,6 +174,8 @@ if (!VERIFY_TOKEN) {
   console.error('FB_VERIFY_TOKEN is not set — webhook verification will fail')
 }
 
+let connectedInstagramAccountId = null
+
 async function validateInstagramConnection() {
   if (!IG_PAGE_ACCESS_TOKEN) {
     console.error('Instagram startup check failed: IG_PAGE_ACCESS_TOKEN is not set')
@@ -206,6 +216,9 @@ async function validateInstagramConnection() {
   const subscribedFields = [
     ...new Set((subscriptions.data || []).flatMap(item => item.subscribed_fields || [])),
   ]
+  connectedInstagramAccountId = identity.instagram_business_account?.id
+    ? String(identity.instagram_business_account.id)
+    : null
 
   console.log('Instagram connection ready:', {
     pageId: identity.id,
@@ -254,13 +267,6 @@ async function sendMetaMessage(object, recipientId, message) {
     body.messaging_type = 'RESPONSE'
   }
 
-  console.log('Sending Meta reply:', {
-    channel: object,
-    recipientId,
-    type: message.text ? 'text' : message.attachment?.type || 'unknown',
-    preview: message.text?.slice(0, 100) || message.attachment?.payload?.template_type || null,
-  })
-
   const response = await fetch(`${channel.apiBase}/${META_API_VERSION}/me/messages`, {
     method: 'POST',
     headers: {
@@ -276,10 +282,10 @@ async function sendMetaMessage(object, recipientId, message) {
   }
 
   const result = await response.json()
-  console.log('Meta reply sent:', {
+  logEvent('reply_sent', {
     channel: object,
     recipientId,
-    messageId: result.message_id || null,
+    type: message.text ? 'text' : message.attachment?.type || 'unknown',
   })
 
   const messageType = message.text
@@ -466,7 +472,6 @@ async function sendIntentAnswer(object, recipientId, prediction) {
 
 async function handleMessagingEvent(object, event) {
   if (!event.sender) {
-    console.warn('Messaging event ignored: missing sender', { channel: object })
     return
   }
 
@@ -490,54 +495,30 @@ async function handleMessagingEvent(object, event) {
             : 'unknown'
 
   if (message?.is_echo) {
-    console.log('Messaging event ignored: echo', {
-      channel: object,
-      senderId: event.sender.id,
-    })
     return
   }
 
   if (!message && !event.postback) {
-    console.log('Messaging event ignored: no actionable message', {
-      channel: object,
-      senderId: event.sender.id,
-      eventType,
-      eventKeys: Object.keys(event),
-    })
     return
   }
 
   if (message?.is_deleted) {
-    console.log('Messaging event ignored: deleted message', {
-      channel: object,
-      senderId: event.sender.id,
-    })
     return
   }
 
   if (event.message_edit) {
-    console.log('Messaging event ignored: message edit does not open reply window', {
-      channel: object,
-      senderId: event.sender.id,
-      editCount: event.message_edit.num_edit ?? null,
-      hasText: Boolean(event.message_edit.text),
-    })
     return
   }
 
   const senderId = event.sender.id
   const payload = message?.quick_reply?.payload || event.postback?.payload
 
-  console.log('Incoming user message:', {
+  logEvent('incoming_message', {
     channel: object,
     senderId,
-    eventType,
+    type: eventType,
     text: message?.text || null,
-    editCount: event.message_edit?.num_edit ?? null,
     payload: payload || null,
-    attachments: message?.attachments?.map(attachment => attachment.type) || [],
-    referral: event.referral || message?.referral || null,
-    timestamp: event.timestamp ? new Date(event.timestamp).toISOString() : null,
   })
 
   const incomingType = message?.text
@@ -562,7 +543,6 @@ async function handleMessagingEvent(object, event) {
   })
 
   if (SILENT_MESSAGES.has(message?.text)) {
-    console.log('Message intentionally ignored:', { channel: object, senderId })
     return
   }
 
@@ -600,11 +580,10 @@ async function handleMessagingEvent(object, event) {
     }
 
     if (prediction) {
-      console.log('Intent detected:', {
+      logEvent('intent_detected', {
+        channel: object,
+        senderId,
         intent: prediction.intentId,
-        score: prediction.score.toFixed(3),
-        margin: prediction.margin.toFixed(3),
-        matchedExample: prediction.matchedExample,
       })
       await sendIntentAnswer(object, senderId, prediction)
       return
@@ -636,21 +615,10 @@ app.get('/webhook', (req, res) => {
   const token = req.query['hub.verify_token']
   const challenge = req.query['hub.challenge']
 
-  console.log('Webhook verify:', {
-    mode,
-    tokenSet: Boolean(token),
-    envTokenSet: Boolean(VERIFY_TOKEN),
-    tokenMatch: token === VERIFY_TOKEN,
-  })
-
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    console.log('Webhook verified OK')
     return res.status(200).send(String(challenge))
   }
 
-  console.log('Webhook verify FAILED', {
-    reason: !VERIFY_TOKEN ? 'missing env token' : mode !== 'subscribe' ? 'bad mode' : 'token mismatch',
-  })
   return res.sendStatus(403)
 })
 
@@ -662,52 +630,19 @@ app.post('/webhook', (req, res) => {
   res.sendStatus(200)
 
   const entries = Array.isArray(body.entry) ? body.entry : []
-  const messagingEventCount = entries.reduce(
-    (count, entry) => count + (Array.isArray(entry.messaging) ? entry.messaging.length : 0),
-    0,
-  )
-
-  console.log('Webhook delivery received:', {
-    object: body.object || null,
-    entryCount: entries.length,
-    messagingEventCount,
-  })
-
   if (!['page', 'instagram'].includes(body.object)) {
-    console.warn('Webhook delivery ignored: unsupported object', {
-      object: body.object || null,
-    })
     return
   }
 
   for (const entry of entries) {
     for (const event of entry.messaging || []) {
-      const eventTypes = [
-        'message',
-        'message_edit',
-        'postback',
-        'read',
-        'delivery',
-        'reaction',
-        'referral',
-      ].filter(type => event[type] !== undefined)
-
       if (body.object === 'instagram') {
-        console.log('Instagram webhook event received:', {
-          receivedAt: new Date().toISOString(),
-          accountId: entry.id || null,
-          senderId: event.sender?.id || null,
-          recipientId: event.recipient?.id || null,
-          eventTypes,
-          hasText: Boolean(event.message?.text || event.message_edit?.text),
-          isEcho: Boolean(event.message?.is_echo),
-          messageEditCount: event.message_edit?.num_edit ?? null,
-          note: 'Meta does not include sender app-role status in webhook payloads',
-        })
-      } else {
-        console.log(
-          `page ${entry.id || 'unknown-page'} message from ${event.sender?.id || 'unknown'}`,
-        )
+        if (
+          connectedInstagramAccountId
+          && String(entry.id) !== connectedInstagramAccountId
+        ) {
+          continue
+        }
       }
 
       handleMessagingEvent(body.object, event).catch(error => {

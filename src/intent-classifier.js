@@ -49,7 +49,6 @@ async function buildIndex(data, sourceHash) {
     throw new Error('No intent examples found in data/intents.json')
   }
 
-  console.log(`Building Gemini intent index from ${examples.length} examples`)
   const vectors = await embedTexts(examples.map(example => example.text), apiKey)
   const index = {
     model: GEMINI_MODEL,
@@ -63,7 +62,6 @@ async function buildIndex(data, sourceHash) {
   }
 
   fs.writeFileSync(INDEX_PATH, `${JSON.stringify(index)}\n`)
-  console.log(`Intent index saved to ${INDEX_PATH}`)
   return index
 }
 
