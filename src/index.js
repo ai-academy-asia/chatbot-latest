@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const path = require('node:path')
+const { readFile } = require('node:fs/promises')
 const { randomUUID: uuidv4 } = require('node:crypto')
 const { classifyIntent, warmIntentClassifier } = require('./intent-classifier')
 require('dotenv').config()
@@ -41,6 +42,8 @@ const PROGRAM_BROCHURES = {
   PROGRAM_AI_AGENTS: 'AI-Agents-brochure.pdf',
   PROGRAM_AI_BUSINESS: 'AI-for-Business-brochure.pdf',
 }
+
+const brochureAttachmentIds = new Map()
 
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
@@ -288,9 +291,59 @@ async function sendDetailActions(object, recipientId) {
   )
 }
 
+async function uploadFacebookBrochure(filename) {
+  const cachedAttachmentId = brochureAttachmentIds.get(filename)
+  if (cachedAttachmentId) return cachedAttachmentId
+  if (!FB_PAGE_ACCESS_TOKEN) throw new Error('FB_PAGE_ACCESS_TOKEN is not set')
+
+  const brochurePath = BROCHURES.get(filename)
+  if (!brochurePath) throw new Error(`Unknown brochure: ${filename}`)
+
+  const file = await readFile(brochurePath)
+  const form = new FormData()
+  form.set('message', JSON.stringify({
+    attachment: {
+      type: 'file',
+      payload: { is_reusable: true },
+    },
+  }))
+  form.set('filedata', new Blob([file], { type: 'application/pdf' }), filename)
+
+  const response = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/me/message_attachments`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${FB_PAGE_ACCESS_TOKEN}` },
+      body: form,
+    },
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Facebook brochure upload failed (${response.status}): ${error}`)
+  }
+
+  const result = await response.json()
+  if (!result.attachment_id) throw new Error('Facebook brochure upload returned no attachment_id')
+
+  brochureAttachmentIds.set(filename, result.attachment_id)
+  return result.attachment_id
+}
+
 async function sendProgramBrochure(object, recipientId, payload) {
   const filename = PROGRAM_BROCHURES[payload]
   if (!filename) return
+
+  if (object === 'page') {
+    const attachmentId = await uploadFacebookBrochure(filename)
+    await sendMetaMessage(object, recipientId, {
+      attachment: {
+        type: 'file',
+        payload: { attachment_id: attachmentId },
+      },
+    })
+    return
+  }
 
   await sendMetaMessage(object, recipientId, {
     attachment: {
