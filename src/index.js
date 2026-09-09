@@ -24,6 +24,11 @@ const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
 const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
+const SILENT_MESSAGES = new Set([
+  'AI Agents хөтөлбөр яг юу заах вэ?',
+  'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
+])
+
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
   { title: '💼 AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
@@ -138,6 +143,13 @@ async function sendMetaMessage(object, recipientId, message) {
     body.messaging_type = 'RESPONSE'
   }
 
+  console.log('Sending Meta reply:', {
+    channel: object,
+    recipientId,
+    type: message.text ? 'text' : message.attachment?.type || 'unknown',
+    preview: message.text?.slice(0, 100) || message.attachment?.payload?.template_type || null,
+  })
+
   const response = await fetch(`${channel.apiBase}/${META_API_VERSION}/me/messages`, {
     method: 'POST',
     headers: {
@@ -151,6 +163,13 @@ async function sendMetaMessage(object, recipientId, message) {
     const error = await response.text()
     throw new Error(`${object} send failed (${response.status}): ${error}`)
   }
+
+  const result = await response.json()
+  console.log('Meta reply sent:', {
+    channel: object,
+    recipientId,
+    messageId: result.message_id || null,
+  })
 }
 
 function splitMessage(text, maxLength = 900) {
@@ -257,7 +276,12 @@ async function handleMessagingEvent(object, event) {
     timestamp: event.timestamp ? new Date(event.timestamp).toISOString() : null,
   })
 
-  if (payload === 'MAIN_MENU') {
+  if (SILENT_MESSAGES.has(event.message?.text)) {
+    console.log('Message intentionally ignored:', { channel: object, senderId })
+    return
+  }
+
+  if (payload === 'MAIN_MENU' || payload === 'WELCOME_MESSAGE') {
     await sendWelcomeMenu(object, senderId)
     return
   }
