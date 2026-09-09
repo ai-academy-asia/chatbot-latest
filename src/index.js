@@ -24,6 +24,7 @@ const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN
 const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
 const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
+const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 
 const SILENT_MESSAGES = new Set([
   'AI Agents хөтөлбөр яг юу заах вэ?',
@@ -35,6 +36,11 @@ const BROCHURES = new Map([
   ['AI-Agents-brochure.pdf', path.join(__dirname, '..', 'AI-Agents-brochure.pdf')],
   ['AI-for-Business-brochure.pdf', path.join(__dirname, '..', 'AI-for-Business-brochure.pdf')],
 ])
+
+const PROGRAM_BROCHURES = {
+  PROGRAM_AI_AGENTS: 'AI-Agents-brochure.pdf',
+  PROGRAM_AI_BUSINESS: 'AI-for-Business-brochure.pdf',
+}
 
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
@@ -62,11 +68,11 @@ const DETAIL_ACTION_OPTIONS = [
 const MENU_RESPONSES = {
   PROGRAM_AI_AGENTS: `🧡 AI AGENTS
 
-“2 өдөр хийдэг ажлыг 3 минутад хийдэг болго.”
+“2 өдөр хийдэг ажлаа 3 минутад хийдэг болгоно.”
 
 🎯 ХӨТӨЛБӨРИЙН ЗОРИЛГО
 
-AI Agents хөтөлбөрөөр AI-г зүгээр нэг асуулт асуудаг хэрэгсэл биш, таны ажлыг өөрөө гүйцэтгэдэг AI туслах систем болгон ашиглаж сурна.
+AI Agents хөтөлбөрөөр та AI-г зүгээр нэг асуулт асуудаг хэрэгсэл биш, харин таны ажлыг өөрөө гүйцэтгэдэг AI туслах системийг бүтээж сурна.
 
 PDF, Excel, тайлан, имэйл, маягттай холбоотой давтагддаг ажлуудаа автоматжуулна.
 
@@ -81,13 +87,13 @@ PDF, Excel, тайлан, имэйл, маягттай холбоотой дав
 • Өөрийн хэрэгцээнд тохирсон AI workflow бүтээх
 • Бүтээсэн системээ Capstone төслөөр хамгаалах
 
-🌱 УРЬДЧИЛСАН МЭДЛЭГ
+🌱 Суурь мэдлэг
 
-Код бичих шаардлагагүй. Юу хийхийг энгийн үгээр тайлбарлаж, AI-аар шийдлээ бүтээн, үр дүнг зөв шалгаж сурна.
+Кодчилолын суурь мэдлэг шаардалагагүй.
 
 🏆 ТӨГСӨХДӨӨ
 
-Өдөр тутмын ажилдаа шууд ашиглах AI орчин, автоматжуулсан Skill, AI Agent болон ажлын урсгалтай болно.
+Өдөр тутмын ажилдаа шууд ашиглах AI Agent-ийг бүтээж сурна.
 
 📌 СУРГАЛТЫН МЭДЭЭЛЭЛ
 
@@ -97,24 +103,22 @@ PDF, Excel, тайлан, имэйл, маягттай холбоотой дав
 💻 Танхим + онлайн хосолсон
 💰 2,880,000₮
 
-AI Academy Asia — AI Agents`,
+`,
   PROGRAM_AI_BUSINESS: `💚 AI FOR BUSINESS
 
-Сошиал контент, чат, захиалгыг 24/7 автоматаар ажиллуулах систем бүтээх хөтөлбөр.
+Сошиал контент, чат, захиалгын 24/7 автомат систем бүтээх хөтөлбөр.
 
-🎯 ГОЛ ҮР ДҮН
+🎯 Эзэмших ур чадвар
 
 • Facebook контент бэлтгэх
 • Хэрэглэгчийн чатад автоматаар хариулах
 • Захиалга бүртгэх
-• Бүрэн циклийн автомат систем угсрах
+• Бүтэн цикл бүхий автомат систем угсрах
 • Удирдлагын админ самбар бүтээх
 
-🛠 АШИГЛАХ ХЭРЭГСЛҮҮД
+🛠 АШИГЛАХ ТЕХНОЛОГИ ХЭРЭГСЛҮҮД
 
 Facebook API · Meta for Developers · n8n · Supabase · Vibe Coding
-
-📌 СУРГАЛТЫН МЭДЭЭЛЭЛ
 
 🗓 Мягмар, Пүрэв · 07:30–09:00
 🎥 12 лайв хичээл
@@ -284,6 +288,21 @@ async function sendDetailActions(object, recipientId) {
   )
 }
 
+async function sendProgramBrochure(object, recipientId, payload) {
+  const filename = PROGRAM_BROCHURES[payload]
+  if (!filename) return
+
+  await sendMetaMessage(object, recipientId, {
+    attachment: {
+      type: 'file',
+      payload: {
+        url: `${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`,
+        is_reusable: true,
+      },
+    },
+  })
+}
+
 async function sendIntentAnswer(object, recipientId, prediction) {
   if (prediction.intentId === 'greeting') {
     await sendWelcomeMenu(object, recipientId)
@@ -332,6 +351,7 @@ async function handleMessagingEvent(object, event) {
     }
 
     if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
+      await sendProgramBrochure(object, senderId, payload)
       await sendProgramActions(object, senderId)
     } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
       await sendDetailActions(object, senderId)
