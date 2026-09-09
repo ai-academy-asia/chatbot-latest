@@ -37,7 +37,7 @@
         "oroin mend", "hi", "hello", "good morning"
       ],
       "answers": {
-        "default": "Сайн байна уу! Та ямар мэдээлэл авахыг хүсэж байна вэ?"
+        "default": "👋 Сайн байна уу!\n\nТа ямар мэдээлэл авахыг хүсэж байна вэ?"
       }
     },
     {
@@ -49,12 +49,12 @@
         "төлбөр хэд вэ", "tolboroo yaj", "tulburuu yaj", 
         "төлбөр нь хэд вэ", "tolbor", "tolboriin medeelel", 
         "төлөх төлбөр хэд вэ",
-        "ямар төлбөртэй вэ",
-        "үнэ хэд вэ",
-        "үнэ нь хэд вэ",
-        "хэдэн төгрөг вэ",
-        "хэд вэ",
-        "ямар үнэтэй вэ",
+        "ямар төлбөртэй вэ", "uniin medeelel", "vniin medeelel", 
+        "үнэ хэд вэ", "үнийн мэдээлэл", "vnin medeelel", "unin medeelel", 
+        "үнэ нь хэд вэ", "үнэ", "tolboriin medeelel",  
+        "хэдэн төгрөг вэ", "unee bicheerei", 
+        "хэд вэ", "tolbor hedv", "tolbor hedve", 
+        "ямар үнэтэй вэ", "hed ve", "hedwe",  
         "хэдий үнэтэй вэ",
         "үнэтэй юу",
         "төлбөр хэдэн төгрөг вэ",
@@ -65,7 +65,7 @@
         "ямар үнэтэй вэ",
 
         "үнэ?",
-        "төлбөр?",   "төлбөрөө?",
+        "төлбөр?",   "төлбөрөө?", "tolboriin sanal", "төлбөрийн санал", 
         "sene hed ve",
         "une hed ve",
         "une ni hed ve",
@@ -83,7 +83,7 @@
         "tulbur hed we"
       ],
       "answers": {
-        "default": "Төлбөр: 2,880,000₮ (20% хөнгөлөлттэй | Storepay ээр хуваан төлөх боломжтой) Бүртгүүлэх: https://www.ai-academy.asia/ai-acceleration.html#register"
+        "default": "💳 СУРГАЛТЫН ТӨЛБӨР\n\n💰 20% хөнгөлөлттэй үнэ: 2,880,000₮\n🛍 Storepay-ээр хуваан төлөх боломжтой.\n\n📝 Бүртгүүлэх:\nhttps://www.ai-academy.asia/ai-acceleration.html#register"
       }
     },
     {
@@ -127,7 +127,7 @@
         "utasnii dugaar baina uu", "utasnii dugaar", "yah holbogdohu"
       ],
       "answers": {
-        "default": "7505-1055 дугаарт холбогдоорой"
+        "default": "☎️ ХОЛБОО БАРИХ\n\nУтас: 7505-1055"
       }
     },
     {
@@ -167,7 +167,7 @@
         
       ],
       "answers": {
-        "default": "Хаяг: СБД, 1-р хороо, Олимпийн гудамж-15, ITC Tower, 11 давхар\n☎️ 7505-1055"
+        "default": "📍 ХАЯГ, БАЙРШИЛ\n\nСБД, 1-р хороо,\nОлимпийн гудамж-15,\nITC Tower, 11 давхар\n\n☎️ Утас: 7505-1055"
       }
     },
     {
@@ -220,17 +220,17 @@
           "sonirhij bn",    "ai_business", "ymar surgalt"
       ],
       "answers": {
-        "default": "Хиймэл оюун ухааныг бизнестээ нэвтрүүлэх 6 долоо хоногийн хөтөлбөр:\n\n🧡 AI Agents (Claude & Бүтээмж): 2 өдрийн ажлыг 3 минут болгох AI туслах болон автомат workflow бүтээж сурна. Даваа, Лхагва | 12:00–13:30\n\n💚 AI for Business (FB Автоматжуулалт): Сошиал чат, захиалгыг 24/7 ажиллуулах Facebook AI систем бүтээнэ. Мягмар, Пүрэв | 07:30–09:00\n\nITU AI Skills Coalition-ийн олон улсын батламжтай.\n\n💰 Үнэ: 2,880,000₮ (20% хөнгөлөлттэй | Storepay боломжтой)\n\nБүртгүүлэх холбоос: https://www.ai-academy.asia/ai-acceleration.html#register"
+        "default": "🎓 СУРГАЛТЫН МЭДЭЭЛЭЛ\n\nХиймэл оюун ухааныг бизнестээ нэвтрүүлэх 6 долоо хоногийн хоёр хөтөлбөрөөс сонгоорой.\n\n🧡 AI AGENTS — CLAUDE & БҮТЭЭМЖ\n• 2 өдрийн ажлыг 3 минутад хийх AI туслах болон автомат workflow бүтээнэ.\n• Хуваарь: Даваа, Лхагва · 12:00–13:30\n\n💚 AI FOR BUSINESS — FACEBOOK АВТОМАТЖУУЛАЛТ\n• Сошиал чат, контент, захиалгыг 24/7 ажиллуулах Facebook AI систем бүтээнэ.\n• Хуваарь: Мягмар, Пүрэв · 07:30–09:00\n\n🏅 ITU AI Skills Coalition-ийн олон улсын батламжтай.\n💰 20% хөнгөлөлттэй үнэ: 2,880,000₮\n🛍 Storepay боломжтой.\n\n🔎 Аль хөтөлбөр танд тохирохыг харах:\nhttps://www.ai-academy.asia/ai-acceleration.html\n\n📝 Бүртгүүлэх:\nhttps://www.ai-academy.asia/ai-acceleration.html#register\n\n📄 Мөн хөтөлбөрүүдийн брошуртай танилцаарай."
       }
     },
     {
       "id": "result",
       "examples": ["vr dvn", "ur dun","ur dvn", "үр дүн", "yu surah", "yamar ym zaah ve", "yamar hicheel oroh ve", 
-      "үр дүнтэй", "her vr dvntei", "yamar medleg olj avah", "yu surah ve", 
-      "yamar ym zaah ve", "юу сурах", "ямар хичээл", "юу сурах",  "ямар юм заах",  
+      "үр дүнтэй", "her vr dvntei", "yamar medleg olj avah", "yu surah ve", "юу сурах вэ", "юу заах вэ", "yu zaah ve", 
+      "yamar ym zaah ve", "юу сурах", "ямар хичээл", "юу сурах",  "ямар юм заах", "хичээлээр юу заах вэ",  "ymar ym surah ve", 
       "vr dvntei yu", "ymar medleg olj avah ve", "ямар мэдлэг олж авах", "ямар чадвар эзэмших", "vr dv her", "ymar medleg"  ],
       "answers": {
-        "default": "AI Agents: Гол үр дүн (Highlight): Компанидаа Anthropic Claude-д суурилсан AI агент болон Хүний нөөцийн (HR) бүрэн автоматжуулалтын систем нэвтрүүлнэ.\nАжилт сонгон шалгаруулах, анкетад дүн шинжилгээ хийх, онбординг процессоос эхлээд дотоод сургалтыг AI-аар автоматжуулах.\nБайгууллагын датад суурилан орлого өсгөх стратегийн шийдвэрүүдийг Claude AI ашиглан гаргах.\nAI for Business: Гол үр дүн (Highlight): Суралцагч бүр өөрийн бизнест зориулсан Facebook-ийн бүрэн циклийн AI автоматжуулалт угсарна.\nAI контент бэлтгэх болон автоматаар сошиалд түгээх.\nЧатботоор дамжуулан хэрэглэгчийн асуултад 24/7 хариулж, борлуулалт хаах, лид цуглуулах."
+        "default": "🎯 ХӨТӨЛБӨРИЙН ҮР ДҮН\n\n🧡 AI AGENTS\n• Anthropic Claude-д суурилсан AI агент бүтээж, компанидаа нэвтрүүлнэ.\n• Ажилтан сонгон шалгаруулалт, анкетын шинжилгээ, онбординг болон дотоод сургалтыг автоматжуулна.\n• Байгууллагын датад суурилан орлого өсгөх стратегийн шийдвэр гаргана.\n\n💚 AI FOR BUSINESS\n• Бизнестээ зориулсан Facebook-ийн бүрэн циклийн AI автоматжуулалт угсарна.\n• AI контент бэлтгэж, сошиал сувгуудад автоматаар түгээнэ.\n• Чатботоор хэрэглэгчдэд 24/7 хариулж, борлуулалт хаах ур чадвар эзэмшинэ.\n\n🔎 Аль хөтөлбөр танд тохирохыг харах:\nhttps://www.ai-academy.asia/ai-acceleration.html\n\n📄 Мөн хөтөлбөрүүдийн брошуртай танилцаарай."
       }
     },
     {
@@ -273,14 +273,336 @@
         "hutulburt yamar hicheeluud bagtdag ve"
       ],
       "answers": {
-        "default": "Багшлах бүрэлдэхүүн: Стэнфорд, Оксфорд, Бостоны Их Сургуульд академик болон практик туршлага хуримтлуулсан багш нар.\nБүтэц: Нийт 6 долоо хоног | 14 Лайв хичээл (Монгол хэлээр) + 3-р долоо хоногт Офлайн воркшоп + Capstone төслийн хамгаалалт ба Арга хэмжээ.\nГол концепц: \"Зөвхөн онол биш. Бодит нэвтрүүлэлт.\" (Суралцагчид онол үзэх биш, өөрийн бизнест шууд ажиллах AI систем бүтээж төгсөнө)."
+        "default": "📚 СУРГАЛТЫН БҮТЭЦ\n\n👩‍🏫 БАГШЛАХ БҮРЭЛДЭХҮҮН\nСтэнфорд, Оксфорд, Бостоны их сургуульд академик болон практик туршлага хуримтлуулсан багш нар.\n\n🗓 ХӨТӨЛБӨРИЙН БҮТЭЦ\n• Нийт 6 долоо хоног\n• Монгол хэлээр 14 лайв хичээл\n• 3-р долоо хоногт офлайн воркшоп\n• Capstone төслийн хамгаалалт болон арга хэмжээ\n\n💡 ГОЛ ЗАРЧИМ\n“Зөвхөн онол биш. Бодит нэвтрүүлэлт.”\nТа өөрийн бизнест шууд ашиглах AI систем бүтээж төгсөнө.\n\n🔎 Аль хөтөлбөр танд тохирохыг харах:\nhttps://www.ai-academy.asia/ai-acceleration.html\n\n📄 Мөн хөтөлбөрүүдийн брошуртай танилцаарай."
+      }
+    },
+    {
+      "id": "program_difference",
+      "examples": [
+      "ямар ялгаатай вэ",
+"ямар ялгаатай",
+"юугаараа ялгаатай вэ",
+"юугаараа ялгаатай",
+"хоорондоо ямар ялгаатай вэ",
+"хоорондоо ямар ялгаатай",
+"хоёр сургалт юугаараа ялгаатай вэ",
+"хоёр сургалт ямар ялгаатай вэ",
+"хоёр сургалтын ялгаа юу вэ",
+"хоёр сургалтын хооронд ямар ялгаа байна вэ",
+"сургалтуудын ялгаа юу вэ",
+"сургалтууд юугаараа ялгаатай вэ",
+"хөтөлбөрүүдийн ялгаа юу вэ",
+"хөтөлбөрүүд юугаараа ялгаатай вэ",
+"хөтөлбөрийн ялгаа юу вэ",
+"энэ хоёр юугаараа ялгаатай вэ",
+"энэ хоёр ямар ялгаатай вэ",
+"энэ хоёрын ялгаа юу вэ",
+"энэ хоёр юугаараа өөр вэ",
+"юугаараа өөр вэ",
+"ямар өөр вэ",
+"ямар ялгаа байна вэ",
+"ялгаа нь юу вэ",
+"ялгаа юу вэ",
+"ялгаа нь юу",
+"ялгаа",
+"аль нь юугаараа ялгаатай вэ",
+"аль аль нь юугаараа ялгаатай вэ",
+"хоёрын ялгаа юу вэ",
+"энэ хоёрын хооронд ямар ялгаа байна вэ",
+"хоёр хөтөлбөрийн ялгаа юу вэ",
+"хоёр курсийн ялгаа юу вэ",
+"хоёр сургалт юугаараа өөр вэ",
+"сургалт хоорондоо юугаараа өөр вэ",
+"хөтөлбөр хоорондоо юугаараа өөр вэ",
+"AI Agents AI for Business хоёрын ялгаа",
+"AI Agents болон AI for Business хоёрын ялгаа",
+"AI Agents, AI for Business ялгаа юу вэ",
+"AI Agents ба AI for Business юугаараа ялгаатай вэ",
+"AI Agents болон AI for Business юугаараа өөр вэ",
+
+"ymar ylgaatai ve",
+"ymar ylgaatai",
+"yugaaraa ylgaatai ve",
+"yugaaraa ylgaatai",
+"hoorondoo yamar ylgaatai ve",
+"hoorondoo yamar ylgaatai",
+"hoyor surgalt yugaaraa ylgaatai ve",
+"hoyor surgalt yamar ylgaatai ve",
+"hoyor surgaltin ylgaa yu ve",
+"hoyor surgalt hoorondoo yamar ylgaatai ve",
+"surgaltuudiin ylgaa yu ve",
+"surgaltuud yugaaraa ylgaatai ve",
+"hutulburuudiin ylgaa yu ve",
+"hutulburuud yugaaraa ylgaatai ve",
+"hutulburiin ylgaa yu ve",
+"ene hoyor yugaaraa ylgaatai ve",
+"ene hoyor yamar ylgaatai ve",
+"ene hoyorin ylgaa yu ve",
+"ene hoyor yugaaraa oor ve",
+"yugaaraa oor ve",
+"yamar ylgaatai ve",
+"ylgaa ni yu ve",
+"ylgaa yu ve",
+"ylgaa ni yu",
+"ylgaa",
+"ali ni yugaaraa ylgaatai ve",
+"ali ali ni yugaaraa ylgaatai ve",
+"hoyoriin ylgaa yu ve",
+"ene hoyorin hoorond yamar ylgaa baina ve",
+"hoyor hutulburiin ylgaa yu ve",
+"hoyor kursiin ylgaa yu ve",
+"hoyor surgalt yugaaraa oor ve",
+"surgalt hoorondoo yugaaraa oor ve",
+"hutulbur hoorondoo yugaaraa oor ve",
+"AI Agents AI for Business ylgaa",
+"AI Agents bolon AI for Business hoyorin ylgaa",
+"AI Agents AI for Business ylgaa yu ve",
+"AI Agents ba AI for Business yugaaraa ylgaatai ve",
+"AI Agents bolon AI for Business yugaaraa oor ve"
+      ],
+      "answers": {
+        "default": "🔎 ХӨТӨЛБӨРҮҮДИЙН ЯЛГАА\n\n🧡 AI AGENTS\nОффисын давтагддаг ажлууд, PDF, Excel, тайлан, имэйл болон workflow-г Claude AI ашиглан автоматжуулахад төвлөрнө.\n\n💚 AI FOR BUSINESS\nFacebook контент, хэрэглэгчийн чат, захиалга болон борлуулалтын процессыг 24/7 автоматжуулахад төвлөрнө.\n\nТовчхондоо:\n• Дотоод ажил, бүтээмжээ автоматжуулах бол — AI Agents\n• Сошиал борлуулалтаа автоматжуулах бол — AI for Business"
+      }
+    },
+    {
+      "id": "kids_training",
+      "examples": [
+      "хүүхдийн сургалт байна уу",
+"хүүхдийн сургалт байгаа юу",
+"хүүхдэд зориулсан сургалт уу",
+"хүүхдэд зориулсан сургалт байна уу",
+"хүүхдэд зориулсан анги байна уу",
+"хүүхэд хамрагдаж болох уу",
+"хүүхэд суралцаж болох уу",
+"хүүхэд элсэж болох уу",
+"хүүхдээ сургаж болох уу",
+"хүүхдээ хамруулж болох уу",
+"хүүхдээ бүртгүүлж болох уу",
+"хэдэн настай хүүхэд хамрагдах вэ",
+"хэдэн наснаас хүүхэд хамрагдах вэ",
+"хэдэн насны хүүхэд авах вэ",
+"хүүхэд хэдэн настай байх ёстой вэ",
+"насны шаардлага байна уу",
+"хүүхдийн насны хязгаар хэд вэ",
+"өсвөр насныханд зориулсан уу",
+"өсвөр насны хүүхэд хамрагдаж болох уу",
+"сурагч хамрагдаж болох уу",
+"сурагчид зориулсан сургалт уу",
+"сурагчдад зориулсан анги байна уу",
+"сурагч хүүхэд хамрагдаж болох уу",
+"хүүхдийн анги байгаа юу",
+"хүүхдийн анги байна уу",
+"хүүхдэд зориулсан анги байгаа юу",
+"бага насны хүүхэд хамрагдах уу",
+"бага насны хүүхдэд тохирох уу",
+"дунд ангийн хүүхэд хамрагдах уу",
+"ахлах ангийн хүүхэд хамрагдах уу",
+"сургуулийн хүүхэд хамрагдаж болох уу",
+"сургуулийн сурагч хамрагдаж болох уу",
+"хүүхэд сурах боломжтой юу",
+"хүүхдүүдэд заах уу",
+"хүүхдүүдэд зориулсан уу",
+"хүүхдэд заах сургалт уу",
+"хүүхдийн программчлалын сургалт байна уу",
+"хүүхдэд зориулсан программчлалын сургалт уу",
+"хүүхдийн AI сургалт байна уу",
+"хүүхдэд зориулсан AI сургалт уу",
+
+"hvvhdiin surgalt",
+"huuhdiin surgalt",
+"huuhdiin surgalt baina uu",
+"huuhdiin surgalt baigaa yu",
+"huuhdiin surgalt bna uu",
+"huuhded zoriulsan surgalt uu",
+"huuhded zoriulsan surgalt baina uu",
+"huuhded zoriulsan angi baina uu",
+"huuhed hamragdaj boloh uu",
+"huuhed suraltsaj boloh uu",
+"huuhed elsej boloh uu",
+"huuhed surah bolomjtoi yu",
+"huuhdee surgaj boloh uu",
+"huuhdee hamruulj boloh uu",
+"huuhdee burtguulj boloh uu",
+"heden nastai huuhed hamragdah ve",
+"heden nasnaas huuhed hamragdah ve",
+"heden nastai huuhed avah ve",
+"huuhed heden nastai baih yostoi ve",
+"nasnii shaardlaga baina uu",
+"huuhdiin nasnii hyazgaar hed ve",
+"osvor nasnihand zoriulsan uu",
+"osvor nasnii huuhed hamragdaj boloh uu",
+"suragch hamragdaj boloh uu",
+"suragchdad zoriulsan surgalt uu",
+"suragchdad zoriulsan angi baina uu",
+"suragch huuhed hamragdaj boloh uu",
+"huuhdiin angi baigaa yu",
+"huuhdiin angi baina uu",
+"huuhded zoriulsan angi baigaa yu",
+"bag nasnii huuhed hamragdah uu",
+"bag nasnii huuheded tohiroh uu",
+"dund angiyn huuhed hamragdah uu",
+"ahlah angiyn huuhed hamragdah uu",
+"surguuliin huuhed hamragdaj boloh uu",
+"surguuliin suragch hamragdaj boloh uu",
+"huuhed surah bolomjtoi yu",
+"huuhduuded zaah uu",
+"huuhduuded zoriulsan uu",
+"huuhded zaah surgalt uu",
+"huuhdiin programchlaliin surgalt baina uu",
+"huuhded zoriulsan programchlaliin surgalt uu",
+"huuhdiin AI surgalt baina uu",
+"huuhded zoriulsan AI surgalt uu"
+      ],
+      "answers": {
+        "default": "👤 НАСНЫ АНГИЛАЛ\n\nЭнэ удаагийн хөтөлбөр насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\nХүүхдэд зориулсан хөтөлбөр маань удахгүй зарлагдах тул та хүлээж байгаарай."
+      }
+    },
+    {
+      "id": "program_recommendation",
+      "examples": [
+   "аль нь зүгээр вэ",
+"аль нь дээр вэ",
+"аль нь сайн вэ",
+"аль нь илүү дээр вэ",
+"аль нь илүү зүгээр вэ",
+"аль нь надад дээр вэ",
+"аль сургалтыг сонгох вэ",
+"аль сургалт сонгох вэ",
+"аль сургалтаа сонгох вэ",
+"надад аль нь тохирох вэ",
+"надад аль сургалт тохирох вэ",
+"надад аль нь дээр вэ",
+"надад аль нь зүгээр вэ",
+"ямар хөтөлбөр сонгох вэ",
+"ямар сургалт сонгох вэ",
+"аль хөтөлбөрийг сонгох вэ",
+"аль хөтөлбөр сонгох вэ",
+"хоёроос алийг нь сонгох вэ",
+"хоёроос аль нь дээр вэ",
+"хоёроос аль нь зүгээр вэ",
+"хоёроос аль нь тохирох вэ",
+"аль сургалтад суувал дээр вэ",
+"аль сургалтад суух вэ",
+"аль сургалтад хамрагдвал дээр вэ",
+"аль сургалтад хамрагдах вэ",
+"аль сургалтанд суувал дээр вэ",
+"аль нь илүү тохиромжтой вэ",
+"аль нь тохиромжтой вэ",
+"надад аль нь илүү тохиромжтой вэ",
+"ямар сургалт надад тохирох вэ",
+"аль сургалт надад тохирох вэ",
+"аль нь надад тохиромжтой вэ",
+"аль сургалтыг санал болгох вэ",
+"аль сургалт нь дээр вэ",
+"аль хөтөлбөр нь дээр вэ",
+"аль хөтөлбөр нь тохиромжтой вэ",
+"сонгоход аль нь дээр вэ",
+"аль нь сонговол дээр вэ",
+"аль нь сонговол зүгээр вэ",
+"аль дээр вэ",
+"аль зүгээр вэ",
+"аль нь илүү сайн бэ",
+
+"ali ni zugeer ve",
+"ali ni deer ve",
+"ali ni sain ve",
+"ali ni iluu deer ve",
+"ali ni iluu zugeer ve",
+"ali ni nadad deer ve",
+"ali surgaltiig songoh ve",
+"ali surgalt songoh ve",
+"ali surgalt aa songoh ve",
+"nadad ali ni tohiroh ve",
+"nadad ali surgalt tohiroh ve",
+"nadad ali ni deer ve",
+"nadad ali ni zugeer ve",
+"yamar hutulbur songoh ve",
+"yamar surgalt songoh ve",
+"ali hutulburiig songoh ve",
+"ali hutulbur songoh ve",
+"hoyoroos aliig ni songoh ve",
+"hoyoroos ali ni deer ve",
+"hoyoroos ali ni zugeer ve",
+"hoyoroos ali ni tohiroh ve",
+"ali surgaltad suuval deer ve",
+"ali surgaltad suuh ve",
+"ali surgaltad hamragdval deer ve",
+"ali surgaltad hamragdah ve",
+"ali ni iluu tohiromjtoi ve",
+"ali ni tohiromjtoi ve",
+"nadad ali ni iluu tohiromjtoi ve",
+"yamar surgalt nadad tohiroh ve",
+"ali surgalt nadad tohiroh ve",
+"ali ni nadad tohiromjtoi ve",
+"ali surgaltig sanal bolgoh ve",
+"ali surgalt ni deer ve",
+"ali hutulbur ni deer ve",
+"ali hutulbur ni tohiromjtoi ve",
+"songohod ali ni deer ve",
+"ali ni songovol deer ve",
+"ali ni songovol zugeer ve",
+"ali deer ve",
+"ali zugeer ve"
+
+      ],
+      "answers": {
+        "default": "💡 Танд АЛЬ ХӨТӨЛБӨР ТОХИРОХ ВЭ?\n\n🧡 AI AGENTS-ИЙГ СОНГОХ БОЛ:\n• PDF, Excel, тайлан, имэйлтэй тогтмол ажилладаг\n• Давтагддаг оффисын ажлаа автоматжуулахыг хүсдэг\n• Өөрийн AI Agent болон workflow бүтээх зорилготой\n\n💚 AI FOR BUSINESS-ИЙГ СОНГОХ БОЛ:\n• Facebook-ээр бүтээгдэхүүн, үйлчилгээ борлуулдаг\n• Контент, чат, захиалгаа автоматжуулахыг хүсдэг\n• 24/7 ажиллах борлуулалтын систем бүтээх зорилготой\n\n.\n\n🔎 Дэлгэрэнгүй мэдээлэл болон танд аль хөтөлбөр тохирох тестийг эндээс:\nhttps://www.ai-academy.asia/ai-acceleration.html\n\n📄 AI Agents брошур:\nhttps://ai-academy.asia/chatbot-api/brochures/AI-Agents-brochure.pdf\n\n📄 AI for Business брошур:\nhttps://ai-academy.asia/chatbot-api/brochures/AI-for-Business-brochure.pdf"
       }
     },
     {
       "id": "age_limit",
-      "examples": ["nasnii hayzgaar", "насны хязгаар"],
+      "examples": [
+        "насны хязгаар",
+        "хэдэн настай хүн",
+        "хэдэн настай хүн хамрагдах вэ",
+        "хэдэн наснаас хамрагдах вэ",
+        "хэдэн наснаас эхлэх вэ",
+        "хэдэн настай хүн бүртгүүлж болох вэ",
+        "хэдэн настай хүн суралцаж болох вэ",
+        "хэдэн ч настай хүн",
+        "хэдэн настай ч хүн",
+        "насны доод хязгаар",
+        "насны дээд хязгаар",
+        "насны хязгаар байгаа юу",
+        "насны шаардлага байгаа юу",
+        "насны хязгаар хэд вэ",
+        "нас заасан уу",
+        "насны босго хэд вэ",
+        "нас хамаарах уу",
+        "нас хамаатай юу",
+        "насны ялгаа байна уу",
+      
+        "nasnii hayzgaar",
+        "nasnii shaardlaga",
+        "heden nastai hun",
+        "heden nastai hun hamragdah ve",
+        "heden nasnaas hamragdah ve",
+        "heden nasnaas ehleh ve",
+        "heden nasnii hun hamragdah ve",
+        "heden nastai hun burtguulj boloh ve",
+        "heden nastai hun suraltsaj boloh ve",
+        "heden nastai hun surah ve",
+        "heden ch nastai hun",
+        "heden nastai ch hun",
+        "nasnii dood hyazgaar",
+        "nasnii deed hyazgaar",
+        "nasnii hyazgaar baigaa yu",
+        "nasnii shaardlaga baigaa yu",
+        "nasnii hyazgaar hed ve",
+        "nas zaasan uu",
+        "nas hamaarah uu",
+        "nas hamaatai yu",
+        "nasnii yalgaa baina uu",
+  
+        "heden ch nastai hun",
+        "heden ch nastai hvn",
+        "heddtei hvn",
+        "nasnii hayzgaar baina uu",
+        "nasnii hyazgaar bna uu",
+        "nasnii shaardlaga bna uu"
+      ],
       "answers": {
-        "default": "18-аас дээш"
+        "default": "👤 НАСНЫ ХЯЗГААР\n\nСургалт 18-аас дээш насныханд тохиромжтой."
       }
     },
     {
@@ -332,18 +654,18 @@
         "burtguuleh sonirholtoi bna"
       ],
       "answers": {
-        "default": "Хөтөлбөр 9 сарын 25-нд эхэлнэ, Бүртгүүлэх холбоос: https://www.ai-academy.asia/ai-acceleration.html#register"
+        "default": "📝 БҮРТГЭЛ\n\n📅 Хөтөлбөр эхлэх: 9-р сарын 25\n\nБүртгүүлэх холбоос:\nhttps://www.ai-academy.asia/ai-acceleration.html#register"
       }
     },
     {
       "id": "schedule",
       "examples": [
-        "цагийн хуваарь",
-        "цагийн хуваарь хэд вэ",
-        "хичээлийн цагийн хуваарь",
-        "сургалтын цагийн хуваарь",
-        "сургалтын цаг",
-        "7 хоногт хэдэн өдөр вэ",
+        "цагийн хуваарь", "tsagiin huvaari", "hicheelleh udur", "hicheeliin tsag", 
+        "цагийн хуваарь хэд вэ", "tsagiin huvaari ni ", "tsagin huvaari", "tsagiin huwaari", 
+        "хичээлийн цагийн хуваарь", "heddeh udur", "amraltiin udruur", 
+        "сургалтын цагийн хуваарь", 
+        "сургалтын цаг", "ymar huvaariar", "hed heddeh udur", "heddeh udur", "tsag ni ymar", "huvaari", "heden tsagaas", "ажлаа тараад", "оройн цагаар", 
+        "7 хоногт хэдэн өдөр вэ","хэдэн цагаас", "ямар өдрүүдэд", "heddeh udruuded", "хэддэх өдрүүдэд", "хэддэхэд", "хэддэх өдөр", "ямар хуваариар", "хэдэн цагаас", "ямар өдрүүдэд", "хэддэх өдөр", 
         "долоо хоногт хэдэн өдөр вэ",
         "7 хоногийн хэдэн өдөр вэ",
         "долоо хоногийн хэдэн өдөр вэ",
@@ -353,7 +675,6 @@
         "сургалт долоо хоногт хэдэн өдөр вэ",
         "сургалт хэдэн өдөр вэ",
         "хэдэн өдөр хичээллэх вэ",
-        "хэдэн өдөр сургалттай вэ",
         "tsagiin huvaari",
         "tsagiin huvaari hed ve",
         "surgaltiin tsagiin huvaari",
@@ -374,7 +695,7 @@
         "heden udur hicheelleh ve"
       ],
       "answers": {
-        "default": "AI Agents: Даваа, Лхагва · 12:00–13:30\nAI for Business: Мягмар, Пүрэв · 07:30–09:00, 6 долоо хоног хичээллэнэ."
+        "default": "🗓 СУРГАЛТЫН ХУВААРЬ\n\n🧡 AI AGENTS\nДаваа, Лхагва · 12:00–13:30\n\n💚 AI FOR BUSINESS\nМягмар, Пүрэв · 07:30–09:00\n\n⏱ Үргэлжлэх хугацаа: 6 долоо хоног"
       }
     },
     {
@@ -414,7 +735,293 @@
         "ehleh hugatsaa"
       ],
       "answers": {
-        "default": "Хөтөлбөр 9-р сарын 25-нд эхэлнэ."
+        "default": "📅 ЭХЛЭХ ОГНОО\n\nХөтөлбөр 9-р сарын 25-нд эхэлнэ."
+      }
+    },
+    {
+      "id": "training_format",
+      "examples": [
+        "танхимаар хичээллэх үү",
+"tanhimaar hicheelleh uu",
+
+"онлайнаар хичээллэх үү",
+"onlainaар hicheelleh uu",
+"online aar hicheelleh uu",
+"onlinaar hicheelleh uu",
+"onlainaar hicheelleh uu",
+
+"сургалтын хэлбэр",
+"surgaltiin helber",
+
+"сургалт ямар хэлбэрээр",
+"surgalt yamar helbereer",
+
+"танхим онлайн аль нь вэ",
+"tanhim online ali ni ve",
+
+"танхим уу онлайн уу",
+"tanhim uu online uu",
+
+"танхим эсвэл онлайн уу",
+"tanhim esvel online uu",
+
+"танхимын сургалт уу",
+"tanhimiin surgalt uu",
+
+"танхимынх уу",
+"tanhimiinh uu",
+
+"танхимаар уу",
+"tanhimaar uu",
+
+"танхимаар хичээллэх үү",
+"tanhimaar hicheelleh uu",
+
+"танхимаар хичээллэх үү",
+"tanhimaar hicheelleh uu",
+
+"танхимаар хичээллэдэг үү",
+"tanhimaar hicheelldeg uu",
+
+"танхимаар явагдах уу",
+"tanhimaar yavagdah uu",
+
+"танхимд явагдах уу",
+"tanhimd yavagdah uu",
+
+"танхимд хичээллэх үү",
+"tanhimd hicheelleh uu",
+
+"танхимд хичээл ордог уу",
+"tanhimd hicheel ordog uu",
+
+"онлайн сургалт уу",
+"online surgalt uu",
+
+"онлайн сургалт байгаа юу",
+"online surgalt baigaa yu",
+
+"онлайн анги байна уу",
+"online angi baina uu",
+
+"онлайн анги байгаа юу",
+"online angi baigaa yu",
+
+"онлайнаар сурах уу",
+"online aar surah uu",
+
+"онлайнаар суралцах уу",
+"online aar suraltsah uu",
+
+"онлайнаар хичээллэх үү",
+"online aar hicheelleh uu",
+
+"онлайнаар хичээл ордог уу",
+"online aar hicheel ordog uu",
+
+"онлайнаар явагдах уу",
+"online aar yavagdah uu",
+
+"онлайнаар явах уу",
+"online aar yavah uu",
+
+"сургалт онлайнаар явагдах уу",
+"surgalt online aar yavagdah uu",
+
+"сургалт онлайнаар явах уу",
+"surgalt online aar yavah uu",
+
+"сургалт онлайн явах уу",
+"surgalt online yavah uu",
+
+"онлайн сургалт явуулах уу",
+"online surgalt yavuulah uu",
+
+"онлайн хичээл байгаа юу",
+"online hicheel baigaa yu",
+
+"онлайн хичээл ордог уу",
+"online hicheel ordog uu",
+
+"зайнаас суралцаж болох уу",
+"zaigaas suraltsaj boloh uu",
+
+"зайнаас сурах боломжтой юу",
+"zaigaas surah bolomjtoi yu",
+
+"зайнаас суралцах боломжтой юу",
+"zaigaas suraltsah bolomjtoi yu",
+
+"зайнаас хамрагдаж болох уу",
+"zaigaas hamragdaj boloh uu",
+
+"зайнаас хамрагдах боломжтой юу",
+"zaigaas hamragdah bolomjtoi yu",
+
+"зайнаас сурах",
+"zaigaas surah",
+
+"зайнаас суралцах",
+"zaigaas suraltsah",
+
+"зайнаас хамрагдах",
+"zaigaas hamragdah",
+
+"зайнаас хичээллэх үү",
+"zaigaas hicheelleh uu",
+
+"зайнаас хичээллэж болох уу",
+"zaigaas hicheellej boloh uu",
+
+"гэрээсээ сурах боломжтой юу",
+"geresee surah bolomjtoi yu",
+
+"гэрээсээ хичээллэх үү",
+"geresee hicheelleh uu",
+
+"цахимаар сурах уу",
+"tsahimaar surah uu",
+
+"цахимаар суралцах уу",
+"tsahimaar suraltsah uu",
+
+"цахимаар хичээллэх үү",
+"tsahimaar hicheelleh uu",
+
+"цахимаар хичээллэдэг үү",
+"tsahimaar hicheelldeg uu",
+
+"цахим сургалт уу",
+"tsahim surgalt uu",
+
+"цахим анги байна уу",
+"tsahim angi baina uu",
+
+"танхим болон онлайн хосолсон уу",
+"tanhim bolon online hosolson uu",
+
+"танхим онлайн хосолсон уу",
+"tanhim online hosolson uu",
+
+"танхим онлайн хосолсон сургалт уу",
+"tanhim online hosolson surgalt uu",
+
+"танхим, онлайн аль аль нь байна уу",
+"tanhim online ali ali ni baina uu",
+
+"хоёулаа байгаа юу",
+"hoyulaa baigaa yu",
+
+"танхим болон онлайн аль аль нь байгаа юу",
+"tanhim bolon online ali ali ni baigaa yu",
+
+"танхимаар эсвэл онлайнаар уу",
+"tanhimaar esvel online aar uu",
+
+"танхимаар юм уу онлайнаар юм уу",
+"tanhimaar yum uu online aar yum uu",
+
+"танхим уу онлайн уу",
+"tanxim uu online uu",
+
+"танхимынх уу",
+"tanximiinh uu",
+
+"танхимаар",
+"tanxmaar",
+
+"танхимд",
+"tanximd",
+
+"онлайнаар юм уу",
+"onlainaar yum uu",
+
+"онлайнаар уу",
+"onlainaar uu",
+
+"онлайн уу",
+"online uu",
+
+"онлайн юм уу",
+"online yum uu",
+
+"сургалт танхимаар явагдах уу",
+"surgalt tanhimaar yavagdah uu",
+
+"сургалт танхимаар явах уу",
+"surgalt tanhimaar yavah uu",
+
+"сургалт танхимд явагдах уу",
+"surgalt tanhimd yavagdah uu",
+
+"сургалт ямар хэлбэртэй вэ",
+"surgalt yamar helbertei ve",
+
+"сургалт ямар хэлбэрээр явагдах вэ",
+"surgalt yamar helbereer yavagdah ve",
+
+"хичээл ямар хэлбэрээр явагдах вэ",
+"hicheel yamar helbereer yavagdah ve",
+
+"хичээл танхимаар уу",
+"hicheel tanhimaar uu",
+
+"хичээл онлайнаар уу",
+"hicheel online aar uu",
+
+"хичээл онлайн уу",
+"hicheel online uu",
+
+"хичээл зайнаас уу",
+"hicheel zaigaas uu",
+
+"хичээл биеэр орох уу",
+"hicheel bieer oroh uu",
+
+"хичээлд биеэр суух уу",
+"hicheeld bieer suuh uu",
+
+"биеэр хичээллэх үү",
+"bieer hicheelleh uu",
+
+"биеэр очиж сурах уу",
+"bieer ochij surah uu",
+
+"сургалтанд биеэр суух уу",
+"surgalttand bieer suuh uu",
+
+"онлайнаар хамрагдаж болох уу",
+"online aar hamragdaj boloh uu",
+
+"онлайнаар хамрагдах боломжтой юу",
+"online aar hamragdah bolomjtoi yu",
+
+"онлайнд хамрагдаж болох уу",
+"online-d hamragdaj boloh uu",
+
+"онлайн хичээлд хамрагдаж болох уу",
+"online hicheeld hamragdaj boloh uu",
+
+"зайнаас хамрагдаж",
+"zaigaas hamragdaj",
+
+"зайнаас сурж",
+"zaigaas surj",
+
+"онлайн анги",
+"online angi",
+
+"сургалт онлайн",
+"surgalt online",
+
+"сургалт танхим",
+"surgalt tanhim",
+
+"танхим онлайн",
+"tanhim online"
+      ],
+      "answers": {
+        "default": "💻 СУРГАЛТЫН ХЭЛБЭР\n\nСургалт танхим болон онлайн хосолсон хэлбэрээр явагдана.\n\n🏫 ТАНХИМААР\n• Нээлтийн арга хэмжээ\n• Workshop\n• Capstone төслийн хамгаалалт\n\n💻 ОНЛАЙНААР\n• Үндсэн хичээлүүд"
       }
     },
     {
@@ -435,13 +1042,13 @@
         "програмчлалын мэдлэг шаардлагатай юу",
         "код мэдэхгүй бол болох уу",
         "код мэдэхгүй хүн хамрагдаж болох уу",
-        "анхан шатнаас заах уу",
-        "анхан шатнаас заадаг уу",
-        "анхан шатнаас эхлэх үү",
-        "сууриас нь заах уу",
-        "суурь мэдлэг шаардлагатай юу",
+        "анхан шатнаас заах уу","yu ch medehgui ", "ym medehgui",  
+        "анхан шатнаас заадаг уу", "programiin medleggui", "program zaalgaj baigaagui", 
+        "анхан шатнаас эхлэх үү", "kod medehgui", "kod chadahgui", "kod bichdeggui", 
+        "сууриас нь заах уу", "code medehgui", "code bichij chadahgui", "code bichdeggui", 
         "ямар нэгэн суурь мэдлэг хэрэгтэй юу",
-        "ямар ч мэдлэггүй хүн хамрагдаж болох уу",
+        "ямар ч мэдлэггүй хүн хамрагдаж болох уу", "юм мэдэхгүй", "код мэдэхгүй", "сурч байгаагүй ", 
+        "ямар ч суурь байхгүй", "ямар ч юм мэдэхгүй", "юу ч сурч байгаагүй", 
         "ямар ч суурь мэдлэггүй хүн болох уу",
         "өмнө нь мэдлэгтэй байх шаардлагатай юу",
         "өмнө нь код бичиж байсан байх ёстой юу",
@@ -476,7 +1083,7 @@
         "anhlaгч suraltsagch hamragdaj boloh uu"
       ],
       "answers": {
-        "default": "Англи хэл болон программчлалын ямар нэгэн суурь мэдлэг шаардахгүй. Бид танд сууриас нь эхлэн заах болно."
+        "default": "🌱 УРЬДЧИЛСАН МЭДЛЭГ\n\nАнгли хэл болон программчлалын суурь мэдлэг шаардахгүй.\n\n✅ Анхан шатнаас эхэлнэ\n✅ Код бичиж үзээгүй хүн хамрагдах боломжтой\n✅ Бүх хичээл монгол хэлээр явагдана"
       }
     }
   ]
