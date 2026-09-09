@@ -462,8 +462,42 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
+  const eventType = event.message
+    ? event.message.is_echo
+      ? 'echo'
+      : event.message.is_deleted
+        ? 'message_deleted'
+        : 'message'
+    : event.postback
+      ? 'postback'
+      : event.read
+        ? 'read'
+        : event.delivery
+          ? 'delivery'
+          : event.reaction
+            ? 'reaction'
+            : 'unknown'
+
   if (event.message?.is_echo) {
     console.log('Messaging event ignored: echo', {
+      channel: object,
+      senderId: event.sender.id,
+    })
+    return
+  }
+
+  if (!event.message && !event.postback) {
+    console.log('Messaging event ignored: no actionable message', {
+      channel: object,
+      senderId: event.sender.id,
+      eventType,
+      eventKeys: Object.keys(event),
+    })
+    return
+  }
+
+  if (event.message?.is_deleted) {
+    console.log('Messaging event ignored: deleted message', {
       channel: object,
       senderId: event.sender.id,
     })
@@ -476,6 +510,7 @@ async function handleMessagingEvent(object, event) {
   console.log('Incoming user message:', {
     channel: object,
     senderId,
+    eventType,
     text: event.message?.text || null,
     payload: payload || null,
     attachments: event.message?.attachments?.map(attachment => attachment.type) || [],
