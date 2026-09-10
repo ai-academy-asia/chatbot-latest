@@ -7,6 +7,7 @@ const path = require('node:path')
 const { readFile } = require('node:fs/promises')
 const { randomUUID: uuidv4 } = require('node:crypto')
 const { classifyIntent, warmIntentClassifier } = require('./intent-classifier')
+const { answerWithRag, warmRag } = require('./rag')
 const {
   initializeDatabase,
   getOrCreateConversation,
@@ -606,6 +607,23 @@ async function handleMessagingEvent(object, event) {
       await sendIntentAnswer(object, senderId, prediction)
       return
     }
+
+    try {
+      const rag = await answerWithRag(message.text)
+      if (rag?.answer) {
+        logEvent('rag_answer', {
+          channel: object,
+          senderId,
+          hits: rag.hits,
+        })
+        for (const chunk of splitMessage(rag.answer)) {
+          await sendMetaMessage(object, senderId, { text: chunk })
+        }
+        return
+      }
+    } catch (error) {
+      console.error('RAG answer failed:', error.message)
+    }
   }
 
   if (message || event.postback) {
@@ -796,6 +814,10 @@ async function start() {
 
   warmIntentClassifier().catch(error => {
     console.error('Intent classifier warmup failed:', error.message)
+  })
+
+  warmRag().catch(error => {
+    console.error('RAG warmup failed:', error.message)
   })
 }
 

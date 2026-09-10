@@ -1,5 +1,6 @@
 const { randomUUID } = require('node:crypto')
 const { Pool } = require('pg')
+const { initializeRag } = require('./rag')
 
 const RETENTION_DAYS = 3
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000
@@ -70,6 +71,8 @@ async function initializeDatabase() {
     WHERE c.id = sub.conversation_id
       AND c.last_incoming_at IS NULL
   `)
+
+  await initializeRag(pool)
 
   // One conversation per (channel, user_id): merge any duplicates, then enforce uniqueness.
   await pool.query(`

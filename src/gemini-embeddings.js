@@ -35,35 +35,35 @@ async function geminiRequest(path, body, apiKey, attempt = 0) {
   return response.json()
 }
 
-function embeddingRequest(text) {
+function embeddingRequest(text, taskType = 'CLASSIFICATION') {
   return {
     model: `models/${GEMINI_MODEL}`,
     content: {
       parts: [{ text }],
     },
-    taskType: 'CLASSIFICATION',
+    taskType,
     outputDimensionality: OUTPUT_DIMENSION,
   }
 }
 
-async function embedText(text, apiKey) {
+async function embedText(text, apiKey, taskType = 'CLASSIFICATION') {
   const data = await geminiRequest(
     `models/${GEMINI_MODEL}:embedContent`,
-    embeddingRequest(text),
+    embeddingRequest(text, taskType),
     apiKey,
   )
 
   return normalizeVector(data.embedding.values)
 }
 
-async function embedTexts(texts, apiKey) {
+async function embedTexts(texts, apiKey, taskType = 'CLASSIFICATION') {
   const embeddings = []
 
   for (let index = 0; index < texts.length; index += BATCH_SIZE) {
     const batch = texts.slice(index, index + BATCH_SIZE)
     const data = await geminiRequest(
       `models/${GEMINI_MODEL}:batchEmbedContents`,
-      { requests: batch.map(embeddingRequest) },
+      { requests: batch.map(text => embeddingRequest(text, taskType)) },
       apiKey,
     )
 

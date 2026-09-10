@@ -18,6 +18,9 @@ module.exports = {
       DATABASE_URL: process.env.DATABASE_URL,
       INTENT_MIN_SIMILARITY: process.env.INTENT_MIN_SIMILARITY || '0.70',
       INTENT_MIN_MARGIN: process.env.INTENT_MIN_MARGIN || '0.02',
+      RAG_MIN_SIMILARITY: process.env.RAG_MIN_SIMILARITY || '0.55',
+      RAG_TOP_K: process.env.RAG_TOP_K || '3',
+      GEMINI_GENERATE_MODEL: process.env.GEMINI_GENERATE_MODEL || 'gemini-2.5-flash',
     },
   }],
 }
