@@ -211,6 +211,13 @@ async function ensureIndex() {
 }
 
 const REFUSAL_SNIPPET = 'нарийн мэдээлэл алга'
+const RESTRICTED_CHUNK_IDS = new Set(['jobs'])
+
+function isExplicitJobQuery(text) {
+  const normalized = String(text || '').toLowerCase()
+  return /(ажлын\s*байр|ажил\s*хай|ажилд\s*ор|ажилтан\s*ав|open\s*role|hiring|career|ваканси|\bjob\b|\bjobs\b|work\s*with\s*us)/i
+    .test(normalized)
+}
 
 function formatChunkAnswer(hits) {
   const top = hits.slice(0, Math.min(4, hits.length))
@@ -230,8 +237,10 @@ async function retrieveRag(text, options = {}) {
 
   const index = await ensureIndex()
   const queryEmbedding = await embedText(text, apiKey, 'RETRIEVAL_QUERY')
+  const allowJobs = isExplicitJobQuery(text)
 
   const ranked = index.items
+    .filter(item => allowJobs || !RESTRICTED_CHUNK_IDS.has(item.id))
     .map(item => ({
       id: item.id,
       category: item.category,
@@ -258,6 +267,7 @@ async function generateRagAnswer(question, hits) {
 Асуулт олон хэсэгтэй бол (жишээ: хуваарь + танхим/онлайн + төлбөр) бүх хэсэгт нь тусад нь хариул.
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
+Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:
 "Энэ талаар нарийн мэдээлэл алга. Цэснээс сонгох эсвэл 7505-1055 руу холбогдоорой."
 

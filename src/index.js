@@ -35,8 +35,16 @@ app.use(express.json())
 
 const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN
 const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
+const FB_PRIVATE_REPLY_TOKEN = process.env.FB_PRIVATE_REPLY_TOKEN
 const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
+const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
+const INTENTS_DATA = require('../data/intents.json')
+const PRIVATE_REPLY_INTENT_ID = 'surgaltiin_medeelel'
+const PRIVATE_REPLY_MESSAGE = INTENTS_DATA.intents.find(
+  intent => intent.id === PRIVATE_REPLY_INTENT_ID,
+)?.answers?.default || null
+const repliedCommentIds = new Set()
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
 const REMINDER_CRON = process.env.REMINDER_CRON || '*/15 * * * *'
@@ -192,6 +200,14 @@ if (!VERIFY_TOKEN) {
   console.error('FB_VERIFY_TOKEN is not set — webhook verification will fail')
 }
 
+if (!FB_PRIVATE_REPLY_TOKEN) {
+  console.error('FB_PRIVATE_REPLY_TOKEN is not set — comment private replies will fail')
+}
+
+if (!PRIVATE_REPLY_MESSAGE) {
+  console.error(`Private reply text missing for intent ${PRIVATE_REPLY_INTENT_ID}`)
+}
+
 let connectedInstagramAccountId = null
 
 async function validateInstagramConnection() {
@@ -322,6 +338,77 @@ async function sendMetaMessage(object, recipientId, message) {
     content,
     metadata: { metaMessageId: result.message_id || null },
   })
+}
+
+async function sendPrivateReply(commentId, text) {
+  if (!FB_PRIVATE_REPLY_TOKEN) {
+    throw new Error('FB_PRIVATE_REPLY_TOKEN is not set')
+  }
+  if (!text) {
+    throw new Error(`Private reply message missing for intent ${PRIVATE_REPLY_INTENT_ID}`)
+  }
+
+  const response = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/me/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${FB_PRIVATE_REPLY_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recipient: { comment_id: commentId },
+        message: { text },
+      }),
+    },
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`private reply failed (${response.status}): ${error}`)
+  }
+
+  const result = await response.json()
+  logEvent('private_reply_sent', {
+    commentId,
+    intent: PRIVATE_REPLY_INTENT_ID,
+    metaMessageId: result.message_id || null,
+  })
+  return result
+}
+
+async function handleFeedChange(change) {
+  if (change.field !== 'feed') return
+
+  const value = change.value || {}
+  if (value.item !== 'comment' || value.verb !== 'add') return
+
+  const commentId = value.comment_id
+  if (!commentId) return
+
+  const fromId = value.from?.id ? String(value.from.id) : null
+  if (PAGE_ID && fromId === PAGE_ID) return
+  if (repliedCommentIds.has(commentId)) return
+
+  logEvent('comment_received', {
+    commentId,
+    postId: value.post_id || null,
+    fromId,
+    text: value.message || null,
+  })
+
+  repliedCommentIds.add(commentId)
+  if (repliedCommentIds.size > 5000) {
+    const oldest = repliedCommentIds.values().next().value
+    repliedCommentIds.delete(oldest)
+  }
+
+  try {
+    await sendPrivateReply(commentId, PRIVATE_REPLY_MESSAGE)
+  } catch (error) {
+    repliedCommentIds.delete(commentId)
+    throw error
+  }
 }
 
 function splitMessage(text, maxLength = 900) {
@@ -693,6 +780,14 @@ app.post('/webhook', (req, res) => {
         console.error('Webhook event handling failed:', error.message)
       })
     }
+
+    if (body.object === 'page') {
+      for (const change of entry.changes || []) {
+        handleFeedChange(change).catch(error => {
+          console.error('Feed webhook handling failed:', error.message)
+        })
+      }
+    }
   }
 })
 
@@ -812,6 +907,9 @@ async function start() {
       metaApiVersion: META_API_VERSION,
       verifyTokenSet: Boolean(VERIFY_TOKEN),
       facebookTokenSet: Boolean(FB_PAGE_ACCESS_TOKEN),
+      privateReplyTokenSet: Boolean(FB_PRIVATE_REPLY_TOKEN),
+      privateReplyMessageReady: Boolean(PRIVATE_REPLY_MESSAGE),
+      pageId: PAGE_ID,
       instagramPageTokenSet: Boolean(IG_PAGE_ACCESS_TOKEN),
     })
 
