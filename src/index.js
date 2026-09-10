@@ -57,6 +57,14 @@ function logEvent(event, details) {
   })}\n`)
 }
 
+const SILENT_MESSAGES = new Set([
+  'AI Agents хөтөлбөр яг юу заах вэ?',
+  'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
+  'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ?',
+   'IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
+   "Энэ хоёр хөтөлбөр хоорондоо ямар ялгаатай вэ?", 
+])
+
 const BROCHURES = new Map([
   ['AI-Agents-brochure.pdf', path.join(__dirname, '..', 'AI-Agents-brochure.pdf')],
   ['AI-for-Business-brochure.pdf', path.join(__dirname, '..', 'AI-for-Business-brochure.pdf')],
@@ -551,6 +559,10 @@ async function handleMessagingEvent(object, event) {
       attachmentTypes: message?.attachments?.map(attachment => attachment.type) || [],
     },
   })
+
+  if (SILENT_MESSAGES.has(message?.text)) {
+    return
+  }
 
   if (payload === 'MAIN_MENU' || payload === 'WELCOME_MESSAGE') {
     await sendWelcomeMenu(object, senderId)
