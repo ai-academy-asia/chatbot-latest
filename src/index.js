@@ -598,7 +598,13 @@ async function handleMessagingEvent(object, event) {
       console.error('Intent classification failed:', error.message)
     }
 
-    if (prediction) {
+    if (prediction?.multiIntent) {
+      logEvent('multi_intent_to_rag', {
+        channel: object,
+        senderId,
+        intents: prediction.intents,
+      })
+    } else if (prediction) {
       logEvent('intent_detected', {
         channel: object,
         senderId,
@@ -609,7 +615,9 @@ async function handleMessagingEvent(object, event) {
     }
 
     try {
-      const rag = await answerWithRag(message.text)
+      const rag = await answerWithRag(message.text, {
+        topK: prediction?.multiIntent ? 6 : undefined,
+      })
       if (rag?.answer) {
         logEvent('rag_answer', {
           channel: object,

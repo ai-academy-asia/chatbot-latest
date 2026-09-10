@@ -213,7 +213,7 @@ async function ensureIndex() {
 const REFUSAL_SNIPPET = 'нарийн мэдээлэл алга'
 
 function formatChunkAnswer(hits) {
-  const top = hits.slice(0, 2)
+  const top = hits.slice(0, Math.min(4, hits.length))
   if (top.length === 1) return top[0].content
   return top.map(hit => hit.content).join('\n\n')
 }
@@ -223,7 +223,7 @@ function isRefusalAnswer(text) {
 }
 
 async function retrieveRag(text, options = {}) {
-  const topK = Number(options.topK || process.env.RAG_TOP_K || 4)
+  const topK = Number(options.topK || process.env.RAG_TOP_K || 6)
   const minimumScore = Number(options.minScore || process.env.RAG_MIN_SIMILARITY || 0.5)
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
@@ -255,6 +255,7 @@ async function generateRagAnswer(question, hits) {
 
   const prompt = `Та AI Academy Asia-ийн Messenger чатбот.
 Доорх CONTEXT-д байгаа холбоотой мэдээллийг ашиглаж QUESTION-д товч, найрсаг монгол хариулт өг.
+Асуулт олон хэсэгтэй бол (жишээ: хуваарь + танхим/онлайн + төлбөр) бүх хэсэгт нь тусад нь хариул.
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:
@@ -278,7 +279,8 @@ ${context}`
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 512,
+          maxOutputTokens: 1024,
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
       signal: AbortSignal.timeout(30000),
@@ -304,8 +306,8 @@ ${context}`
   return text
 }
 
-async function answerWithRag(question) {
-  const hits = await retrieveRag(question)
+async function answerWithRag(question, options = {}) {
+  const hits = await retrieveRag(question, options)
   if (!hits.length) return null
 
   const chunkAnswer = formatChunkAnswer(hits)

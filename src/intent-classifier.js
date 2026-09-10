@@ -113,6 +113,21 @@ async function classifyIntent(text) {
 
   const minimumScore = Number(process.env.INTENT_MIN_SIMILARITY || 0.7)
   const minimumMargin = Number(process.env.INTENT_MIN_MARGIN || 0.02)
+  // 2+ strong intents → multi-topic question → let RAG answer
+  const multiPassCount = Number(process.env.INTENT_MULTI_PASS_COUNT || 2)
+  const strongIntents = ranked.filter(item => item.score >= minimumScore)
+
+  if (strongIntents.length >= multiPassCount) {
+    return {
+      multiIntent: true,
+      intents: strongIntents.slice(0, 5).map(item => ({
+        intentId: item.intentId,
+        score: item.score,
+        matchedExample: item.matchedExample,
+      })),
+    }
+  }
+
   const margin = best.score - (runnerUp?.score || 0)
 
   if (best.score < minimumScore || margin < minimumMargin) return null
