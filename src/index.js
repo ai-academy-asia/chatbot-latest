@@ -46,7 +46,7 @@ const PRIVATE_REPLY_MESSAGE = INTENTS_DATA.intents.find(
 )?.answers?.default || null
 const COMMENT_REPLY_MESSAGE = (
   process.env.COMMENT_REPLY_MESSAGE
-  || 'Сайн байна уу! Дэлгэрэнгүй мэдээллийг inbox руу илгээлээ. Шалгана уу 📩'
+  || 'Сайн байна уу! Дэлгэрэнгүй мэдээллийг танд чатаар илгээлээ'
 ).trim()
 const repliedCommentIds = new Set()
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
