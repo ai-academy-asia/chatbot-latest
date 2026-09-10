@@ -44,6 +44,10 @@ const PRIVATE_REPLY_INTENT_ID = 'surgaltiin_medeelel'
 const PRIVATE_REPLY_MESSAGE = INTENTS_DATA.intents.find(
   intent => intent.id === PRIVATE_REPLY_INTENT_ID,
 )?.answers?.default || null
+const COMMENT_REPLY_MESSAGE = (
+  process.env.COMMENT_REPLY_MESSAGE
+  || 'Сайн байна уу! Дэлгэрэнгүй мэдээллийг inbox руу илгээлээ. Шалгана уу 📩'
+).trim()
 const repliedCommentIds = new Set()
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
@@ -377,6 +381,37 @@ async function sendPrivateReply(commentId, text) {
   return result
 }
 
+async function sendPublicCommentReply(commentId, text) {
+  if (!FB_PRIVATE_REPLY_TOKEN) {
+    throw new Error('FB_PRIVATE_REPLY_TOKEN is not set')
+  }
+  if (!text) return
+
+  const response = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/${encodeURIComponent(commentId)}/comments`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${FB_PRIVATE_REPLY_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: text }),
+    },
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`comment reply failed (${response.status}): ${error}`)
+  }
+
+  const result = await response.json()
+  logEvent('comment_reply_sent', {
+    commentId,
+    replyId: result.id || null,
+  })
+  return result
+}
+
 async function handleFeedChange(change) {
   if (change.field !== 'feed') return
 
@@ -408,6 +443,12 @@ async function handleFeedChange(change) {
   } catch (error) {
     repliedCommentIds.delete(commentId)
     throw error
+  }
+
+  try {
+    await sendPublicCommentReply(commentId, COMMENT_REPLY_MESSAGE)
+  } catch (error) {
+    console.error('Public comment reply failed:', error.message)
   }
 }
 

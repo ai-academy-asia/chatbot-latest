@@ -14,6 +14,7 @@ module.exports = {
       FB_PAGE_ACCESS_TOKEN: process.env.FB_PAGE_ACCESS_TOKEN,
       FB_PRIVATE_REPLY_TOKEN: process.env.FB_PRIVATE_REPLY_TOKEN,
       PAGE_ID: process.env.PAGE_ID,
+      COMMENT_REPLY_MESSAGE: process.env.COMMENT_REPLY_MESSAGE,
       IG_PAGE_ACCESS_TOKEN: process.env.IG_PAGE_ACCESS_TOKEN,
       META_API_VERSION: process.env.META_API_VERSION || 'v25.0',
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
