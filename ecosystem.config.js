@@ -18,7 +18,7 @@ module.exports = {
       DATABASE_URL: process.env.DATABASE_URL,
       INTENT_MIN_SIMILARITY: process.env.INTENT_MIN_SIMILARITY || '0.70',
       INTENT_MIN_MARGIN: process.env.INTENT_MIN_MARGIN || '0.02',
-      INTENT_MULTI_PASS_COUNT: process.env.INTENT_MULTI_PASS_COUNT || '2',
+      INTENT_MULTI_CLUSTER_MARGIN: process.env.INTENT_MULTI_CLUSTER_MARGIN || '0.05',
       RAG_MIN_SIMILARITY: process.env.RAG_MIN_SIMILARITY || '0.50',
       RAG_TOP_K: process.env.RAG_TOP_K || '6',
       RAG_TRUST_SCORE: process.env.RAG_TRUST_SCORE || '0.58',

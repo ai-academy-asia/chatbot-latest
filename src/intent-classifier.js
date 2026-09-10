@@ -113,22 +113,26 @@ async function classifyIntent(text) {
 
   const minimumScore = Number(process.env.INTENT_MIN_SIMILARITY || 0.7)
   const minimumMargin = Number(process.env.INTENT_MIN_MARGIN || 0.02)
-  // 2+ strong intents → multi-topic question → let RAG answer
-  const multiPassCount = Number(process.env.INTENT_MULTI_PASS_COUNT || 2)
-  const strongIntents = ranked.filter(item => item.score >= minimumScore)
+  // Multi-topic → RAG only when 2+ intents are close to the top score.
+  // Absolute "N intents above 0.7" is too noisy (many weak matches clear 0.7).
+  const clusterMargin = Number(process.env.INTENT_MULTI_CLUSTER_MARGIN || 0.05)
+  const margin = best.score - (runnerUp?.score || 0)
 
-  if (strongIntents.length >= multiPassCount) {
+  const clusteredIntents = ranked.filter(item => (
+    item.score >= minimumScore
+    && best.score - item.score <= clusterMargin
+  ))
+
+  if (clusteredIntents.length >= 2) {
     return {
       multiIntent: true,
-      intents: strongIntents.slice(0, 5).map(item => ({
+      intents: clusteredIntents.slice(0, 5).map(item => ({
         intentId: item.intentId,
         score: item.score,
         matchedExample: item.matchedExample,
       })),
     }
   }
-
-  const margin = best.score - (runnerUp?.score || 0)
 
   if (best.score < minimumScore || margin < minimumMargin) return null
 
