@@ -210,9 +210,21 @@ async function ensureIndex() {
   return indexPromise
 }
 
+const REFUSAL_SNIPPET = 'нарийн мэдээлэл алга'
+
+function formatChunkAnswer(hits) {
+  const top = hits.slice(0, 2)
+  if (top.length === 1) return top[0].content
+  return top.map(hit => hit.content).join('\n\n')
+}
+
+function isRefusalAnswer(text) {
+  return typeof text === 'string' && text.toLowerCase().includes(REFUSAL_SNIPPET)
+}
+
 async function retrieveRag(text, options = {}) {
-  const topK = Number(options.topK || process.env.RAG_TOP_K || 3)
-  const minimumScore = Number(options.minScore || process.env.RAG_MIN_SIMILARITY || 0.55)
+  const topK = Number(options.topK || process.env.RAG_TOP_K || 4)
+  const minimumScore = Number(options.minScore || process.env.RAG_MIN_SIMILARITY || 0.5)
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
 
@@ -241,9 +253,12 @@ async function generateRagAnswer(question, hits) {
     .map((hit, index) => `[${index + 1}] ${hit.title}\n${hit.content}`)
     .join('\n\n')
 
-  const prompt = `Та AI Academy Asia-ийн чатбот. Зөвхөн доорх CONTEXT-ээс хариул.
-Хэрэв CONTEXT-д хариулт байхгүй бол "Энэ талаар нарийн мэдээлэл алга. Цэснээс сонгох эсвэл 7505-1055 руу холбогдоорой." гэж хэл.
-Монгол хэлээр, товч, найрсаг хариул. URL байвал үлдээгээгүй орхиорой.
+  const prompt = `Та AI Academy Asia-ийн Messenger чатбот.
+Доорх CONTEXT-д байгаа холбоотой мэдээллийг ашиглаж QUESTION-д товч, найрсаг монгол хариулт өг.
+CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
+URL байвал хариултад үлдээ.
+Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:
+"Энэ талаар нарийн мэдээлэл алга. Цэснээс сонгох эсвэл 7505-1055 руу холбогдоорой."
 
 QUESTION:
 ${question}
@@ -277,12 +292,13 @@ ${context}`
 
   const data = await response.json()
   const text = data?.candidates?.[0]?.content?.parts
-    ?.map(part => part.text || '')
+    ?.filter(part => part.text && !part.thought)
+    ?.map(part => part.text)
     .join('')
     .trim()
 
   if (!text) {
-    return hits.map(hit => hit.content).join('\n\n')
+    return formatChunkAnswer(hits)
   }
 
   return text
@@ -292,12 +308,19 @@ async function answerWithRag(question) {
   const hits = await retrieveRag(question)
   if (!hits.length) return null
 
+  const chunkAnswer = formatChunkAnswer(hits)
+  const trustChunks = hits[0].score >= Number(process.env.RAG_TRUST_SCORE || 0.58)
+
   let answer
   try {
     answer = await generateRagAnswer(question, hits)
+    // Model sometimes refuses even when retrieval is clearly relevant — use chunks.
+    if (isRefusalAnswer(answer) && trustChunks) {
+      answer = chunkAnswer
+    }
   } catch (error) {
     console.error('RAG generate failed, falling back to chunks:', error.message)
-    answer = hits.map(hit => hit.content).join('\n\n')
+    answer = chunkAnswer
   }
 
   return {
