@@ -2,6 +2,7 @@ require('dotenv').config()
 
 const express = require('express')
 const cors = require('cors')
+const cron = require('node-cron')
 const path = require('node:path')
 const { readFile } = require('node:fs/promises')
 const { randomUUID: uuidv4 } = require('node:crypto')
@@ -11,6 +12,9 @@ const {
   getOrCreateConversation,
   recordConversationMessage,
   recordThreadMessage,
+  claimDueReminderConversations,
+  clearReminderSent,
+  DEFAULT_REMINDER_HOURS,
 } = require('./database')
 
 const app = express()
@@ -33,6 +37,17 @@ const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
 const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
+const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
+const REMINDER_CRON = process.env.REMINDER_CRON || '*/15 * * * *'
+const REGISTER_URL = process.env.REGISTER_URL
+  || 'https://www.ai-academy.asia/ai-acceleration.html#register'
+const REMINDER_MESSAGE = process.env.REMINDER_MESSAGE
+  || `Сайн байна уу? Танд өөр асуух зүйл байна уу?
+
+Дэлгэрэнгүй мэдээллийг https://www.ai-academy.asia/ai-acceleration.html
+
+📝 Бүртгүүлэх холбоос:
+${REGISTER_URL}`
 
 function logEvent(event, details) {
   process.stdout.write(`${JSON.stringify({
@@ -41,12 +56,6 @@ function logEvent(event, details) {
     ...details,
   })}\n`)
 }
-
-const SILENT_MESSAGES = new Set([
-  'AI Agents хөтөлбөр яг юу заах вэ?',
-  'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
-  'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ? IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
-])
 
 const BROCHURES = new Map([
   ['AI-Agents-brochure.pdf', path.join(__dirname, '..', 'AI-Agents-brochure.pdf')],
@@ -543,10 +552,6 @@ async function handleMessagingEvent(object, event) {
     },
   })
 
-  if (SILENT_MESSAGES.has(message?.text)) {
-    return
-  }
-
   if (payload === 'MAIN_MENU' || payload === 'WELCOME_MESSAGE') {
     await sendWelcomeMenu(object, senderId)
     return
@@ -654,9 +659,13 @@ app.post('/webhook', (req, res) => {
 })
 
 // ── Website chat API ────────────────────────────────
+// Pass a stable userId to reuse one conversation per user.
+// If omitted, a new anonymous userId is created (new conversation).
 app.post('/api/chat/create', async (req, res) => {
   try {
-    const userId = req.body.userId || uuidv4()
+    const userId = typeof req.body.userId === 'string' && req.body.userId.trim()
+      ? req.body.userId.trim()
+      : uuidv4()
     const conversationId = await getOrCreateConversation('web', userId)
     res.json({
       success: true,
@@ -712,8 +721,54 @@ app.post('/api/chat/message', async (req, res) => {
 })
 
 const port = process.env.PORT || 8010
+
+async function processDueReminders() {
+  const due = await claimDueReminderConversations({
+    reminderHours: REMINDER_HOURS,
+  })
+
+  if (due.length === 0) return
+
+  logEvent('reminder_batch', { count: due.length, reminderHours: REMINDER_HOURS })
+
+  for (const conversation of due) {
+    try {
+      await sendMetaMessage(conversation.channel, conversation.user_id, {
+        text: REMINDER_MESSAGE,
+      })
+      logEvent('reminder_sent', {
+        channel: conversation.channel,
+        userId: conversation.user_id,
+        conversationId: conversation.id,
+      })
+    } catch (error) {
+      await clearReminderSent(conversation.id).catch(() => {})
+      console.error(
+        `Reminder send failed (${conversation.channel}/${conversation.user_id}):`,
+        error.message,
+      )
+    }
+  }
+}
+
+function startReminderCron() {
+  if (!cron.validate(REMINDER_CRON)) {
+    console.error(`Invalid REMINDER_CRON expression: ${REMINDER_CRON}`)
+    return
+  }
+
+  cron.schedule(REMINDER_CRON, () => {
+    processDueReminders().catch(error => {
+      console.error('Reminder cron failed:', error.message)
+    })
+  })
+
+  console.log(`Reminder cron scheduled (${REMINDER_CRON}, after ${REMINDER_HOURS}h idle, once)`)
+}
+
 async function start() {
   await initializeDatabase()
+  startReminderCron()
   app.listen(port, '0.0.0.0', () => {
     console.log(`Running on port ${port}`, {
       metaApiVersion: META_API_VERSION,
