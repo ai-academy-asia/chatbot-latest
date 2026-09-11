@@ -41,9 +41,6 @@ const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 const INTENTS_DATA = require('../data/intents.json')
 const PRIVATE_REPLY_INTENT_ID = 'surgaltiin_medeelel'
-const PRIVATE_REPLY_MESSAGE = INTENTS_DATA.intents.find(
-  intent => intent.id === PRIVATE_REPLY_INTENT_ID,
-)?.answers?.default || null
 const COMMENT_REPLY_MESSAGE = (
   process.env.COMMENT_REPLY_MESSAGE
   || 'Сайн байна уу! Дэлгэрэнгүй мэдээллийг танд чатаар илгээлээ'
@@ -71,11 +68,7 @@ function logEvent(event, details) {
 }
 
 const SILENT_MESSAGES = new Set([
-  'AI Agents хөтөлбөр яг юу заах вэ?',
-  'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
-  'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ?',
-   'IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
-   "Энэ хоёр хөтөлбөр хоорондоо ямар ялгаатай вэ?", 
+  "", 
 ])
 
 const BROCHURES = new Map([
@@ -95,6 +88,40 @@ const BROCHURE_INTENTS = new Set([
   'program_recommendation',
 ])
 const BROCHURE_INTRO = '📄 Та дараах брошуртай танилцана уу.'
+const BROCHURE_ANSWER_TAIL_RE = /\n\n📄 (?:Мөн хөтөлбөрүүдийн брошуртай танилцаарай\.|Та дараах брошуртай танилцана уу\.)[\s\S]*$/
+
+function withBrochureIntro(answer) {
+  if (!answer) return answer
+  if (BROCHURE_ANSWER_TAIL_RE.test(answer)) {
+    return answer.replace(BROCHURE_ANSWER_TAIL_RE, `\n\n${BROCHURE_INTRO}`)
+  }
+  if (answer.includes(BROCHURE_INTRO)) return answer
+  return `${answer.trim()}\n\n${BROCHURE_INTRO}`
+}
+
+function brochureLinkMessage(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
+  const labels = {
+    PROGRAM_AI_AGENTS: 'AI Agents брошур',
+    PROGRAM_AI_BUSINESS: 'AI for Business брошур',
+  }
+
+  const links = payloads
+    .map(payload => {
+      const filename = PROGRAM_BROCHURES[payload]
+      if (!filename) return null
+      return `${labels[payload] || filename}:\n${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`
+    })
+    .filter(Boolean)
+    .join('\n\n')
+
+  return `${BROCHURE_INTRO}\n\n${links}`
+}
+
+const PRIVATE_REPLY_MESSAGE = withBrochureIntro(
+  INTENTS_DATA.intents.find(
+    intent => intent.id === PRIVATE_REPLY_INTENT_ID,
+  )?.answers?.default || null,
+)
 
 const brochureAttachmentIds = new Map()
 
@@ -438,11 +465,19 @@ async function handleFeedChange(change) {
     repliedCommentIds.delete(oldest)
   }
 
+  let privateReplyResult
   try {
-    await sendPrivateReply(commentId, PRIVATE_REPLY_MESSAGE)
+    privateReplyResult = await sendPrivateReply(commentId, PRIVATE_REPLY_MESSAGE)
   } catch (error) {
     repliedCommentIds.delete(commentId)
     throw error
+  }
+
+  const recipientId = privateReplyResult?.recipient_id
+  if (recipientId) {
+    await sendBothProgramBrochures('page', recipientId)
+  } else {
+    console.error('Private reply returned no recipient_id; cannot send brochures')
   }
 
   try {
@@ -572,6 +607,7 @@ async function sendProgramBrochure(object, recipientId, payload) {
   const filename = PROGRAM_BROCHURES[payload]
   if (!filename) return
 
+  // Facebook: upload PDF once, reuse attachment_id (does not need public URL).
   if (object === 'page') {
     const attachmentId = await uploadFacebookBrochure(filename)
     await sendMetaMessage(object, recipientId, {
@@ -583,15 +619,33 @@ async function sendProgramBrochure(object, recipientId, payload) {
     return
   }
 
+  // Instagram does not reliably support PDF file attachments — send download links.
   await sendMetaMessage(object, recipientId, {
-    attachment: {
-      type: 'file',
-      payload: {
-        url: `${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`,
-        is_reusable: true,
-      },
-    },
+    text: brochureLinkMessage([payload]),
   })
+}
+
+async function sendBothProgramBrochures(object, recipientId) {
+  try {
+    if (object === 'page') {
+      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_AGENTS')
+      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_BUSINESS')
+      return
+    }
+
+    await sendMetaMessage(object, recipientId, {
+      text: brochureLinkMessage(),
+    })
+  } catch (error) {
+    console.error('Brochure send failed:', error.message)
+    try {
+      await sendMetaMessage(object, recipientId, {
+        text: brochureLinkMessage(),
+      })
+    } catch (fallbackError) {
+      console.error('Brochure link fallback failed:', fallbackError.message)
+    }
+  }
 }
 
 async function sendIntentAnswer(object, recipientId, prediction) {
@@ -601,10 +655,7 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   }
 
   const answer = BROCHURE_INTENTS.has(prediction.intentId)
-    ? prediction.answer.replace(
-      /\n\n📄 (?:Мөн хөтөлбөрүүдийн брошуртай танилцаарай\.|Та дараах брошуртай танилцана уу\.)[\s\S]*$/,
-      `\n\n${BROCHURE_INTRO}`,
-    )
+    ? withBrochureIntro(prediction.answer)
     : prediction.answer
 
   for (const chunk of splitMessage(answer)) {
@@ -612,8 +663,7 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   }
 
   if (BROCHURE_INTENTS.has(prediction.intentId)) {
-    await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_AGENTS')
-    await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_BUSINESS')
+    await sendBothProgramBrochures(object, recipientId)
   }
 }
 
@@ -709,7 +759,18 @@ async function handleMessagingEvent(object, event) {
     }
 
     if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
-      await sendProgramBrochure(object, senderId, payload)
+      try {
+        await sendProgramBrochure(object, senderId, payload)
+      } catch (error) {
+        console.error('Program brochure send failed:', error.message)
+        try {
+          await sendMetaMessage(object, senderId, {
+            text: brochureLinkMessage([payload]),
+          })
+        } catch (fallbackError) {
+          console.error('Program brochure link fallback failed:', fallbackError.message)
+        }
+      }
       await sendProgramActions(object, senderId)
     } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
       await sendDetailActions(object, senderId)
