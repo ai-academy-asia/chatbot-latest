@@ -15,6 +15,7 @@ const {
   recordThreadMessage,
   claimDueReminderConversations,
   clearReminderSent,
+  getRecentOutgoingTexts,
   DEFAULT_REMINDER_HOURS,
 } = require('./database')
 
@@ -58,6 +59,13 @@ const REMINDER_MESSAGE = process.env.REMINDER_MESSAGE
 
 📝 Бүртгүүлэх холбоос:
 ${REGISTER_URL}`
+const DUPLICATE_SIMILARITY = Number(process.env.DUPLICATE_SIMILARITY || 0.88)
+const DUPLICATE_LOOKBACK = Number(process.env.DUPLICATE_LOOKBACK || 30)
+const DUPLICATE_REPLY_NOTICE = (
+  process.env.DUPLICATE_REPLY_NOTICE
+  || 'Би энэ мэдээллийг өмнө нь илгээсэн байна. Өөр асуулт байвал бичээрэй.'
+).trim()
+const recentOutgoingCache = new Map()
 
 function logEvent(event, details) {
   process.stdout.write(`${JSON.stringify({
@@ -65,6 +73,75 @@ function logEvent(event, details) {
     event,
     ...details,
   })}\n`)
+}
+
+function outgoingCacheKey(channel, userId) {
+  return `${channel}:${userId}`
+}
+
+function rememberOutgoingText(channel, userId, text) {
+  if (!text) return
+  const key = outgoingCacheKey(channel, userId)
+  const list = recentOutgoingCache.get(key) || []
+  list.unshift(text)
+  if (list.length > DUPLICATE_LOOKBACK) list.length = DUPLICATE_LOOKBACK
+  recentOutgoingCache.set(key, list)
+}
+
+function normalizeMessageText(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFKC')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function tokenJaccard(left, right) {
+  const leftTokens = left.split(' ').filter(Boolean)
+  const rightTokens = right.split(' ').filter(Boolean)
+  if (leftTokens.length === 0 || rightTokens.length === 0) return 0
+
+  const leftSet = new Set(leftTokens)
+  const rightSet = new Set(rightTokens)
+  let intersection = 0
+  for (const token of leftSet) {
+    if (rightSet.has(token)) intersection += 1
+  }
+  const union = leftSet.size + rightSet.size - intersection
+  return union === 0 ? 0 : intersection / union
+}
+
+function messageSimilarity(left, right) {
+  const a = normalizeMessageText(left)
+  const b = normalizeMessageText(right)
+  if (!a || !b) return 0
+  if (a === b) return 1
+
+  const shorter = a.length <= b.length ? a : b
+  const longer = a.length <= b.length ? b : a
+  if (longer.includes(shorter) && shorter.length >= 40) {
+    return shorter.length / longer.length
+  }
+
+  return tokenJaccard(a, b)
+}
+
+async function wasSimilarMessageSent(channel, userId, text) {
+  if (!text) return false
+
+  const cached = recentOutgoingCache.get(outgoingCacheKey(channel, userId)) || []
+  let stored = []
+  try {
+    stored = await getRecentOutgoingTexts(channel, userId, { limit: DUPLICATE_LOOKBACK })
+  } catch (error) {
+    console.error('Recent outgoing lookup failed:', error.message)
+  }
+
+  const recent = [...cached, ...stored]
+  const threshold = Number.isFinite(DUPLICATE_SIMILARITY) ? DUPLICATE_SIMILARITY : 0.88
+  return recent.some(previous => messageSimilarity(previous, text) >= threshold)
 }
 
 const SILENT_MESSAGES = new Set([
@@ -315,12 +392,23 @@ function getChannelConfig(object) {
   return null
 }
 
-async function sendMetaMessage(object, recipientId, message) {
+async function sendMetaMessage(object, recipientId, message, options = {}) {
   const channel = getChannelConfig(object)
 
-  if (!channel) return
+  if (!channel) return { skipped: true, reason: 'unknown_channel' }
   if (!channel.accessToken) {
     throw new Error(`${channel.tokenName} is not set`)
+  }
+
+  if (message.text && !options.allowDuplicate) {
+    if (await wasSimilarMessageSent(object, recipientId, message.text)) {
+      logEvent('duplicate_reply_skipped', {
+        channel: object,
+        recipientId,
+        answer: message.text.slice(0, 160),
+      })
+      return { skipped: true, reason: 'duplicate' }
+    }
   }
 
   const body = {
@@ -361,6 +449,10 @@ async function sendMetaMessage(object, recipientId, message) {
     answer: content,
   })
 
+  if (message.text) {
+    rememberOutgoingText(object, recipientId, message.text)
+  }
+
   await recordConversationMessage({
     channel: object,
     userId: recipientId,
@@ -369,6 +461,25 @@ async function sendMetaMessage(object, recipientId, message) {
     content,
     metadata: { metaMessageId: result.message_id || null },
   })
+
+  return { skipped: false, messageId: result.message_id || null }
+}
+
+async function sendTextChunks(object, recipientId, text) {
+  let sent = 0
+  let skipped = 0
+
+  for (const chunk of splitMessage(text)) {
+    const result = await sendMetaMessage(object, recipientId, { text: chunk })
+    if (result?.skipped) skipped += 1
+    else sent += 1
+  }
+
+  if (sent === 0 && skipped > 0 && DUPLICATE_REPLY_NOTICE) {
+    await sendMetaMessage(object, recipientId, { text: DUPLICATE_REPLY_NOTICE })
+  }
+
+  return { sent, skipped }
 }
 
 async function sendPrivateReply(commentId, text) {
@@ -658,11 +769,9 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     ? withBrochureIntro(prediction.answer)
     : prediction.answer
 
-  for (const chunk of splitMessage(answer)) {
-    await sendMetaMessage(object, recipientId, { text: chunk })
-  }
+  const { sent } = await sendTextChunks(object, recipientId, answer)
 
-  if (BROCHURE_INTENTS.has(prediction.intentId)) {
+  if (sent > 0 && BROCHURE_INTENTS.has(prediction.intentId)) {
     await sendBothProgramBrochures(object, recipientId)
   }
 }
@@ -754,9 +863,8 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (payload && MENU_RESPONSES[payload]) {
-    for (const chunk of splitMessage(MENU_RESPONSES[payload])) {
-      await sendMetaMessage(object, senderId, { text: chunk })
-    }
+    const { sent } = await sendTextChunks(object, senderId, MENU_RESPONSES[payload])
+    if (sent === 0) return
 
     if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
       try {
@@ -813,9 +921,7 @@ async function handleMessagingEvent(object, event) {
           senderId,
           hits: rag.hits,
         })
-        for (const chunk of splitMessage(rag.answer)) {
-          await sendMetaMessage(object, senderId, { text: chunk })
-        }
+        await sendTextChunks(object, senderId, rag.answer)
         return
       }
     } catch (error) {

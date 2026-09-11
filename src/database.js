@@ -308,6 +308,28 @@ async function clearReminderSent(conversationId) {
   )
 }
 
+async function getRecentOutgoingTexts(channel, userId, { limit = 30 } = {}) {
+  if (!pool) return []
+
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100))
+  const result = await pool.query(
+    `SELECT m.content
+     FROM conversation_messages m
+     JOIN conversations c ON c.id = m.conversation_id
+     WHERE c.channel = $1
+       AND c.user_id = $2
+       AND m.direction = 'outgoing'
+       AND m.message_type = 'text'
+       AND m.content IS NOT NULL
+       AND TRIM(m.content) <> ''
+     ORDER BY m.created_at DESC
+     LIMIT $3`,
+    [channel, String(userId), safeLimit],
+  )
+
+  return result.rows.map(row => row.content)
+}
+
 module.exports = {
   initializeDatabase,
   getOrCreateConversation,
@@ -315,5 +337,6 @@ module.exports = {
   recordThreadMessage,
   claimDueReminderConversations,
   clearReminderSent,
+  getRecentOutgoingTexts,
   DEFAULT_REMINDER_HOURS,
 }
