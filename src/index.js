@@ -61,10 +61,6 @@ const REMINDER_MESSAGE = process.env.REMINDER_MESSAGE
 ${REGISTER_URL}`
 const DUPLICATE_SIMILARITY = Number(process.env.DUPLICATE_SIMILARITY || 0.88)
 const DUPLICATE_LOOKBACK = Number(process.env.DUPLICATE_LOOKBACK || 30)
-const DUPLICATE_REPLY_NOTICE = (
-  process.env.DUPLICATE_REPLY_NOTICE
-  || 'Би энэ мэдээллийг өмнө нь илгээсэн байна. Өөр асуулт байвал бичээрэй.'
-).trim()
 const recentOutgoingCache = new Map()
 
 function logEvent(event, details) {
@@ -145,7 +141,11 @@ async function wasSimilarMessageSent(channel, userId, text) {
 }
 
 const SILENT_MESSAGES = new Set([
-  "", 
+  'AI Agents хөтөлбөр яг юу заах вэ?',
+  'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
+  'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ?',
+  'IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
+  'Энэ хоёр хөтөлбөр хоорондоо ямар ялгаатай вэ?',
 ])
 
 const BROCHURES = new Map([
@@ -475,10 +475,6 @@ async function sendTextChunks(object, recipientId, text) {
     else sent += 1
   }
 
-  if (sent === 0 && skipped > 0 && DUPLICATE_REPLY_NOTICE) {
-    await sendMetaMessage(object, recipientId, { text: DUPLICATE_REPLY_NOTICE })
-  }
-
   return { sent, skipped }
 }
 
@@ -769,9 +765,9 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     ? withBrochureIntro(prediction.answer)
     : prediction.answer
 
-  const { sent } = await sendTextChunks(object, recipientId, answer)
+  await sendTextChunks(object, recipientId, answer)
 
-  if (sent > 0 && BROCHURE_INTENTS.has(prediction.intentId)) {
+  if (BROCHURE_INTENTS.has(prediction.intentId)) {
     await sendBothProgramBrochures(object, recipientId)
   }
 }
@@ -863,8 +859,7 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (payload && MENU_RESPONSES[payload]) {
-    const { sent } = await sendTextChunks(object, senderId, MENU_RESPONSES[payload])
-    if (sent === 0) return
+    await sendTextChunks(object, senderId, MENU_RESPONSES[payload])
 
     if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
       try {
