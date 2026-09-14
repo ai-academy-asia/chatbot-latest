@@ -167,31 +167,40 @@ const BROCHURE_INTENTS = new Set([
 const BROCHURE_INTRO = '📄 Та дараах брошуртай танилцана уу.'
 const BROCHURE_ANSWER_TAIL_RE = /\n\n📄 (?:Мөн хөтөлбөрүүдийн брошуртай танилцаарай\.|Та дараах брошуртай танилцана уу\.)[\s\S]*$/
 
-function withBrochureIntro(answer) {
-  if (!answer) return answer
-  if (BROCHURE_ANSWER_TAIL_RE.test(answer)) {
-    return answer.replace(BROCHURE_ANSWER_TAIL_RE, `\n\n${BROCHURE_INTRO}`)
-  }
-  if (answer.includes(BROCHURE_INTRO)) return answer
-  return `${answer.trim()}\n\n${BROCHURE_INTRO}`
+function brochurePublicUrl(filename) {
+  return `${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`
 }
 
-function brochureLinkMessage(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
+function brochureLinksText(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
   const labels = {
     PROGRAM_AI_AGENTS: 'AI Agents брошур',
     PROGRAM_AI_BUSINESS: 'AI for Business брошур',
   }
 
-  const links = payloads
+  return payloads
     .map(payload => {
       const filename = PROGRAM_BROCHURES[payload]
       if (!filename) return null
-      return `${labels[payload] || filename}:\n${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`
+      return `${labels[payload] || filename}:\n${brochurePublicUrl(filename)}`
     })
     .filter(Boolean)
     .join('\n\n')
+}
 
-  return `${BROCHURE_INTRO}\n\n${links}`
+function withBrochureIntro(answer) {
+  if (!answer) return answer
+  let text = answer
+  if (BROCHURE_ANSWER_TAIL_RE.test(text)) {
+    text = text.replace(BROCHURE_ANSWER_TAIL_RE, `\n\n${BROCHURE_INTRO}`)
+  } else if (!text.includes(BROCHURE_INTRO)) {
+    text = `${text.trim()}\n\n${BROCHURE_INTRO}`
+  }
+  if (text.includes('/brochures/')) return text
+  return `${text.trim()}\n\n${brochureLinksText()}`
+}
+
+function brochureLinkMessage(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
+  return `${BROCHURE_INTRO}\n\n${brochureLinksText(payloads)}`
 }
 
 const PRIVATE_REPLY_MESSAGE = withBrochureIntro(
@@ -416,8 +425,8 @@ async function sendMetaMessage(object, recipientId, message, options = {}) {
     message,
   }
 
-  if (object === 'page') {
-    body.messaging_type = 'RESPONSE'
+  if (object === 'page' && options.messagingType !== null) {
+    body.messaging_type = options.messagingType || 'RESPONSE'
   }
 
   const response = await fetch(`${channel.apiBase}/${META_API_VERSION}/me/messages`, {
@@ -582,9 +591,9 @@ async function handleFeedChange(change) {
 
   const recipientId = privateReplyResult?.recipient_id
   if (recipientId) {
-    await sendBothProgramBrochures('page', recipientId)
+    await sendBothProgramBrochures('page', recipientId, { messagingType: 'UPDATE' })
   } else {
-    console.error('Private reply returned no recipient_id; cannot send brochures')
+    console.error('Private reply returned no recipient_id; brochure PDFs skipped (links included in reply)')
   }
 
   try {
@@ -671,6 +680,43 @@ async function sendDetailActions(object, recipientId) {
   )
 }
 
+function graphPagePath() {
+  return PAGE_ID || 'me'
+}
+
+function toPdfFile(filename, bytes) {
+  return new File([new Uint8Array(bytes)], filename, { type: 'application/pdf' })
+}
+
+async function recordOutgoingMetaMessage(object, recipientId, message, result) {
+  const messageType = message.text
+    ? 'text'
+    : message.attachment?.payload?.template_type || message.attachment?.type || 'file'
+  const content = message.text
+    || message.attachment?.payload?.elements?.[0]?.title
+    || (message.attachment?.type ? `[${message.attachment.type}]` : '[file]')
+
+  logEvent('reply_sent', {
+    channel: object,
+    recipientId,
+    type: messageType,
+    answer: content,
+  })
+
+  if (message.text) {
+    rememberOutgoingText(object, recipientId, message.text)
+  }
+
+  await recordConversationMessage({
+    channel: object,
+    userId: recipientId,
+    direction: 'outgoing',
+    messageType,
+    content,
+    metadata: { metaMessageId: result?.message_id || null },
+  })
+}
+
 async function uploadFacebookBrochure(filename) {
   const cachedAttachmentId = brochureAttachmentIds.get(filename)
   if (cachedAttachmentId) return cachedAttachmentId
@@ -679,7 +725,7 @@ async function uploadFacebookBrochure(filename) {
   const brochurePath = BROCHURES.get(filename)
   if (!brochurePath) throw new Error(`Unknown brochure: ${filename}`)
 
-  const file = await readFile(brochurePath)
+  const bytes = await readFile(brochurePath)
   const form = new FormData()
   form.set('message', JSON.stringify({
     attachment: {
@@ -687,10 +733,10 @@ async function uploadFacebookBrochure(filename) {
       payload: { is_reusable: true },
     },
   }))
-  form.set('filedata', new Blob([file], { type: 'application/pdf' }), filename)
+  form.set('filedata', toPdfFile(filename, bytes))
 
   const response = await fetch(
-    `https://graph.facebook.com/${META_API_VERSION}/me/message_attachments`,
+    `https://graph.facebook.com/${META_API_VERSION}/${graphPagePath()}/message_attachments`,
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${FB_PAGE_ACCESS_TOKEN}` },
@@ -710,45 +756,133 @@ async function uploadFacebookBrochure(filename) {
   return result.attachment_id
 }
 
-async function sendProgramBrochure(object, recipientId, payload) {
-  const filename = PROGRAM_BROCHURES[payload]
-  if (!filename) return
+async function sendFacebookBrochureMultipart(recipientId, filename, options = {}) {
+  if (!FB_PAGE_ACCESS_TOKEN) throw new Error('FB_PAGE_ACCESS_TOKEN is not set')
 
-  // Facebook: upload PDF once, reuse attachment_id (does not need public URL).
-  if (object === 'page') {
+  const brochurePath = BROCHURES.get(filename)
+  if (!brochurePath) throw new Error(`Unknown brochure: ${filename}`)
+
+  const bytes = await readFile(brochurePath)
+  const form = new FormData()
+  form.set('recipient', JSON.stringify({ id: recipientId }))
+  if (options.messagingType !== null) {
+    form.set('messaging_type', options.messagingType || 'RESPONSE')
+  }
+  form.set('message', JSON.stringify({
+    attachment: {
+      type: 'file',
+      payload: {},
+    },
+  }))
+  form.set('filedata', toPdfFile(filename, bytes))
+
+  const response = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/${graphPagePath()}/messages`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${FB_PAGE_ACCESS_TOKEN}` },
+      body: form,
+    },
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Facebook brochure multipart send failed (${response.status}): ${error}`)
+  }
+
+  const result = await response.json()
+  await recordOutgoingMetaMessage('page', recipientId, {
+    attachment: { type: 'file', payload: { filename } },
+  }, result)
+  return result
+}
+
+async function sendFacebookBrochure(recipientId, filename, options = {}) {
+  const sendOptions = { messagingType: options.messagingType }
+
+  const cachedAttachmentId = brochureAttachmentIds.get(filename)
+  if (cachedAttachmentId) {
+    try {
+      await sendMetaMessage('page', recipientId, {
+        attachment: {
+          type: 'file',
+          payload: { attachment_id: cachedAttachmentId },
+        },
+      }, sendOptions)
+      logEvent('brochure_sent', { filename, method: 'attachment_id', recipientId })
+      return
+    } catch (error) {
+      console.error('Cached brochure attachment send failed:', error.message)
+      brochureAttachmentIds.delete(filename)
+    }
+  }
+
+  try {
     const attachmentId = await uploadFacebookBrochure(filename)
-    await sendMetaMessage(object, recipientId, {
+    await sendMetaMessage('page', recipientId, {
       attachment: {
         type: 'file',
         payload: { attachment_id: attachmentId },
       },
-    })
+    }, sendOptions)
+    logEvent('brochure_sent', { filename, method: 'upload', recipientId })
+    return
+  } catch (error) {
+    console.error('Brochure upload/send failed:', error.message)
+  }
+
+  try {
+    await sendFacebookBrochureMultipart(recipientId, filename, sendOptions)
+    logEvent('brochure_sent', { filename, method: 'multipart', recipientId })
+    return
+  } catch (error) {
+    console.error('Brochure multipart send failed:', error.message)
+  }
+
+  await sendMetaMessage('page', recipientId, {
+    attachment: {
+      type: 'file',
+      payload: {
+        url: brochurePublicUrl(filename),
+        is_reusable: true,
+      },
+    },
+  }, sendOptions)
+  logEvent('brochure_sent', { filename, method: 'url', recipientId })
+}
+
+async function sendProgramBrochure(object, recipientId, payload, options = {}) {
+  const filename = PROGRAM_BROCHURES[payload]
+  if (!filename) return
+
+  if (object === 'page') {
+    await sendFacebookBrochure(recipientId, filename, options)
     return
   }
 
   // Instagram does not reliably support PDF file attachments — send download links.
   await sendMetaMessage(object, recipientId, {
     text: brochureLinkMessage([payload]),
-  })
+  }, { allowDuplicate: true, ...options })
 }
 
-async function sendBothProgramBrochures(object, recipientId) {
+async function sendBothProgramBrochures(object, recipientId, options = {}) {
   try {
     if (object === 'page') {
-      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_AGENTS')
-      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_BUSINESS')
+      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_AGENTS', options)
+      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_BUSINESS', options)
       return
     }
 
     await sendMetaMessage(object, recipientId, {
       text: brochureLinkMessage(),
-    })
+    }, { allowDuplicate: true, ...options })
   } catch (error) {
     console.error('Brochure send failed:', error.message)
     try {
       await sendMetaMessage(object, recipientId, {
         text: brochureLinkMessage(),
-      })
+      }, { allowDuplicate: true, ...options })
     } catch (fallbackError) {
       console.error('Brochure link fallback failed:', fallbackError.message)
     }
@@ -767,7 +901,7 @@ async function sendIntentAnswer(object, recipientId, prediction) {
 
   await sendTextChunks(object, recipientId, answer)
 
-  if (BROCHURE_INTENTS.has(prediction.intentId)) {
+  if (object === 'page' && BROCHURE_INTENTS.has(prediction.intentId)) {
     await sendBothProgramBrochures(object, recipientId)
   }
 }
@@ -869,7 +1003,7 @@ async function handleMessagingEvent(object, event) {
         try {
           await sendMetaMessage(object, senderId, {
             text: brochureLinkMessage([payload]),
-          })
+          }, { allowDuplicate: true })
         } catch (fallbackError) {
           console.error('Program brochure link fallback failed:', fallbackError.message)
         }
@@ -936,10 +1070,13 @@ app.get('/health', (req, res) => {
 
 // ── Public brochures used by Meta file attachments ──
 app.get('/brochures/:filename', (req, res) => {
-  const brochurePath = BROCHURES.get(req.params.filename)
+  const filename = req.params.filename
+  const brochurePath = BROCHURES.get(filename)
 
   if (!brochurePath) return res.sendStatus(404)
 
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', `inline; filename="${filename}"`)
   res.sendFile(brochurePath)
 })
 
