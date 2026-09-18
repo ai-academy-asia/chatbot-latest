@@ -14,7 +14,7 @@
       "category": "overview",
       "program": "both",
       "title": "Хоёр хөтөлбөрийн ерөнхий танилцуулга",
-      "content": "Хиймэл оюун ухааныг бизнестээ нэвтрүүлэх 6 долоо хоногийн хоёр хөтөлбөрөөс сонгоорой.\n\n🧡 AI Agents — Claude & бүтээмж: 2 өдрийн ажлыг 3 минутад хийх AI туслах болон автомат workflow бүтээнэ.\n💚 AI for Business — Facebook автоматжуулалт: сошиал чат, контент, захиалгыг 24/7 ажиллуулах Facebook AI систем бүтээнэ.\n\n🏅 ITU AI Skills Coalition-ийн олон улсын батламжтай.\n💰 20% хөнгөлөлттэй үнэ: 2,880,000₮\n🛍 Storepay боломжтой.\n\nДэлгэрэнгүй: https://www.ai-academy.asia/ai-acceleration.html"
+      "content": "Хиймэл оюун ухааныг бизнестээ нэвтрүүлэх 6 долоо хоногийн хоёр хөтөлбөрөөс сонгоорой.\n\n📅 Эхлэх: 10-р сарын 2 (2026.10.02)\n\n🧡 AI Agents — Claude & бүтээмж: 2 өдрийн ажлыг 3 минутад хийх AI туслах болон автомат workflow бүтээнэ.\n💚 AI for Business — Facebook автоматжуулалт: сошиал чат, контент, захиалгыг 24/7 ажиллуулах Facebook AI систем бүтээнэ.\n\n🏅 ITU AI Skills Coalition-ийн олон улсын батламжтай.\n💰 20% хөнгөлөлттэй үнэ: 2,880,000₮\n🛍 Storepay боломжтой.\n\nДэлгэрэнгүй: https://www.ai-academy.asia/ai-acceleration.html"
     },
     {
       "id": "program-structure",
@@ -63,7 +63,7 @@
       "category": "schedule",
       "program": "ai_agents",
       "title": "AI Agents хуваарь",
-      "content": "AI Agents сургалтын мэдээлэл:\n📅 Эхлэх: 2026.09.25\n⏱ 6 долоо хоног · 12 хичээл (нийт хөтөлбөрийн бүтцэд 14 лайв хичээл)\n🗓 Даваа, Лхагва · 12:00–13:30\n💻 Танхим + онлайн хосолсон"
+      "content": "AI Agents сургалтын мэдээлэл:\n📅 Эхлэх: 2026.10.02\n⏱ 6 долоо хоног · 12 хичээл (нийт хөтөлбөрийн бүтцэд 14 лайв хичээл)\n🗓 Даваа, Лхагва · 12:00–13:30\n💻 Танхим + онлайн хосолсон"
     },
     {
       "id": "ai-business-overview",
@@ -105,14 +105,14 @@
       "category": "schedule",
       "program": "ai_business",
       "title": "AI for Business хуваарь",
-      "content": "AI for Business хуваарь:\n🗓 Мягмар, Пүрэв · 07:30–09:00\n🎥 12 лайв хичээл\n🏫 Офлайн воркшоп\n⏱ Үргэлжлэх хугацаа: 6 долоо хоног\n📅 Хөтөлбөр эхлэх: 9-р сарын 25"
+      "content": "AI for Business хуваарь:\n🗓 Мягмар, Пүрэв · 07:30–09:00\n🎥 12 лайв хичээл\n🏫 Офлайн воркшоп\n⏱ Үргэлжлэх хугацаа: 6 долоо хоног\n📅 Хөтөлбөр эхлэх: 10-р сарын 2"
     },
     {
       "id": "schedule-both",
       "category": "schedule",
       "program": "both",
       "title": "Хоёр хөтөлбөрийн хуваарь / heden udur doloo honog",
-      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n🧡 AI Agents — Даваа, Лхагва · 12:00–13:30\n💚 AI for Business — Мягмар, Пүрэв · 07:30–09:00\n⏱ Үргэлжлэх хугацаа: 6 долоо хоног (6 weeks)\nУян хатан цаг: 07:30–09:00 эсвэл 12:00–13:30"
+      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n📅 Хөтөлбөр эхлэх: 10-р сарын 2 (2026.10.02)\n🧡 AI Agents — Даваа, Лхагва · 12:00–13:30\n💚 AI for Business — Мягмар, Пүрэв · 07:30–09:00\n⏱ Үргэлжлэх хугацаа: 6 долоо хоног (6 weeks)\nУян хатан цаг: 07:30–09:00 эсвэл 12:00–13:30"
     },
     {
       "id": "format",
@@ -185,11 +185,18 @@
       "content": "Холбоо барих\nУтас: 7505-1055"
     },
     {
+      "id": "start-date",
+      "category": "schedule",
+      "program": "both",
+      "title": "Хөтөлбөр хэзээ эхлэх вэ",
+      "content": "📅 Эхлэх огноо\nХөтөлбөр 10-р сарын 2-нд эхэлнэ (2026.10.02).\nAI Agents болон AI for Business хоёр хөтөлбөр ижил өдөр эхэлнэ."
+    },
+    {
       "id": "registration",
       "category": "registration",
       "program": "general",
       "title": "Бүртгүүлэх",
-      "content": "Бүртгэл\n📅 Хөтөлбөр эхлэх: 9-р сарын 25\n\nБүртгүүлэх холбоос:\nhttps://www.ai-academy.asia/ai-acceleration.html#register"
+      "content": "Бүртгэл\n📅 Хөтөлбөр эхлэх: 10-р сарын 2\n\nБүртгүүлэх холбоос:\nhttps://www.ai-academy.asia/ai-acceleration.html#register"
     },
     {
       "id": "program-quiz",
