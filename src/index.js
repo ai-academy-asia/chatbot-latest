@@ -381,7 +381,12 @@ async function validateInstagramConnection() {
     username: identity.instagram_business_account?.username || null,
     subscribedFields,
     postbacksEnabled: subscribedFields.includes('messaging_postbacks'),
+    commentsEnabled: subscribedFields.includes('comments'),
   })
+
+  if (!subscribedFields.includes('comments')) {
+    console.error('Instagram webhook is not subscribed to comments — comment auto-replies will not fire')
+  }
 }
 
 function getChannelConfig(object) {
@@ -490,9 +495,24 @@ async function sendTextChunks(object, recipientId, text) {
   return { sent, skipped }
 }
 
-async function sendPrivateReply(commentId, text) {
-  if (!FB_PRIVATE_REPLY_TOKEN) {
-    throw new Error('FB_PRIVATE_REPLY_TOKEN is not set')
+function getCommentReplyToken(channel) {
+  if (channel === 'instagram') {
+    return IG_PAGE_ACCESS_TOKEN || FB_PRIVATE_REPLY_TOKEN
+  }
+  return FB_PRIVATE_REPLY_TOKEN
+}
+
+function commentReplyTokenName(channel) {
+  if (channel === 'instagram') {
+    return IG_PAGE_ACCESS_TOKEN ? 'IG_PAGE_ACCESS_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN'
+  }
+  return 'FB_PRIVATE_REPLY_TOKEN'
+}
+
+async function sendPrivateReply(channel, commentId, text) {
+  const accessToken = getCommentReplyToken(channel)
+  if (!accessToken) {
+    throw new Error(`${commentReplyTokenName(channel)} is not set`)
   }
   if (!text) {
     throw new Error(`Private reply message missing for intent ${PRIVATE_REPLY_INTENT_ID}`)
@@ -503,7 +523,7 @@ async function sendPrivateReply(commentId, text) {
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${FB_PRIVATE_REPLY_TOKEN}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -515,11 +535,12 @@ async function sendPrivateReply(commentId, text) {
 
   if (!response.ok) {
     const error = await response.text()
-    throw new Error(`private reply failed (${response.status}): ${error}`)
+    throw new Error(`${channel} private reply failed (${response.status}): ${error}`)
   }
 
   const result = await response.json()
   logEvent('private_reply_sent', {
+    channel,
     commentId,
     intent: PRIVATE_REPLY_INTENT_ID,
     metaMessageId: result.message_id || null,
@@ -527,18 +548,20 @@ async function sendPrivateReply(commentId, text) {
   return result
 }
 
-async function sendPublicCommentReply(commentId, text) {
-  if (!FB_PRIVATE_REPLY_TOKEN) {
-    throw new Error('FB_PRIVATE_REPLY_TOKEN is not set')
+async function sendPublicCommentReply(channel, commentId, text) {
+  const accessToken = getCommentReplyToken(channel)
+  if (!accessToken) {
+    throw new Error(`${commentReplyTokenName(channel)} is not set`)
   }
   if (!text) return
 
+  const edge = channel === 'instagram' ? 'replies' : 'comments'
   const response = await fetch(
-    `https://graph.facebook.com/${META_API_VERSION}/${encodeURIComponent(commentId)}/comments`,
+    `https://graph.facebook.com/${META_API_VERSION}/${encodeURIComponent(commentId)}/${edge}`,
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${FB_PRIVATE_REPLY_TOKEN}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ message: text }),
@@ -547,35 +570,44 @@ async function sendPublicCommentReply(commentId, text) {
 
   if (!response.ok) {
     const error = await response.text()
-    throw new Error(`comment reply failed (${response.status}): ${error}`)
+    throw new Error(`${channel} comment reply failed (${response.status}): ${error}`)
   }
 
   const result = await response.json()
   logEvent('comment_reply_sent', {
+    channel,
     commentId,
     replyId: result.id || null,
   })
   return result
 }
 
-async function handleFeedChange(change) {
-  if (change.field !== 'feed') return
+function isOwnComment(channel, fromId, accountId) {
+  if (!fromId) return false
+  if (channel === 'page') return Boolean(PAGE_ID && fromId === PAGE_ID)
+  const ownId = accountId || connectedInstagramAccountId
+  return Boolean(ownId && fromId === String(ownId))
+}
 
-  const value = change.value || {}
-  if (value.item !== 'comment' || value.verb !== 'add') return
-
-  const commentId = value.comment_id
+async function processComment({
+  channel,
+  commentId,
+  fromId,
+  postId,
+  text,
+  accountId = null,
+  canPublicReply = true,
+}) {
   if (!commentId) return
-
-  const fromId = value.from?.id ? String(value.from.id) : null
-  if (PAGE_ID && fromId === PAGE_ID) return
+  if (isOwnComment(channel, fromId, accountId)) return
   if (repliedCommentIds.has(commentId)) return
 
   logEvent('comment_received', {
+    channel,
     commentId,
-    postId: value.post_id || null,
+    postId,
     fromId,
-    text: value.message || null,
+    text,
   })
 
   repliedCommentIds.add(commentId)
@@ -586,24 +618,59 @@ async function handleFeedChange(change) {
 
   let privateReplyResult
   try {
-    privateReplyResult = await sendPrivateReply(commentId, PRIVATE_REPLY_MESSAGE)
+    privateReplyResult = await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
   } catch (error) {
     repliedCommentIds.delete(commentId)
     throw error
   }
 
   const recipientId = privateReplyResult?.recipient_id
-  if (recipientId) {
-    await sendBothProgramBrochures('page', recipientId, { messagingType: 'UPDATE' })
-  } else {
-    console.error('Private reply returned no recipient_id; brochure PDFs skipped (links included in reply)')
+  if (channel === 'page') {
+    if (recipientId) {
+      await sendBothProgramBrochures('page', recipientId, { messagingType: 'UPDATE' })
+    } else {
+      console.error('Private reply returned no recipient_id; brochure PDFs skipped (links included in reply)')
+    }
   }
 
+  if (!canPublicReply) return
+
   try {
-    await sendPublicCommentReply(commentId, COMMENT_REPLY_MESSAGE)
+    await sendPublicCommentReply(channel, commentId, COMMENT_REPLY_MESSAGE)
   } catch (error) {
     console.error('Public comment reply failed:', error.message)
   }
+}
+
+async function handleCommentChange(object, change, entry) {
+  const value = change.value || {}
+
+  if (object === 'page') {
+    if (change.field !== 'feed') return
+    if (value.item !== 'comment' || value.verb !== 'add') return
+
+    await processComment({
+      channel: 'page',
+      commentId: value.comment_id,
+      fromId: value.from?.id ? String(value.from.id) : null,
+      postId: value.post_id || null,
+      text: value.message || null,
+    })
+    return
+  }
+
+  if (object !== 'instagram') return
+  if (change.field !== 'comments' && change.field !== 'live_comments') return
+
+  await processComment({
+    channel: 'instagram',
+    commentId: value.id || value.comment_id,
+    fromId: value.from?.id ? String(value.from.id) : null,
+    postId: value.media?.id || value.post_id || null,
+    text: value.text || value.message || null,
+    accountId: entry?.id ? String(entry.id) : connectedInstagramAccountId,
+    canPublicReply: change.field !== 'live_comments',
+  })
 }
 
 function splitMessage(text, maxLength = 900) {
@@ -1109,27 +1176,24 @@ app.post('/webhook', (req, res) => {
   }
 
   for (const entry of entries) {
-    for (const event of entry.messaging || []) {
-      if (body.object === 'instagram') {
-        if (
-          connectedInstagramAccountId
-          && String(entry.id) !== connectedInstagramAccountId
-        ) {
-          continue
-        }
-      }
+    if (
+      body.object === 'instagram'
+      && connectedInstagramAccountId
+      && String(entry.id) !== connectedInstagramAccountId
+    ) {
+      continue
+    }
 
+    for (const event of entry.messaging || []) {
       handleMessagingEvent(body.object, event).catch(error => {
         console.error('Webhook event handling failed:', error.message)
       })
     }
 
-    if (body.object === 'page') {
-      for (const change of entry.changes || []) {
-        handleFeedChange(change).catch(error => {
-          console.error('Feed webhook handling failed:', error.message)
-        })
-      }
+    for (const change of entry.changes || []) {
+      handleCommentChange(body.object, change, entry).catch(error => {
+        console.error('Comment webhook handling failed:', error.message)
+      })
     }
   }
 })
