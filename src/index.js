@@ -381,12 +381,7 @@ async function validateInstagramConnection() {
     username: identity.instagram_business_account?.username || null,
     subscribedFields,
     postbacksEnabled: subscribedFields.includes('messaging_postbacks'),
-    commentsEnabled: subscribedFields.includes('comments'),
   })
-
-  if (!subscribedFields.includes('comments')) {
-    console.error('Instagram webhook is not subscribed to comments — comment auto-replies will not fire')
-  }
 }
 
 function getChannelConfig(object) {
