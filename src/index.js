@@ -691,7 +691,28 @@ function splitMessage(text, maxLength = 900) {
   return chunks
 }
 
+// Instagram inbox cannot render Messenger generic templates (shows "Use Latest App").
+// Use quick replies instead — they work in Instagram DM.
+function truncateQuickReplyTitle(title, maxLength = 20) {
+  const value = String(title || '').trim()
+  if (value.length <= maxLength) return value
+  return `${value.slice(0, maxLength - 1)}…`
+}
+
 async function sendMenuCard(object, recipientId, title, subtitle, options) {
+  if (object === 'instagram') {
+    const text = [title, subtitle].filter(Boolean).join('\n')
+    await sendMetaMessage(object, recipientId, {
+      text,
+      quick_replies: options.map(option => ({
+        content_type: 'text',
+        title: truncateQuickReplyTitle(option.title),
+        payload: option.payload,
+      })),
+    })
+    return
+  }
+
   await sendMetaMessage(object, recipientId, {
     attachment: {
       type: 'template',
