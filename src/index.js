@@ -14,6 +14,7 @@ const {
   recordConversationMessage,
   recordThreadMessage,
   claimDueReminderConversations,
+  claimWebhookEvent,
   clearReminderSent,
   getRecentOutgoingTexts,
   DEFAULT_REMINDER_HOURS,
@@ -596,6 +597,11 @@ async function processComment({
   if (!commentId) return
   if (isOwnComment(channel, fromId, accountId)) return
   if (repliedCommentIds.has(commentId)) return
+  try {
+    if (!await claimWebhookEvent(channel, `comment:${commentId}`)) return
+  } catch (error) {
+    console.error('Comment claim failed:', error.message)
+  }
 
   logEvent('comment_received', {
     channel,
@@ -1013,6 +1019,20 @@ async function handleMessagingEvent(object, event) {
 
   const senderId = event.sender.id
   const payload = message?.quick_reply?.payload || event.postback?.payload
+  const eventKey = message?.mid
+    || event.postback?.mid
+    || (payload && event.timestamp ? `postback:${senderId}:${event.timestamp}:${payload}` : null)
+
+  if (eventKey) {
+    try {
+      if (!await claimWebhookEvent(object, eventKey)) {
+        logEvent('duplicate_webhook_skipped', { channel: object, senderId, eventKey })
+        return
+      }
+    } catch (error) {
+      console.error('Webhook claim failed:', error.message)
+    }
+  }
 
   logEvent('incoming_message', {
     channel: object,

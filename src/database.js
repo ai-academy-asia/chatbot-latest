@@ -57,6 +57,13 @@ async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS conversations_reminder_due_idx
       ON conversations (last_incoming_at)
       WHERE reminder_sent_at IS NULL AND last_incoming_at IS NOT NULL;
+
+    CREATE TABLE IF NOT EXISTS webhook_events (
+      channel TEXT NOT NULL,
+      event_key TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (channel, event_key)
+    );
   `)
 
   await pool.query(`
@@ -254,6 +261,11 @@ async function recordThreadMessage({
 async function deleteExpiredConversations() {
   if (!pool) return 0
 
+  await pool.query(
+    `DELETE FROM webhook_events
+     WHERE created_at < NOW() - INTERVAL '2 days'`,
+  )
+
   const result = await pool.query(
     `DELETE FROM conversations
      WHERE last_activity_at < NOW() - ($1::double precision * INTERVAL '1 day')`,
@@ -308,6 +320,22 @@ async function clearReminderSent(conversationId) {
   )
 }
 
+async function claimWebhookEvent(channel, eventKey) {
+  if (!pool || !eventKey) return true
+
+  try {
+    await pool.query(
+      `INSERT INTO webhook_events (channel, event_key)
+       VALUES ($1, $2)`,
+      [channel, String(eventKey)],
+    )
+    return true
+  } catch (error) {
+    if (error.code === '23505') return false
+    throw error
+  }
+}
+
 async function getRecentOutgoingTexts(channel, userId, { limit = 30 } = {}) {
   if (!pool) return []
 
@@ -337,6 +365,7 @@ module.exports = {
   recordThreadMessage,
   claimDueReminderConversations,
   clearReminderSent,
+  claimWebhookEvent,
   getRecentOutgoingTexts,
   DEFAULT_REMINDER_HOURS,
 }
