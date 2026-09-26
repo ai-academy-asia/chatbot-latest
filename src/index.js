@@ -316,12 +316,19 @@ ${BROCHURE_INTRO}`,
 📅 Хугацаа: 10 сарын 20 – 12 сарын 17
 
 🗓️ Хичээл эхлэх: 10 сарын 19
+💰 Төлбөр: 3,600,000₮
 ⚠️ Суудлын тоо хязгаартай — амжиж бүртгүүлээрэй!
-☎️ Бүртгэл / лавлагаа: 7505-1055`,
+
+🔗 Бүртгүүлэх: https://www.ai-academy.asia
+📞 Холбогдох утас: 7505-1055`,
   PAYMENT: `💳 СУРГАЛТЫН ТӨЛБӨР
 
+🧡💚 AI Agents / AI for Business:
 💰 20% хөнгөлөлттэй үнэ: 2,880,000₮
-🛍 Storepay-ээр хуваан төлөх боломжтой.`,
+🛍 Storepay-ээр хуваан төлөх боломжтой.
+
+🎓 Junior AI Engineer (10–18 нас):
+💰 3,600,000₮`,
   LOCATION: `📍 ХАЯГ, БАЙРШИЛ
 
 СБД, 1-р хороо,
@@ -331,10 +338,13 @@ ITC Tower, 11 давхар
 ☎️ Утас: 7505-1055`,
   REGISTER: `📝 БҮРТГЭЛ
 
-📅 Хөтөлбөр эхлэх: 10-р сарын 2
+🧡💚 AI Agents / AI for Business (10-р сарын 2-нд эхэлнэ):
+https://www.ai-academy.asia/ai-acceleration.html#register
 
-Бүртгүүлэх холбоос:
-https://www.ai-academy.asia/ai-acceleration.html#register`,
+🎓 Junior AI Engineer (10-р сарын 19-нд эхэлнэ):
+https://www.ai-academy.asia
+
+📞 Утас: 7505-1055`,
 }
 
 if (!VERIFY_TOKEN) {
