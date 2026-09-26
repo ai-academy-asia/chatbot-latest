@@ -215,6 +215,7 @@ const brochureAttachmentIds = new Map()
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
   { title: '💼 AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
+  { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
 
@@ -298,6 +299,25 @@ Facebook API · Meta for Developers · n8n · Supabase · Vibe Coding
 💡 23:41 цагт ирсэн чат маргааш өглөөг хүлээхгүй — таны борлуулалтын систем 24/7 ажиллана.
 
 ${BROCHURE_INTRO}`,
+  PROGRAM_JUNIOR_AI: `🎓 JUNIOR AI ENGINEER
+
+Хүүхэд, залууст хиймэл оюуныг зүгээр нэг хэрэглэх биш, өөрсдөө бүтээх бодит мэдлэг олгох хөтөлбөр. Шинэ элсэлт эхэллээ!
+
+📌 Насны ангилал ба хичээлийн хуваарь:
+
+👧 10 – 13 нас:
+🗓️ Өдөр: Даваа, Лхагва
+⏰ Цаг: 16:30 – 18:00
+📅 Хугацаа: 10 сарын 19 – 12 сарын 16
+
+🧑 14 – 18 нас:
+🗓️ Өдөр: Мягмар, Пүрэв
+⏰ Цаг: 16:30 – 18:00
+📅 Хугацаа: 10 сарын 20 – 12 сарын 17
+
+🗓️ Хичээл эхлэх: 10 сарын 19
+⚠️ Суудлын тоо хязгаартай — амжиж бүртгүүлээрэй!
+☎️ Бүртгэл / лавлагаа: 7505-1055`,
   PAYMENT: `💳 СУРГАЛТЫН ТӨЛБӨР
 
 💰 20% хөнгөлөлттэй үнэ: 2,880,000₮
@@ -1114,6 +1134,8 @@ async function handleMessagingEvent(object, event) {
           console.error('Program brochure link fallback failed:', fallbackError.message)
         }
       }
+      await sendProgramActions(object, senderId)
+    } else if (payload === 'PROGRAM_JUNIOR_AI') {
       await sendProgramActions(object, senderId)
     } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
       await sendDetailActions(object, senderId)
