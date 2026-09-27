@@ -188,7 +188,7 @@ function brochureLinksText(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS
     .join('\n\n')
 }
 
-function withBrochureIntro(answer) {
+function withBrochureIntro(answer, { includeLinks = true } = {}) {
   if (!answer) return answer
   let text = answer
   if (BROCHURE_ANSWER_TAIL_RE.test(text)) {
@@ -196,7 +196,7 @@ function withBrochureIntro(answer) {
   } else if (!text.includes(BROCHURE_INTRO)) {
     text = `${text.trim()}\n\n${BROCHURE_INTRO}`
   }
-  if (text.includes('/brochures/')) return text
+  if (!includeLinks || text.includes('/brochures/')) return text
   return `${text.trim()}\n\n${brochureLinksText()}`
 }
 
@@ -204,13 +204,28 @@ function brochureLinkMessage(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINE
   return `${BROCHURE_INTRO}\n\n${brochureLinksText(payloads)}`
 }
 
-const PRIVATE_REPLY_MESSAGE = withBrochureIntro(
-  INTENTS_DATA.intents.find(
-    intent => intent.id === PRIVATE_REPLY_INTENT_ID,
-  )?.answers?.default || null,
-)
+const PRIVATE_REPLY_SOURCE = INTENTS_DATA.intents.find(
+  intent => intent.id === PRIVATE_REPLY_INTENT_ID,
+)?.answers?.default || null
+const PRIVATE_REPLY_MESSAGE = withBrochureIntro(PRIVATE_REPLY_SOURCE)
+// Facebook page replies are followed by the PDF attachments, so links would duplicate them.
+const PRIVATE_REPLY_MESSAGE_NO_LINKS = withBrochureIntro(PRIVATE_REPLY_SOURCE, { includeLinks: false })
 
 const brochureAttachmentIds = new Map()
+const BROCHURE_RESEND_MS = Number(process.env.BROCHURE_RESEND_HOURS || 24) * 60 * 60 * 1000
+const recentBrochureSends = new Map()
+
+function brochureRecentlySent(recipientId, filename) {
+  const sentAt = recentBrochureSends.get(`${recipientId}:${filename}`)
+  return Boolean(sentAt && Date.now() - sentAt < BROCHURE_RESEND_MS)
+}
+
+function markBrochureSent(recipientId, filename) {
+  recentBrochureSends.set(`${recipientId}:${filename}`, Date.now())
+  if (recentBrochureSends.size > 5000) {
+    recentBrochureSends.delete(recentBrochureSends.keys().next().value)
+  }
+}
 
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
@@ -649,7 +664,11 @@ async function processComment({
 
   let privateReplyResult
   try {
-    privateReplyResult = await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
+    privateReplyResult = await sendPrivateReply(
+      channel,
+      commentId,
+      channel === 'page' ? PRIVATE_REPLY_MESSAGE_NO_LINKS : PRIVATE_REPLY_MESSAGE,
+    )
   } catch (error) {
     repliedCommentIds.delete(commentId)
     throw error
@@ -660,7 +679,7 @@ async function processComment({
     if (recipientId) {
       await sendBothProgramBrochures('page', recipientId, { messagingType: 'UPDATE' })
     } else {
-      console.error('Private reply returned no recipient_id; brochure PDFs skipped (links included in reply)')
+      console.error('Private reply returned no recipient_id; brochure PDFs skipped')
     }
   }
 
@@ -978,7 +997,12 @@ async function sendProgramBrochure(object, recipientId, payload, options = {}) {
   if (!filename) return
 
   if (object === 'page') {
+    if (brochureRecentlySent(recipientId, filename)) {
+      logEvent('brochure_skipped_duplicate', { filename, recipientId })
+      return
+    }
     await sendFacebookBrochure(recipientId, filename, options)
+    markBrochureSent(recipientId, filename)
     return
   }
 
@@ -989,25 +1013,30 @@ async function sendProgramBrochure(object, recipientId, payload, options = {}) {
 }
 
 async function sendBothProgramBrochures(object, recipientId, options = {}) {
-  try {
-    if (object === 'page') {
-      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_AGENTS', options)
-      await sendProgramBrochure(object, recipientId, 'PROGRAM_AI_BUSINESS', options)
-      return
-    }
+  const payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']
+  const failed = []
 
+  if (object === 'page') {
+    for (const payload of payloads) {
+      try {
+        await sendProgramBrochure(object, recipientId, payload, options)
+      } catch (error) {
+        console.error(`Brochure send failed (${payload}):`, error.message)
+        failed.push(payload)
+      }
+    }
+  } else {
+    failed.push(...payloads)
+  }
+
+  if (!failed.length) return
+
+  try {
     await sendMetaMessage(object, recipientId, {
-      text: brochureLinkMessage(),
+      text: object === 'page' ? brochureLinksText(failed) : brochureLinkMessage(failed),
     }, { allowDuplicate: true, ...options })
   } catch (error) {
-    console.error('Brochure send failed:', error.message)
-    try {
-      await sendMetaMessage(object, recipientId, {
-        text: brochureLinkMessage(),
-      }, { allowDuplicate: true, ...options })
-    } catch (fallbackError) {
-      console.error('Brochure link fallback failed:', fallbackError.message)
-    }
+    console.error('Brochure link fallback failed:', error.message)
   }
 }
 
@@ -1018,7 +1047,7 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   }
 
   const answer = BROCHURE_INTENTS.has(prediction.intentId)
-    ? withBrochureIntro(prediction.answer)
+    ? withBrochureIntro(prediction.answer, { includeLinks: object !== 'page' })
     : prediction.answer
 
   await sendTextChunks(object, recipientId, answer)
