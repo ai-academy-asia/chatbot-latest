@@ -17,6 +17,8 @@ const {
   claimWebhookEvent,
   clearReminderSent,
   getRecentOutgoingTexts,
+  setProgramTrack,
+  getProgramTrack,
   DEFAULT_REMINDER_HOURS,
 } = require('./database')
 
@@ -334,7 +336,7 @@ ${BROCHURE_INTRO}`,
 💰 Төлбөр: 3,600,000₮
 ⚠️ Суудлын тоо хязгаартай — амжиж бүртгүүлээрэй!
 
-🔗 Бүртгүүлэх: https://www.ai-academy.asia
+🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer
 📞 Холбогдох утас: 7505-1055`,
   PAYMENT: `💳 СУРГАЛТЫН ТӨЛБӨР
 
@@ -357,7 +359,7 @@ ITC Tower, 11 давхар
 https://www.ai-academy.asia/ai-acceleration.html#register
 
 🎓 Junior AI Engineer (10-р сарын 19-нд эхэлнэ):
-https://www.ai-academy.asia
+https://www.ai-academy.asia/mn/what-we-offer
 
 📞 Утас: 7505-1055`,
 }
@@ -550,13 +552,79 @@ function commentReplyTokenName(channel) {
   return 'FB_PRIVATE_REPLY_TOKEN'
 }
 
-async function sendPrivateReply(channel, commentId, text) {
+const JUNIOR_POST_RE = /junior|жуниор|жүниор|хүүхдийн/i
+const postJuniorCache = new Map()
+
+// Returns true/false when the post text was read, null when it could not be read.
+async function isJuniorPost(channel, postId) {
+  if (!postId) return null
+  const cacheKey = `${channel}:${postId}`
+  if (postJuniorCache.has(cacheKey)) return postJuniorCache.get(cacheKey)
+
+  const accessToken = getCommentReplyToken(channel)
+  if (!accessToken) return null
+
+  const field = channel === 'instagram' ? 'caption' : 'message'
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${META_API_VERSION}/${encodeURIComponent(postId)}?fields=${field}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    )
+    if (!response.ok) {
+      console.error(`${channel} post lookup failed (${response.status}): ${await response.text()}`)
+      return null
+    }
+    const data = await response.json()
+    const isJunior = JUNIOR_POST_RE.test(String(data[field] || ''))
+    postJuniorCache.set(cacheKey, isJunior)
+    if (postJuniorCache.size > 1000) {
+      postJuniorCache.delete(postJuniorCache.keys().next().value)
+    }
+    return isJunior
+  } catch (error) {
+    console.error(`${channel} post lookup failed:`, error.message)
+    return null
+  }
+}
+
+async function rememberTrack(channel, userId, track) {
+  if (!userId || !track) return
+  try {
+    await setProgramTrack(channel, userId, track)
+    logEvent('program_track_set', { channel, userId, track })
+  } catch (error) {
+    console.error('Program track save failed:', error.message)
+  }
+}
+
+async function currentTrack(channel, userId) {
+  try {
+    return await getProgramTrack(channel, userId)
+  } catch (error) {
+    console.error('Program track lookup failed:', error.message)
+    return null
+  }
+}
+
+async function trackFromReferral(channel, referral) {
+  if (!referral) return null
+  const context = referral.ads_context_data || {}
+  const label = [context.ad_title, referral.ref].filter(Boolean).join(' ')
+  if (JUNIOR_POST_RE.test(label)) return 'junior'
+
+  const juniorPost = await isJuniorPost(channel, context.post_id)
+  if (juniorPost === true) return 'junior'
+  if (juniorPost === false) return 'adult'
+  return null
+}
+
+async function sendPrivateReply(channel, commentId, text, intent = PRIVATE_REPLY_INTENT_ID) {
   const accessToken = getCommentReplyToken(channel)
   if (!accessToken) {
     throw new Error(`${commentReplyTokenName(channel)} is not set`)
   }
   if (!text) {
-    throw new Error(`Private reply message missing for intent ${PRIVATE_REPLY_INTENT_ID}`)
+    throw new Error(`Private reply message missing for intent ${intent}`)
   }
 
   const response = await fetch(
@@ -583,7 +651,7 @@ async function sendPrivateReply(channel, commentId, text) {
   logEvent('private_reply_sent', {
     channel,
     commentId,
-    intent: PRIVATE_REPLY_INTENT_ID,
+    intent,
     metaMessageId: result.message_id || null,
   })
   return result
@@ -662,20 +730,34 @@ async function processComment({
     repliedCommentIds.delete(oldest)
   }
 
+  const juniorPost = await isJuniorPost(channel, postId)
+
   let privateReplyResult
   try {
-    privateReplyResult = await sendPrivateReply(
-      channel,
-      commentId,
-      channel === 'page' ? PRIVATE_REPLY_MESSAGE_NO_LINKS : PRIVATE_REPLY_MESSAGE,
-    )
+    if (juniorPost) {
+      privateReplyResult = await sendPrivateReply(
+        channel,
+        commentId,
+        MENU_RESPONSES.PROGRAM_JUNIOR_AI,
+        'kids_training',
+      )
+    } else {
+      privateReplyResult = await sendPrivateReply(
+        channel,
+        commentId,
+        channel === 'page' ? PRIVATE_REPLY_MESSAGE_NO_LINKS : PRIVATE_REPLY_MESSAGE,
+      )
+    }
   } catch (error) {
     repliedCommentIds.delete(commentId)
     throw error
   }
 
   const recipientId = privateReplyResult?.recipient_id
-  if (channel === 'page') {
+  if (juniorPost !== null) {
+    await rememberTrack(channel, recipientId, juniorPost ? 'junior' : 'adult')
+  }
+  if (channel === 'page' && !juniorPost) {
     if (recipientId) {
       await sendBothProgramBrochures('page', recipientId, { messagingType: 'UPDATE' })
     } else {
@@ -1046,15 +1128,45 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
+  if (prediction.intentId === 'kids_training') {
+    await rememberTrack(object, recipientId, 'junior')
+    await sendTextChunks(object, recipientId, prediction.answer)
+    return
+  }
+
+  const track = await currentTrack(object, recipientId)
+
+  if (track === 'junior' && BROCHURE_INTENTS.has(prediction.intentId)) {
+    await sendTextChunks(object, recipientId, MENU_RESPONSES.PROGRAM_JUNIOR_AI)
+    return
+  }
+
+  const baseAnswer = (track && prediction.answers?.[track]) || prediction.answer
   const answer = BROCHURE_INTENTS.has(prediction.intentId)
-    ? withBrochureIntro(prediction.answer, { includeLinks: object !== 'page' })
-    : prediction.answer
+    ? withBrochureIntro(baseAnswer, { includeLinks: object !== 'page' })
+    : baseAnswer
 
   await sendTextChunks(object, recipientId, answer)
 
   if (object === 'page' && BROCHURE_INTENTS.has(prediction.intentId)) {
     await sendBothProgramBrochures(object, recipientId)
   }
+}
+
+function intentAnswer(intentId, track) {
+  const answers = INTENTS_DATA.intents.find(intent => intent.id === intentId)?.answers || {}
+  return (track && answers[track]) || null
+}
+
+const TRACK_MENU_INTENTS = {
+  PAYMENT: 'payment_info',
+  REGISTER: 'register_instruction',
+}
+
+const PROGRAM_TRACKS = {
+  PROGRAM_AI_AGENTS: 'adult',
+  PROGRAM_AI_BUSINESS: 'adult',
+  PROGRAM_JUNIOR_AI: 'junior',
 }
 
 async function handleMessagingEvent(object, event) {
@@ -1083,6 +1195,22 @@ async function handleMessagingEvent(object, event) {
 
   if (message?.is_echo) {
     return
+  }
+
+  const referral = event.referral || message?.referral || event.postback?.referral
+  if (referral) {
+    const track = await trackFromReferral(object, referral)
+    logEvent('referral_received', {
+      channel: object,
+      senderId: event.sender.id,
+      source: referral.source || null,
+      adId: referral.ad_id || null,
+      adTitle: referral.ads_context_data?.ad_title || null,
+      postId: referral.ads_context_data?.post_id || null,
+      ref: referral.ref || null,
+      track,
+    })
+    await rememberTrack(object, event.sender.id, track)
   }
 
   if (!message && !event.postback) {
@@ -1158,7 +1286,13 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (payload && MENU_RESPONSES[payload]) {
-    await sendTextChunks(object, senderId, MENU_RESPONSES[payload])
+    if (PROGRAM_TRACKS[payload]) {
+      await rememberTrack(object, senderId, PROGRAM_TRACKS[payload])
+    }
+    const trackAnswer = TRACK_MENU_INTENTS[payload]
+      ? intentAnswer(TRACK_MENU_INTENTS[payload], await currentTrack(object, senderId))
+      : null
+    await sendTextChunks(object, senderId, trackAnswer || MENU_RESPONSES[payload])
 
     if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
       try {
@@ -1210,6 +1344,7 @@ async function handleMessagingEvent(object, event) {
     try {
       const rag = await answerWithRag(message.text, {
         topK: prediction?.multiIntent ? 6 : undefined,
+        track: await currentTrack(object, senderId),
       })
       if (rag?.answer) {
         logEvent('rag_answer', {

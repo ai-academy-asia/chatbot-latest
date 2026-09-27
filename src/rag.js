@@ -254,7 +254,12 @@ async function retrieveRag(text, options = {}) {
   return ranked.filter(item => item.score >= minimumScore).slice(0, topK)
 }
 
-async function generateRagAnswer(question, hits) {
+const TRACK_HINTS = {
+  junior: 'Хэрэглэгч хүүхэд, залууст зориулсан Junior AI Engineer хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН Junior AI Engineer-ийн мэдээллийг өг.',
+  adult: 'Хэрэглэгч насанд хүрэгчдийн AI Agents / AI for Business хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг (Junior AI Engineer-ийг бүү дурд, асуугаагүй бол).',
+}
+
+async function generateRagAnswer(question, hits, track = null) {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
 
@@ -269,6 +274,7 @@ async function generateRagAnswer(question, hits) {
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
 Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
+${TRACK_HINTS[track] || ''}
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:
 "Энэ талаар нарийн мэдээлэл алга. Цэснээс сонгох эсвэл 7505-1055 руу холбогдоорой."
 
@@ -326,7 +332,7 @@ async function answerWithRag(question, options = {}) {
 
   let answer
   try {
-    answer = await generateRagAnswer(question, hits)
+    answer = await generateRagAnswer(question, hits, options.track)
     // Model sometimes refuses even when retrieval is clearly relevant — use chunks.
     if (isRefusalAnswer(answer) && trustChunks) {
       answer = chunkAnswer

@@ -143,6 +143,7 @@ async function classifyIntent(text) {
   return {
     intentId: best.intentId,
     answer: intent.answers.default,
+    answers: intent.answers,
     score: best.score,
     margin,
     matchedExample: best.matchedExample,

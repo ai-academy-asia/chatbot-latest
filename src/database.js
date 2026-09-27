@@ -49,6 +49,8 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS last_incoming_at TIMESTAMPTZ;
     ALTER TABLE conversations
       ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ;
+    ALTER TABLE conversations
+      ADD COLUMN IF NOT EXISTS program_track TEXT;
 
     CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_idx
       ON conversation_messages (conversation_id, created_at);
@@ -358,8 +360,41 @@ async function getRecentOutgoingTexts(channel, userId, { limit = 30 } = {}) {
   return result.rows.map(row => row.content)
 }
 
+const memoryTracks = new Map()
+
+async function setProgramTrack(channel, userId, track) {
+  const key = `${channel}:${userId}`
+  memoryTracks.set(key, track)
+  if (memoryTracks.size > 10000) memoryTracks.delete(memoryTracks.keys().next().value)
+  if (!pool) return
+
+  const conversationId = await getOrCreateConversation(channel, userId)
+  await pool.query(
+    'UPDATE conversations SET program_track = $2 WHERE id = $1',
+    [conversationId, track],
+  )
+}
+
+async function getProgramTrack(channel, userId) {
+  const key = `${channel}:${userId}`
+  if (memoryTracks.has(key)) return memoryTracks.get(key)
+  if (!pool) return null
+
+  const result = await pool.query(
+    `SELECT program_track FROM conversations
+     WHERE channel = $1 AND user_id = $2
+     LIMIT 1`,
+    [channel, String(userId)],
+  )
+  const track = result.rows[0]?.program_track || null
+  if (track) memoryTracks.set(key, track)
+  return track
+}
+
 module.exports = {
   initializeDatabase,
+  setProgramTrack,
+  getProgramTrack,
   getOrCreateConversation,
   recordConversationMessage,
   recordThreadMessage,
