@@ -614,8 +614,19 @@ async function isJuniorPost(channel, postId) {
   }
 }
 
+const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес/i
+const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
+
+function trackFromText(text) {
+  const adult = ADULT_TEXT_RE.test(text)
+  const junior = JUNIOR_TEXT_RE.test(text)
+  if (adult === junior) return null
+  return adult ? 'adult' : 'junior'
+}
+
+// track === null clears a stale track (e.g. a new ad click we could not classify).
 async function rememberTrack(channel, userId, track) {
-  if (!userId || !track) return
+  if (!userId || track === undefined) return
   try {
     await setProgramTrack(channel, userId, track)
     logEvent('program_track_set', { channel, userId, track })
@@ -1344,6 +1355,9 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (message?.text) {
+    const textTrack = trackFromText(message.text)
+    if (textTrack) await rememberTrack(object, senderId, textTrack)
+
     let prediction = null
 
     try {
