@@ -6,6 +6,7 @@ const cron = require('node-cron')
 const path = require('node:path')
 const { readFile } = require('node:fs/promises')
 const { randomUUID: uuidv4 } = require('node:crypto')
+const { AsyncLocalStorage } = require('node:async_hooks')
 const { classifyIntent, warmIntentClassifier } = require('./intent-classifier')
 const { answerWithRag, warmRag } = require('./rag')
 const {
@@ -65,6 +66,12 @@ ${REGISTER_URL}`
 const DUPLICATE_SIMILARITY = Number(process.env.DUPLICATE_SIMILARITY || 0.88)
 const DUPLICATE_LOOKBACK = Number(process.env.DUPLICATE_LOOKBACK || 30)
 const recentOutgoingCache = new Map()
+
+// Website chat runs the same handler as Messenger; replies are collected here instead of sent to Meta.
+const webReplySink = new AsyncLocalStorage()
+const WEB_RATE_LIMIT = Number(process.env.WEB_CHAT_RATE_LIMIT || 20)
+const WEB_RATE_WINDOW_MS = 60 * 1000
+const webRateHits = new Map()
 
 function logEvent(event, details) {
   process.stdout.write(`${JSON.stringify({
@@ -450,7 +457,29 @@ function getChannelConfig(object) {
   return null
 }
 
+async function sendWebMessage(recipientId, message) {
+  const text = message.text || null
+  const buttons = (message.quick_replies || []).map(option => ({
+    title: option.title,
+    payload: option.payload,
+  }))
+  webReplySink.getStore()?.push({ text, buttons })
+
+  await recordConversationMessage({
+    channel: 'web',
+    userId: recipientId,
+    direction: 'outgoing',
+    messageType: buttons.length ? 'quick_replies' : 'text',
+    content: text,
+    metadata: {},
+  })
+
+  return { skipped: false, messageId: null }
+}
+
 async function sendMetaMessage(object, recipientId, message, options = {}) {
+  if (object === 'web') return sendWebMessage(recipientId, message)
+
   const channel = getChannelConfig(object)
 
   if (!channel) return { skipped: true, reason: 'unknown_channel' }
@@ -829,13 +858,13 @@ function truncateQuickReplyTitle(title, maxLength = 20) {
 }
 
 async function sendMenuCard(object, recipientId, title, subtitle, options) {
-  if (object === 'instagram') {
+  if (object === 'instagram' || object === 'web') {
     const text = [title, subtitle].filter(Boolean).join('\n')
     await sendMetaMessage(object, recipientId, {
       text,
       quick_replies: options.map(option => ({
         content_type: 'text',
-        title: truncateQuickReplyTitle(option.title),
+        title: object === 'instagram' ? truncateQuickReplyTitle(option.title) : option.title,
         payload: option.payload,
       })),
     })
@@ -1269,7 +1298,7 @@ async function handleMessagingEvent(object, event) {
     },
   })
 
-  if (SILENT_MESSAGES.has(message?.text)) {
+  if (object !== 'web' && SILENT_MESSAGES.has(message?.text)) {
     return
   }
 
@@ -1487,6 +1516,53 @@ app.post('/api/chat/message', async (req, res) => {
     }
     console.error('Conversation message storage failed:', error.message)
     res.status(500).json({ success: false, error: 'Could not save message' })
+  }
+})
+
+// The website proxies visitors through one server, so it passes the visitor IP in X-Chat-Client-IP.
+function webRateLimited(req) {
+  const ip = String(
+    req.headers['x-chat-client-ip'] || req.headers['x-real-ip'] || req.ip || 'unknown',
+  )
+  const now = Date.now()
+  const hits = (webRateHits.get(ip) || []).filter(time => now - time < WEB_RATE_WINDOW_MS)
+  hits.push(now)
+  webRateHits.set(ip, hits)
+  if (webRateHits.size > 10000) {
+    webRateHits.delete(webRateHits.keys().next().value)
+  }
+  return hits.length > WEB_RATE_LIMIT
+}
+
+// Website live chat: same bot as Messenger. Send `text` for typed messages or
+// `payload` for a button tap; the reply is a list of { text, buttons } bubbles.
+app.post('/api/web/message', async (req, res) => {
+  const userId = typeof req.body.userId === 'string' ? req.body.userId.trim().slice(0, 100) : ''
+  const text = typeof req.body.text === 'string' ? req.body.text.trim().slice(0, 1000) : ''
+  const payload = typeof req.body.payload === 'string' ? req.body.payload.trim().slice(0, 64) : ''
+
+  if (!userId || (!text && !payload)) {
+    return res.status(400).json({ success: false, error: 'userId and text or payload are required' })
+  }
+  if (webRateLimited(req)) {
+    return res.status(429).json({ success: false, error: 'rate_limit' })
+  }
+
+  const event = {
+    sender: { id: userId },
+    timestamp: Date.now(),
+    ...(payload
+      ? { postback: { payload, mid: `web:${uuidv4()}` } }
+      : { message: { mid: `web:${uuidv4()}`, text } }),
+  }
+
+  const messages = []
+  try {
+    await webReplySink.run(messages, () => handleMessagingEvent('web', event))
+    res.json({ success: true, messages })
+  } catch (error) {
+    console.error('Web chat handling failed:', error.message)
+    res.status(500).json({ success: false, error: 'internal' })
   }
 })
 
