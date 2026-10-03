@@ -147,7 +147,7 @@
       "category": "price",
       "program": "both",
       "title": "Сургалтын төлбөр / tolbor une Storepay",
-      "content": "💳 Сургалтын төлбөр (tolbor, une)\n🧡💚 AI Agents / AI for Business (насанд хүрэгчид): 20% хөнгөлөлттэй үнэ 2,880,000₮\n🛍 Storepay-ээр хуваан төлөх боломжтой (huvaaj tulj bolno, installment).\n\n🎓 Junior AI Engineer (10–18 нас): 3,600,000₮\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
+      "content": "💳 Сургалтын төлбөр (tolbor, une)\n🧡💚 AI Agents / AI for Business (насанд хүрэгчид): 20% хөнгөлөлттэй үнэ 2,880,000₮\n🛍 Storepay-ээр хуваан төлөх боломжтой (huvaaj tulj bolno, installment).\n\n🚀 AI Engineer (7 сар): 17,900,000₮ ($5,000) — 20% урьдчилгаа (≈ 3,580,000₮)\n👔 Corporate Leaders AI: 5,696,000₮ ($1,600) — 30% урьдчилгаа (≈ 1,700,000₮)\n\n🎓 Junior AI Engineer (10–18 нас): 3,600,000₮\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
     },
     {
       "id": "prerequisites",
@@ -161,7 +161,7 @@
       "category": "prerequisites",
       "program": "both",
       "title": "Насны ангилал насанд хүрэгчид 18+",
-      "content": "AI Agents болон AI for Business хөтөлбөрүүд насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\nХүүхэд, залууст (10–18 нас) зориулсан Junior AI Engineer хөтөлбөрийн шинэ элсэлт эхэлсэн."
+      "content": "AI Agents, AI for Business, AI Engineer, Corporate Leaders AI хөтөлбөрүүд насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\nХүүхэд, залууст (10–18 нас) зориулсан Junior AI Engineer хөтөлбөрийн шинэ элсэлт эхэлсэн."
     },
     {
       "id": "junior-ai-overview",
@@ -190,6 +190,55 @@
       "program": "junior_ai",
       "title": "Junior AI Engineer хүүхэд залуу нас",
       "content": "Junior AI Engineer хөтөлбөр 10–18 насны хүүхэд, залууст зориулагдсан.\n\n• 10–13 насны ангилал\n• 14–18 насны ангилал\nНас бүрт Даваа+Лхагва эсвэл Мягмар+Пүрэв анги (нийт 4 анги), цаг бүгд 16:30–18:00.\n\nХиймэл оюуныг зүгээр хэрэглэх биш, өөрсдөө бүтээх бодит мэдлэг олгоно. Суудлын тоо хязгаартай."
+    },
+    {
+      "id": "ai-engineer-overview",
+      "category": "overview",
+      "program": "ai_engineer",
+      "title": "AI Engineer хөтөлбөр юу вэ / AI инженер",
+      "content": "AI Engineer — 7 сарын дотор дэлхийд өрсөлдөх AI инженер бэлтгэх танхимын хөтөлбөр (180+ академик цаг). 100+ улсад хүлээн зөвшөөрөгдөх CPD олон улсын итгэмжлэгдсэн сертификат гардуулна.\n\nБагш нар: Stanford, Harvard, Cambridge, Hanyang, Oxford."
+    },
+    {
+      "id": "ai-engineer-schedule-price",
+      "category": "schedule",
+      "program": "ai_engineer",
+      "title": "AI Engineer хуваарь төлбөр урьдчилгаа",
+      "content": "AI Engineer:\n📅 Эхлэх: 10-р сарын 25\n🗓 Мягмар · 18:30–20:00\n🗓 Бямба · 10:30–14:00\n🏫 Танхимаар · 180+ академик цаг · 7 сар\n\n💰 Төлбөр: 17,900,000₮ ($5,000)\nУрьдчилгаа: 20%-ийн урьдчилгаа төлбөрөөр суудал баталгаажна (≈ 3,580,000₮). Үлдэгдлийг сургалтын явцад уян хатан графикаар төлнө.\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 7505-1055"
+    },
+    {
+      "id": "ai-engineer-curriculum",
+      "category": "curriculum",
+      "program": "ai_engineer",
+      "title": "AI Engineer 7 модуль хичээлийн агуулга",
+      "content": "AI Engineer — 7 модуль:\n1. Python Programming\n2. Data Analysis (Pandas/NumPy)\n3. Machine Learning\n4. Deep Learning (PyTorch)\n5. Computer Vision & NLP (CNN, Transformers)\n6. ML Deployment (API, Docker, cloud, MLOps)\n7. Capstone — GitHub дээр бодит AI бүтээгдэхүүн\n\nУрьдчилсан мэдлэг шаардлагагүй — 1-р модулиар Python програмчлалыг 0-ээс эхлэн заана."
+    },
+    {
+      "id": "ai-engineer-audience-outcomes",
+      "category": "outcomes",
+      "program": "ai_engineer",
+      "title": "AI Engineer хэнд зориулсан, үр дүн, ажлын байр",
+      "content": "AI Engineer хэнд зориулсан: технологийн салбарт карьераа шинээр эхлүүлэгчид, цалингаа 2–3 дахин нэмэгдүүлэх зорилготой мэргэжил солигчид, стартапдаа AI систем бүтээх бизнес эрхлэгчид.\n\nҮр дүн:\n• GitHub дээр байрших өндөр зэрэглэлийн портфолио төсөл\n• CPD олон улсын итгэмжлэгдсэн сертификат (100+ улс)\n• AIAA Membership Card гишүүнчлэл\n• Төгсөөд ажиллах боломжит ажлын байр: AI Engineer, ML Engineer, Data Scientist, Data Analyst, MLOps Engineer"
+    },
+    {
+      "id": "corporate-leaders-overview",
+      "category": "overview",
+      "program": "corporate_leaders",
+      "title": "Corporate Leaders AI хөтөлбөр юу вэ / удирдлагуудад",
+      "content": "Corporate Leaders AI — “Хиймэл оюун ухааныг компанийн стратеги, удирдлагын шийдвэрт нэгтгэх нь.”\n\nХэнд зориулсан: хиймэл оюуныг байгууллагынхаа үйл ажиллагаанд нэвтрүүлж, өрсөлдөх чадвараа нэмэгдүүлэхийг зорьж буй CEO, топ менежер, корпорацын удирдлагууд."
+    },
+    {
+      "id": "corporate-leaders-schedule-price",
+      "category": "schedule",
+      "program": "corporate_leaders",
+      "title": "Corporate Leaders AI хуваарь төлбөр урьдчилгаа",
+      "content": "Corporate Leaders AI:\n📅 Эхлэх: 11-р сарын 1\n🗓 Мягмар, Пүрэв · 18:30–20:30\n🏫 Танхимаар · 32 академик цаг\n\n💰 Төлбөр: 5,696,000₮ ($1,600) — $2,000-аас 20% OFF\nУрьдчилгаа: 30%-ийн урьдчилгаа төлбөрөөр суудал баталгаажна (≈ 1,700,000₮). Үлдэгдлийг сургалтын явцад хувааж төлнө.\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 7505-1055"
+    },
+    {
+      "id": "corporate-leaders-curriculum-outcomes",
+      "category": "curriculum",
+      "program": "corporate_leaders",
+      "title": "Corporate Leaders AI юу сурах вэ, үр дүн",
+      "content": "Corporate Leaders AI — практик дадлагад суурилсан хөтөлбөр:\nPrompt Engineering ➔ GPT Агент хөгжүүлэх ➔ API интеграци ➔ No-code автоматжуулалт (n8n) ➔ RAG & Vector DB ➔ Vibe Coding ➔ Deployment.\n\nБизнесийн урсгалыг автоматжуулах, AI ашиглан судалгаа хийх, компанийн дотоод өгөгдлийг AI-аар уншуулах зэрэг удирдлагын түвшний практик хэрэглээг эзэмшинэ.\n\nҮр дүн:\n• Deploy хийсэн Capstone project (presentation биш — ажиллаж буй систем, агентууд)\n• 32 академик цаг\n• AIAA Membership Card — суралцаж байх хугацаанд"
     },
     {
       "id": "who-for",

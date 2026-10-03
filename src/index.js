@@ -217,6 +217,10 @@ const PRIVATE_REPLY_SOURCE = INTENTS_DATA.intents.find(
   intent => intent.id === PRIVATE_REPLY_INTENT_ID,
 )?.answers?.default || null
 const PRIVATE_REPLY_MESSAGE = withBrochureIntro(PRIVATE_REPLY_SOURCE)
+
+function intentDefaultAnswer(intentId) {
+  return INTENTS_DATA.intents.find(intent => intent.id === intentId)?.answers?.default || null
+}
 // Facebook page replies are followed by the PDF attachments, so links would duplicate them.
 const PRIVATE_REPLY_MESSAGE_NO_LINKS = withBrochureIntro(PRIVATE_REPLY_SOURCE, { includeLinks: false })
 
@@ -239,6 +243,8 @@ function markBrochureSent(recipientId, filename) {
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
   { title: '💼 AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
+  { title: '👔 Corporate Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
+  { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
@@ -343,14 +349,9 @@ ${BROCHURE_INTRO}`,
 
 🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer
 📞 Холбогдох утас: 7505-1055`,
-  PAYMENT: `💳 СУРГАЛТЫН ТӨЛБӨР
-
-🧡💚 AI Agents / AI for Business:
-💰 20% хөнгөлөлттэй үнэ: 2,880,000₮
-🛍 Storepay-ээр хуваан төлөх боломжтой.
-
-🎓 Junior AI Engineer (10–18 нас):
-💰 3,600,000₮`,
+  PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
+  PROGRAM_CORPORATE_LEADERS: intentDefaultAnswer('corporate_leaders'),
+  PAYMENT: intentDefaultAnswer('payment_info'),
   LOCATION: `📍 ХАЯГ, БАЙРШИЛ
 
 СБД, 1-р хороо,
@@ -358,15 +359,7 @@ ${BROCHURE_INTRO}`,
 ITC Tower, 11 давхар
 
 ☎️ Утас: 7505-1055`,
-  REGISTER: `📝 БҮРТГЭЛ
-
-🧡💚 AI Agents / AI for Business (10-р сарын 2-нд эхэлнэ):
-https://www.ai-academy.asia/ai-acceleration.html#register
-
-🎓 Junior AI Engineer (10-р сарын 19-нд эхэлнэ):
-https://www.ai-academy.asia/mn/what-we-offer
-
-📞 Утас: 7505-1055`,
+  REGISTER: intentDefaultAnswer('register_instruction'),
 }
 
 if (!VERIFY_TOKEN) {
@@ -614,7 +607,7 @@ async function isJuniorPost(channel, postId) {
   }
 }
 
-const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес/i
+const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес|corporate|удирдлаг|(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
 const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
 
 function trackFromText(text) {
@@ -882,20 +875,26 @@ async function sendMenuCard(object, recipientId, title, subtitle, options) {
     return
   }
 
+  // Messenger generic template elements allow at most 3 buttons, so larger menus become a carousel.
+  const elements = []
+  for (let index = 0; index < options.length; index += 3) {
+    elements.push({
+      title,
+      subtitle,
+      buttons: options.slice(index, index + 3).map(option => ({
+        type: 'postback',
+        title: option.title,
+        payload: option.payload,
+      })),
+    })
+  }
+
   await sendMetaMessage(object, recipientId, {
     attachment: {
       type: 'template',
       payload: {
         template_type: 'generic',
-        elements: [{
-          title,
-          subtitle,
-          buttons: options.map(option => ({
-            type: 'postback',
-            title: option.title,
-            payload: option.payload,
-          })),
-        }],
+        elements,
       },
     },
   })
@@ -1172,6 +1171,12 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
+  if (ADULT_PROGRAM_INTENTS.has(prediction.intentId)) {
+    await rememberTrack(object, recipientId, 'adult')
+    await sendTextChunks(object, recipientId, prediction.answer)
+    return
+  }
+
   const track = await currentTrack(object, recipientId)
 
   if (track === 'junior' && BROCHURE_INTENTS.has(prediction.intentId)) {
@@ -1204,8 +1209,12 @@ const TRACK_MENU_INTENTS = {
 const PROGRAM_TRACKS = {
   PROGRAM_AI_AGENTS: 'adult',
   PROGRAM_AI_BUSINESS: 'adult',
+  PROGRAM_AI_ENGINEER: 'adult',
+  PROGRAM_CORPORATE_LEADERS: 'adult',
   PROGRAM_JUNIOR_AI: 'junior',
 }
+
+const ADULT_PROGRAM_INTENTS = new Set(['ai_engineer', 'corporate_leaders'])
 
 async function handleMessagingEvent(object, event) {
   if (!event.sender) {
@@ -1346,7 +1355,7 @@ async function handleMessagingEvent(object, event) {
         }
       }
       await sendProgramActions(object, senderId)
-    } else if (payload === 'PROGRAM_JUNIOR_AI') {
+    } else if (PROGRAM_TRACKS[payload]) {
       await sendProgramActions(object, senderId)
     } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
       await sendDetailActions(object, senderId)
