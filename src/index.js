@@ -328,26 +328,7 @@ Facebook API · Meta for Developers · n8n · Supabase · Vibe Coding
 💡 23:41 цагт ирсэн чат маргааш өглөөг хүлээхгүй — таны борлуулалтын систем 24/7 ажиллана.
 
 ${BROCHURE_INTRO}`,
-  PROGRAM_JUNIOR_AI: `🎓 JUNIOR AI ENGINEER
-
-Хүүхэд, залууст хиймэл оюуныг зүгээр нэг хэрэглэх биш, өөрсдөө бүтээх бодит мэдлэг олгох хөтөлбөр. Шинэ элсэлт эхэллээ!
-
-⏰ Цаг: 16:30 – 18:00
-
-👧 10 – 13 нас (өдрөө сонгоно):
-• Даваа, Лхагва — 10 сарын 19 – 12 сарын 16
-• Мягмар, Пүрэв — 10 сарын 20 – 12 сарын 17
-
-🧑 14 – 18 нас (өдрөө сонгоно):
-• Даваа, Лхагва — 10 сарын 19 – 12 сарын 16
-• Мягмар, Пүрэв — 10 сарын 20 – 12 сарын 17
-
-🗓️ Хичээл эхлэх: 10 сарын 19
-💰 Төлбөр: 3,600,000₮
-⚠️ Суудлын тоо хязгаартай — амжиж бүртгүүлээрэй!
-
-🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer
-📞 Холбогдох утас: 7505-1055`,
+  PROGRAM_JUNIOR_AI: intentDefaultAnswer('kids_training'),
   PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
   PROGRAM_CORPORATE_LEADERS: intentDefaultAnswer('corporate_leaders'),
   PAYMENT: intentDefaultAnswer('payment_info'),
