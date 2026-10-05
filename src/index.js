@@ -242,7 +242,7 @@ function markBrochureSent(recipientId, filename) {
 const MAIN_MENU_OPTIONS = [
   { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
   { title: '💼 AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
-  { title: '👔 Corporate Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
+  { title: '👔 AI Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
   { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
@@ -587,7 +587,7 @@ async function isJuniorPost(channel, postId) {
   }
 }
 
-const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес|corporate|удирдлаг|(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
+const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес|corporate|ai\s*leaders?|лидер|удирдлаг|(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
 const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
 
 function trackFromText(text) {

@@ -256,7 +256,7 @@ async function retrieveRag(text, options = {}) {
 
 const TRACK_HINTS = {
   junior: 'Хэрэглэгч хүүхэд, залууст зориулсан Junior AI Engineer хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН Junior AI Engineer-ийн мэдээллийг өг.',
-  adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Agents, AI for Business, AI Engineer, Corporate Leaders AI)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг (Junior AI Engineer-ийг бүү дурд, асуугаагүй бол). AI Engineer (насанд хүрэгчид) болон Junior AI Engineer (10–18 нас) өөр хөтөлбөр гэдгийг бүү холь.',
+  adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Agents, AI for Business, AI Engineer, AI Leaders)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг (Junior AI Engineer-ийг бүү дурд, асуугаагүй бол). AI Engineer (насанд хүрэгчид) болон Junior AI Engineer (10–18 нас) өөр хөтөлбөр гэдгийг бүү холь.',
 }
 
 async function generateRagAnswer(question, hits, track = null) {
