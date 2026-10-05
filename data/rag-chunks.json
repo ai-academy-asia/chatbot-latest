@@ -13,7 +13,7 @@
       "id": "programs-overview",
       "category": "overview",
       "program": "both",
-      "title": "Хоёр хөтөлбөрийн ерөнхий танилцуулга",
+      "title": "AI Agents, AI for Business (10-р сарын 2-нд эхэлсэн) танилцуулга",
       "content": "Хиймэл оюун ухааныг бизнестээ нэвтрүүлэх 6 долоо хоногийн хоёр хөтөлбөр:\n\n📅 Эхлэх: 10-р сарын 2 (2026.10.02)\n🧡 AI Agents — Claude & бүтээмж\n💚 AI for Business — Facebook автоматжуулалт\n🏅 ITU батламжтай · 💰 2,880,000₮ (20% хөнгөлөлт) · 🛍 Storepay\n\nДэлгэрэнгүй: https://www.ai-academy.asia/ai-acceleration.html"
     },
     {
@@ -111,8 +111,8 @@
       "id": "schedule-both",
       "category": "schedule",
       "program": "both",
-      "title": "Хоёр хөтөлбөрийн хуваарь / heden udur doloo honog",
-      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n📅 Хөтөлбөр эхлэх: 10-р сарын 2 (2026.10.02)\n🧡 AI Agents — Даваа, Лхагва · 12:30–14:00\n💚 AI for Business — Мягмар, Пүрэв · 07:30–09:00\n⏱ Үргэлжлэх хугацаа: 6 долоо хоног (6 weeks)\nУян хатан цаг: 07:30–09:00 эсвэл 12:30–14:00"
+      "title": "Хөтөлбөрүүдийн хуваарь / heden udur doloo honog",
+      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n\n🚀 AI Engineer — 2026.10.27-оос (7 сар) · Даваа, Лхагва, Баасан · 18:30–20:00\n👔 AI Leaders — 2026.10.29-өөс (6 долоо хоног) · Мягмар, Пүрэв · 18:30–20:30\n🎓 Junior AI Engineer — 2026.10.19-өөс · Даваа+Лхагва эсвэл Мягмар+Пүрэв · 16:30–18:00"
     },
     {
       "id": "format",
@@ -139,7 +139,7 @@
       "id": "opening-event",
       "category": "schedule",
       "program": "both",
-      "title": "Нээлтийн эвент Opening Event 10 сарын 2",
+      "title": "AI Agents / AI for Business нээлтийн эвент 10 сарын 2",
       "content": "10 сарын 02-нд хөтөлбөрийн албан ёсны нээлтийн эвент (Opening Event) болно.\n\nБүртгүүлсний дараа таныг сургалтын груп чатанд нэмж, нээлтийн байршил болон шаардлагатай мэдээллийг шууд хүргэнэ."
     },
     {
@@ -147,7 +147,7 @@
       "category": "price",
       "program": "both",
       "title": "Сургалтын төлбөр / tolbor une Storepay",
-      "content": "💳 Сургалтын төлбөр (tolbor, une)\n🚀 AI Engineer (7 сар): 17,900,000₮ ($5,000, $5,500-аас 10% урамшуулал) — 20% урьдчилгаа (≈ 3,580,000₮)\n👔 AI Leaders: 5,696,000₮ ($1,600) — 30% урьдчилгаа ($480 / 1,708,800₮), $2,000-аас 20% урамшуулал\n\n🎓 Junior AI Engineer (10–18 нас): 3,600,000₮\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
+      "content": "💳 Сургалтын төлбөр (tolbor, une)\n\n🚀 AI Engineer (7 сар · 2026.10.27 – 2027.05.29):\n💰 Үндсэн төлбөр: $5,500\n🏷️ 10% урамшуулалттай үнэ: $5,000 (17,900,000₮)\n💡 20% урьдчилгаа: 3,580,000₮\n\n👔 AI Leaders (6 долоо хоног · 2026.10.29 – 2026.12.08):\n💰 Үндсэн төлбөр: $2,000\n🏷️ 20% урамшуулалттай үнэ: $1,600 (5,696,000₮)\n💡 30% урьдчилгаа: $480 (1,708,800₮)\n\n🎓 Junior AI Engineer (10–18 нас): $2,000 → 50% хөнгөлөлттэй 3,600,000₮ ($1,000), 50% урьдчилгаа 1,800,000₮\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
     },
     {
       "id": "prerequisites",
@@ -217,7 +217,7 @@
       "category": "overview",
       "program": "ai_engineer",
       "title": "AI Engineer хөтөлбөр юу вэ / AI инженер",
-      "content": "AI Engineer — Энэхүү хөтөлбөр нь салбартаа шууд ажиллах мэргэжлийн AI инженер бэлтгэх 7 сарын цогц сургалт юм. Хөтөлбөрийг амжилттай дуусгаснаар та салбартаа хүлээн зөвшөөрөгдсөн, ажилд бүрэн бэлэн (Job-Ready) AI инженер болж төгсөнө.\n\n📚 7 МОДУЛЬ\n1️⃣ Python Programming\n2️⃣ Data Analysis (Pandas/NumPy)\n3️⃣ Machine Learning\n4️⃣ Deep Learning (PyTorch)\n5️⃣ Computer Vision & NLP (CNN, Transformers)\n6️⃣ ML Deployment (API, Docker, cloud, MLOps)\n7️⃣ Capstone — GitHub дээр бодит AI бүтээгдэхүүн\n\n💡 ДАВУУ ТАЛУУД\n📜 Олон улсын CPD сертификат (100+ улсад зөвшөөрөгдөнө)\n👨‍🏫 Дэлхийн топ багш нар (Stanford, Harvard, Cambridge-ийн төгсөгчид)\n🚀 Анхан шатнаас эхэлнэ (Урьдчилан код бичих мэдлэг шаардлагагүй)\n\nБагш нар: Stanford, Harvard, Cambridge, Hanyang, Oxford."
+      "content": "AI Engineer — Энэхүү хөтөлбөр нь салбартаа шууд ажиллах мэргэжлийн AI инженер бэлтгэх 7 сарын цогц сургалт юм. Хөтөлбөрийг амжилттай дуусгаснаар та салбартаа хүлээн зөвшөөрөгдсөн, ажилд бүрэн бэлэн (Job-Ready) AI инженер болж төгсөнө.\n\n📚 7 МОДУЛЬ\n1️⃣ Python Programming\n2️⃣ Data Analysis (Pandas/NumPy)\n3️⃣ Machine Learning\n4️⃣ Deep Learning (PyTorch)\n5️⃣ Computer Vision & NLP (CNN, Transformers)\n6️⃣ ML Deployment (API, Docker, cloud, MLOps)\n7️⃣ Capstone — GitHub дээр бодит AI бүтээгдэхүүн\n\n💡 ДАВУУ ТАЛУУД\n📜 Олон улсын CPD сертификат (100+ улсад зөвшөөрөгдөнө)\n👨‍🏫 Дэлхийн топ багш нар (Stanford, Harvard, Cambridge-ийн төгсөгчид)\n🚀 Анхан шатнаас эхэлнэ (Урьдчилан код бичих мэдлэг шаардлагагүй)"
     },
     {
       "id": "ai-engineer-schedule-price",
@@ -356,15 +356,15 @@
       "id": "start-date",
       "category": "schedule",
       "program": "both",
-      "title": "Хөтөлбөр хэзээ эхлэх вэ",
-      "content": "📅 Эхлэх огноо\nХөтөлбөр 10-р сарын 2-нд эхэлнэ (2026.10.02).\nAI Agents болон AI for Business хоёр хөтөлбөр ижил өдөр эхэлнэ.\nТэр өдөр албан ёсны нээлтийн эвент (Opening Event) болно."
+      "title": "Хөтөлбөр хэзээ эхлэх вэ / эхлэх огноо",
+      "content": "📅 ЭХЛЭХ ОГНОО\n\n🎓 Junior AI Engineer: 10-р сарын 19\n🚀 AI Engineer: 10-р сарын 27\n👔 AI Leaders: 10-р сарын 29\n\n🚀 AI Engineer: 2026.10.27 – 2027.05.29 · Даваа, Лхагва, Баасан 18:30–20:00\n👔 AI Leaders: 2026.10.29 – 2026.12.08 · Мягмар, Пүрэв 18:30–20:30\n🎓 Junior AI Engineer: 2026.10.19 – 2026.12.16 · 16:30–18:00"
     },
     {
       "id": "registration",
       "category": "registration",
       "program": "general",
       "title": "Бүртгүүлэх",
-      "content": "Бүртгэл\n📅 Хөтөлбөр эхлэх: 10-р сарын 2\n\nБүртгүүлэх холбоос:\nhttps://www.ai-academy.asia/ai-acceleration.html#register"
+      "content": "📝 БҮРТГЭЛ\n\n🎓 Junior AI Engineer (10-р сарын 19-нд эхэлнэ)\n🚀 AI Engineer (10-р сарын 27-нд эхэлнэ)\n👔 AI Leaders (10-р сарын 29-нд эхэлнэ)\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
     },
     {
       "id": "jobs",
