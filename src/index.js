@@ -260,6 +260,68 @@ const PROGRAM_ACTION_OPTIONS = [
   { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
 
+const PROGRAM_FAQ_BUTTONS = {
+  JUNIOR_AGE: { track: 'junior', intentId: 'age_limit' },
+  JUNIOR_SCHEDULE: { track: 'junior', intentId: 'schedule' },
+  JUNIOR_LOCATION: { track: 'junior', intentId: 'training_format' },
+  JUNIOR_PRICE: { track: 'junior', intentId: 'payment_info' },
+  JUNIOR_BANK: { track: 'junior', intentId: 'bank_account' },
+  JUNIOR_RESULT: { track: 'junior', intentId: 'result' },
+  ENGINEER_SCHEDULE: { track: 'engineer', intentId: 'schedule' },
+  ENGINEER_CURRICULUM: { track: 'engineer', intentId: 'curriculum' },
+  ENGINEER_MEMBERSHIP: { track: 'engineer', intentId: 'membership_card' },
+  ENGINEER_PRICE: { track: 'engineer', intentId: 'payment_info' },
+  ENGINEER_BANK: { track: 'engineer', intentId: 'bank_account' },
+  ENGINEER_LOCATION: { track: 'engineer', intentId: 'location' },
+  LEADERS_ABOUT: { track: 'leaders', intentId: 'corporate_leaders' },
+  LEADERS_SCHEDULE: { track: 'leaders', intentId: 'schedule' },
+  LEADERS_CURRICULUM: { track: 'leaders', intentId: 'curriculum' },
+  LEADERS_MEMBERSHIP: { track: 'leaders', intentId: 'membership_card' },
+  LEADERS_PRICE: { track: 'leaders', intentId: 'payment_info' },
+  LEADERS_BANK: { track: 'leaders', intentId: 'bank_account' },
+  LEADERS_LOCATION: { track: 'leaders', intentId: 'location' },
+}
+
+const LEADERS_FAQ_OPTIONS = [
+  { title: '👔 Хөтөлбөрийн тухай', payload: 'LEADERS_ABOUT' },
+  { title: '🗓 Хуваарь', payload: 'LEADERS_SCHEDULE' },
+  { title: '📚 Юу сурах вэ', payload: 'LEADERS_CURRICULUM' },
+  { title: '💳 Membership Card', payload: 'LEADERS_MEMBERSHIP' },
+  { title: '💰 Төлбөр', payload: 'LEADERS_PRICE' },
+  { title: '🏛 Дансны мэдээлэл', payload: 'LEADERS_BANK' },
+  { title: '📍 Байршил', payload: 'LEADERS_LOCATION' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
+]
+
+const ENGINEER_FAQ_OPTIONS = [
+  { title: '🗓 Хуваарь', payload: 'ENGINEER_SCHEDULE' },
+  { title: '📚 Агуулга', payload: 'ENGINEER_CURRICULUM' },
+  { title: '💳 Membership Card', payload: 'ENGINEER_MEMBERSHIP' },
+  { title: '💰 Төлбөр', payload: 'ENGINEER_PRICE' },
+  { title: '🏛 Дансны мэдээлэл', payload: 'ENGINEER_BANK' },
+  { title: '📍 Байршил', payload: 'ENGINEER_LOCATION' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
+]
+
+const JUNIOR_FAQ_OPTIONS = [
+  { title: '👦 Насны ангилал', payload: 'JUNIOR_AGE' },
+  { title: '🗓 Хуваарь', payload: 'JUNIOR_SCHEDULE' },
+  { title: '📍 Байршил', payload: 'JUNIOR_LOCATION' },
+  { title: '💰 Төлбөр', payload: 'JUNIOR_PRICE' },
+  { title: '🏛 Дансны мэдээлэл', payload: 'JUNIOR_BANK' },
+  { title: '🏆 Үр дүн', payload: 'JUNIOR_RESULT' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
+]
+
+const PROGRAM_FAQ_MENUS = {
+  junior: { title: 'Junior AI Engineer — түгээмэл асуултууд', options: JUNIOR_FAQ_OPTIONS },
+  engineer: { title: 'AI Engineer — түгээмэл асуултууд', options: ENGINEER_FAQ_OPTIONS },
+  leaders: { title: 'AI Leaders — түгээмэл асуултууд', options: LEADERS_FAQ_OPTIONS },
+}
+
 const DETAIL_ACTION_OPTIONS = [
   { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
   { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
@@ -587,14 +649,19 @@ async function isJuniorPost(channel, postId) {
   }
 }
 
-const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес|corporate|ai\s*leaders?|лидер|удирдлаг|(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
+const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес/i
+const ENGINEER_TEXT_RE = /(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
+const LEADERS_TEXT_RE = /corporate|ai\s*leaders?|ai4corp|лидер|удирдлаг/i
 const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
 
 function trackFromText(text) {
-  const adult = ADULT_TEXT_RE.test(text)
-  const junior = JUNIOR_TEXT_RE.test(text)
-  if (adult === junior) return null
-  return adult ? 'adult' : 'junior'
+  const matches = [
+    ENGINEER_TEXT_RE.test(text) && 'engineer',
+    LEADERS_TEXT_RE.test(text) && 'leaders',
+    ADULT_TEXT_RE.test(text) && 'adult',
+    JUNIOR_TEXT_RE.test(text) && 'junior',
+  ].filter(Boolean)
+  return matches.length === 1 ? matches[0] : null
 }
 
 // track === null clears a stale track (e.g. a new ad click we could not classify).
@@ -910,6 +977,17 @@ async function sendProgramActions(object, recipientId) {
   )
 }
 
+async function sendProgramFaqMenu(object, recipientId, track) {
+  const menu = PROGRAM_FAQ_MENUS[track]
+  await sendMenuCard(
+    object,
+    recipientId,
+    menu.title,
+    'Доорх сонголтоос сонгоно уу.',
+    menu.options,
+  )
+}
+
 async function sendDetailActions(object, recipientId) {
   await sendMenuCard(
     object,
@@ -1151,20 +1229,28 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
-  if (ADULT_PROGRAM_INTENTS.has(prediction.intentId)) {
-    await rememberTrack(object, recipientId, 'adult')
+  if (PROGRAM_INTENT_TRACKS[prediction.intentId]) {
+    await rememberTrack(object, recipientId, PROGRAM_INTENT_TRACKS[prediction.intentId])
     await sendTextChunks(object, recipientId, prediction.answer)
     return
   }
 
   const track = await currentTrack(object, recipientId)
+  const mainScreen = PROGRAM_MAIN_SCREENS[track]
 
-  if (track === 'junior' && BROCHURE_INTENTS.has(prediction.intentId)) {
-    await sendTextChunks(object, recipientId, MENU_RESPONSES.PROGRAM_JUNIOR_AI)
+  if (mainScreen && prediction.answers?.[track]) {
+    await sendTextChunks(object, recipientId, prediction.answers[track])
     return
   }
 
-  const baseAnswer = (track && prediction.answers?.[track]) || prediction.answer
+  if (mainScreen && BROCHURE_INTENTS.has(prediction.intentId)) {
+    await sendTextChunks(object, recipientId, MENU_RESPONSES[mainScreen])
+    return
+  }
+
+  const baseAnswer = (track && prediction.answers?.[track])
+    || ((track === 'engineer' || track === 'leaders') && prediction.answers?.adult)
+    || prediction.answer
   const answer = BROCHURE_INTENTS.has(prediction.intentId)
     ? withBrochureIntro(baseAnswer, { includeLinks: object !== 'page' })
     : baseAnswer
@@ -1189,12 +1275,21 @@ const TRACK_MENU_INTENTS = {
 const PROGRAM_TRACKS = {
   PROGRAM_AI_AGENTS: 'adult',
   PROGRAM_AI_BUSINESS: 'adult',
-  PROGRAM_AI_ENGINEER: 'adult',
-  PROGRAM_CORPORATE_LEADERS: 'adult',
+  PROGRAM_AI_ENGINEER: 'engineer',
+  PROGRAM_CORPORATE_LEADERS: 'leaders',
   PROGRAM_JUNIOR_AI: 'junior',
 }
 
-const ADULT_PROGRAM_INTENTS = new Set(['ai_engineer', 'corporate_leaders'])
+const PROGRAM_INTENT_TRACKS = {
+  ai_engineer: 'engineer',
+  corporate_leaders: 'leaders',
+}
+
+const PROGRAM_MAIN_SCREENS = {
+  junior: 'PROGRAM_JUNIOR_AI',
+  engineer: 'PROGRAM_AI_ENGINEER',
+  leaders: 'PROGRAM_CORPORATE_LEADERS',
+}
 
 async function handleMessagingEvent(object, event) {
   if (!event.sender) {
@@ -1312,6 +1407,14 @@ async function handleMessagingEvent(object, event) {
     return
   }
 
+  if (payload && PROGRAM_FAQ_BUTTONS[payload]) {
+    const { track, intentId } = PROGRAM_FAQ_BUTTONS[payload]
+    await rememberTrack(object, senderId, track)
+    await sendTextChunks(object, senderId, intentAnswer(intentId, track) || intentDefaultAnswer(intentId))
+    await sendProgramFaqMenu(object, senderId, track)
+    return
+  }
+
   if (payload && MENU_RESPONSES[payload]) {
     if (PROGRAM_TRACKS[payload]) {
       await rememberTrack(object, senderId, PROGRAM_TRACKS[payload])
@@ -1335,6 +1438,8 @@ async function handleMessagingEvent(object, event) {
         }
       }
       await sendProgramActions(object, senderId)
+    } else if (PROGRAM_FAQ_MENUS[PROGRAM_TRACKS[payload]]) {
+      await sendProgramFaqMenu(object, senderId, PROGRAM_TRACKS[payload])
     } else if (PROGRAM_TRACKS[payload]) {
       await sendProgramActions(object, senderId)
     } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
