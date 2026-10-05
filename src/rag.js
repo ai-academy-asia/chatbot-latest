@@ -229,6 +229,19 @@ function isRefusalAnswer(text) {
   return typeof text === 'string' && text.toLowerCase().includes(REFUSAL_SNIPPET)
 }
 
+const SHARED_PROGRAMS = ['general', 'all']
+const TRACK_PROGRAMS = {
+  junior: ['junior_ai', ...SHARED_PROGRAMS],
+  engineer: ['ai_engineer', ...SHARED_PROGRAMS],
+  leaders: ['corporate_leaders', ...SHARED_PROGRAMS],
+}
+
+function allowedForTrack(program, track) {
+  if (TRACK_PROGRAMS[track]) return TRACK_PROGRAMS[track].includes(program)
+  if (track === 'adult') return program !== 'junior_ai'
+  return true
+}
+
 async function retrieveRag(text, options = {}) {
   const topK = Number(options.topK || process.env.RAG_TOP_K || 6)
   const minimumScore = Number(options.minScore || process.env.RAG_MIN_SIMILARITY || 0.5)
@@ -241,6 +254,7 @@ async function retrieveRag(text, options = {}) {
 
   const ranked = index.items
     .filter(item => allowJobs || !RESTRICTED_CHUNK_IDS.has(item.id))
+    .filter(item => allowedForTrack(item.program, options.track))
     .map(item => ({
       id: item.id,
       category: item.category,
@@ -255,9 +269,9 @@ async function retrieveRag(text, options = {}) {
 }
 
 const TRACK_HINTS = {
-  leaders: 'Хэрэглэгч насанд хүрэгчдийн 6 долоо хоногийн AI Leaders (AI4CorpLeaders) хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, данс, байршил, бүртгэлийн асуултад ЗӨВХӨН AI Leaders-ийн мэдээллийг өг.',
-  engineer: 'Хэрэглэгч насанд хүрэгчдийн 7 сарын AI Engineer хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, данс, байршил, бүртгэлийн асуултад ЗӨВХӨН AI Engineer-ийн мэдээллийг өг. Junior AI Engineer (10–18 нас)-тэй бүү холь.',
-  junior: 'Хэрэглэгч хүүхэд, залууст зориулсан Junior AI Engineer хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН Junior AI Engineer-ийн мэдээллийг өг.',
+  leaders: 'Хэрэглэгч насанд хүрэгчдийн 6 долоо хоногийн AI Leaders (AI4CorpLeaders) хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН AI Leaders-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
+  engineer: 'Хэрэглэгч насанд хүрэгчдийн 7 сарын AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН AI Engineer-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд. Junior AI Engineer (10–18 нас)-тэй бүү холь.',
+  junior: 'Хэрэглэгч хүүхэд, залууст зориулсан Junior AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН Junior AI Engineer-ийн мэдээллийг өг. Насанд хүрэгчдийн хөтөлбөрүүдийг (AI Agents, AI for Business, AI Engineer, AI Leaders) огт бүү дурд.',
   adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Agents, AI for Business, AI Engineer, AI Leaders)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг (Junior AI Engineer-ийг бүү дурд, асуугаагүй бол). AI Engineer (насанд хүрэгчид) болон Junior AI Engineer (10–18 нас) өөр хөтөлбөр гэдгийг бүү холь.',
 }
 
@@ -271,7 +285,7 @@ async function generateRagAnswer(question, hits, track = null) {
 
   const prompt = `Та AI Academy Asia-ийн Messenger чатбот.
 Доорх CONTEXT-д байгаа холбоотой мэдээллийг ашиглаж QUESTION-д товч, найрсаг монгол хариулт өг.
-Ерөнхий танилцуулга / сургалтын мэдээлэл гэсэн өргөн асуултад ЗӨВХӨН товч тойм өг (эхлэх огноо, 2 хөтөлбөр, үнэ) — гэрчилгээ, LIVE/бичлэг, нээлтийн эвент, ажлын цагтай нийцэх тайлбар зэрэг дэлгэрэнгүйг бүү оруул. Тэр мэдээллийг зөвхөн тэр талаар шууд асуусан үед л хариул.
+Ерөнхий танилцуулга / сургалтын мэдээлэл гэсэн өргөн асуултад хөтөлбөр бүрийн юу сурах (агуулга), хуваарь, үнэ, үр дүнг бүгдийг нь оруул — зөвхөн төлбөр, хуваариар хязгаарлаж болохгүй.
 Асуулт олон хэсэгтэй бол (жишээ: хуваарь + танхим/онлайн + төлбөр) бүх хэсэгт нь тусад нь хариул.
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.

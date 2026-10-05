@@ -170,7 +170,6 @@ const BROCHURE_INTENTS = new Set([
   'curriculum',
 ])
 const BROCHURE_INTRO = '📄 Та дараах брошуртай танилцана уу.'
-const BROCHURE_ANSWER_TAIL_RE = /\n\n📄 (?:Мөн хөтөлбөрүүдийн брошуртай танилцаарай\.|Та дараах брошуртай танилцана уу\.)[\s\S]*$/
 
 function brochurePublicUrl(filename) {
   return `${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`
@@ -192,32 +191,15 @@ function brochureLinksText(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS
     .join('\n\n')
 }
 
-function withBrochureIntro(answer, { includeLinks = true } = {}) {
-  if (!answer) return answer
-  let text = answer
-  if (BROCHURE_ANSWER_TAIL_RE.test(text)) {
-    text = text.replace(BROCHURE_ANSWER_TAIL_RE, `\n\n${BROCHURE_INTRO}`)
-  } else if (!text.includes(BROCHURE_INTRO)) {
-    text = `${text.trim()}\n\n${BROCHURE_INTRO}`
-  }
-  if (!includeLinks || text.includes('/brochures/')) return text
-  return `${text.trim()}\n\n${brochureLinksText()}`
-}
-
 function brochureLinkMessage(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
   return `${BROCHURE_INTRO}\n\n${brochureLinksText(payloads)}`
 }
 
-const PRIVATE_REPLY_SOURCE = INTENTS_DATA.intents.find(
-  intent => intent.id === PRIVATE_REPLY_INTENT_ID,
-)?.answers?.default || null
-const PRIVATE_REPLY_MESSAGE = withBrochureIntro(PRIVATE_REPLY_SOURCE)
-
 function intentDefaultAnswer(intentId) {
   return INTENTS_DATA.intents.find(intent => intent.id === intentId)?.answers?.default || null
 }
-// Facebook page replies are followed by the PDF attachments, so links would duplicate them.
-const PRIVATE_REPLY_MESSAGE_NO_LINKS = withBrochureIntro(PRIVATE_REPLY_SOURCE, { includeLinks: false })
+
+const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
 
 const brochureAttachmentIds = new Map()
 const BROCHURE_RESEND_MS = Number(process.env.BROCHURE_RESEND_HOURS || 24) * 60 * 60 * 1000
@@ -814,11 +796,7 @@ async function processComment({
         'kids_training',
       )
     } else {
-      privateReplyResult = await sendPrivateReply(
-        channel,
-        commentId,
-        channel === 'page' ? PRIVATE_REPLY_MESSAGE_NO_LINKS : PRIVATE_REPLY_MESSAGE,
-      )
+      privateReplyResult = await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
     }
   } catch (error) {
     repliedCommentIds.delete(commentId)
@@ -829,14 +807,6 @@ async function processComment({
   if (juniorPost !== null) {
     await rememberTrack(channel, recipientId, juniorPost ? 'junior' : 'adult')
   }
-  if (channel === 'page' && !juniorPost) {
-    if (recipientId) {
-      await sendBothProgramBrochures('page', recipientId, { messagingType: 'UPDATE' })
-    } else {
-      console.error('Private reply returned no recipient_id; brochure PDFs skipped')
-    }
-  }
-
   if (!canPublicReply) return
 
   try {
@@ -1183,34 +1153,6 @@ async function sendProgramBrochure(object, recipientId, payload, options = {}) {
   }, { allowDuplicate: true, ...options })
 }
 
-async function sendBothProgramBrochures(object, recipientId, options = {}) {
-  const payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']
-  const failed = []
-
-  if (object === 'page') {
-    for (const payload of payloads) {
-      try {
-        await sendProgramBrochure(object, recipientId, payload, options)
-      } catch (error) {
-        console.error(`Brochure send failed (${payload}):`, error.message)
-        failed.push(payload)
-      }
-    }
-  } else {
-    failed.push(...payloads)
-  }
-
-  if (!failed.length) return
-
-  try {
-    await sendMetaMessage(object, recipientId, {
-      text: object === 'page' ? brochureLinksText(failed) : brochureLinkMessage(failed),
-    }, { allowDuplicate: true, ...options })
-  } catch (error) {
-    console.error('Brochure link fallback failed:', error.message)
-  }
-}
-
 async function sendIntentAnswer(object, recipientId, prediction) {
   if (prediction.intentId === 'greeting') {
     await sendWelcomeMenu(object, recipientId)
@@ -1232,6 +1174,17 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   const track = await currentTrack(object, recipientId)
   const mainScreen = PROGRAM_MAIN_SCREENS[track]
 
+  if (prediction.intentId === PRIVATE_REPLY_INTENT_ID) {
+    if (mainScreen) {
+      await sendTextChunks(object, recipientId, MENU_RESPONSES[mainScreen])
+      await sendProgramFaqMenu(object, recipientId, track)
+    } else {
+      await sendTextChunks(object, recipientId, prediction.answer)
+      await sendWelcomeMenu(object, recipientId)
+    }
+    return
+  }
+
   if (mainScreen && prediction.answers?.[track]) {
     await sendTextChunks(object, recipientId, prediction.answers[track])
     return
@@ -1242,18 +1195,11 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
-  const baseAnswer = (track && prediction.answers?.[track])
+  const answer = (track && prediction.answers?.[track])
     || ((track === 'engineer' || track === 'leaders') && prediction.answers?.adult)
     || prediction.answer
-  const answer = BROCHURE_INTENTS.has(prediction.intentId)
-    ? withBrochureIntro(baseAnswer, { includeLinks: object !== 'page' })
-    : baseAnswer
 
   await sendTextChunks(object, recipientId, answer)
-
-  if (object === 'page' && BROCHURE_INTENTS.has(prediction.intentId)) {
-    await sendBothProgramBrochures(object, recipientId)
-  }
 }
 
 function intentAnswer(intentId, track) {
