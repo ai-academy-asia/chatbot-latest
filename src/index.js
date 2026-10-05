@@ -54,15 +54,11 @@ const repliedCommentIds = new Set()
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
 const REMINDER_CRON = process.env.REMINDER_CRON || '*/15 * * * *'
-const REGISTER_URL = process.env.REGISTER_URL
-  || 'https://www.ai-academy.asia/ai-acceleration.html#register'
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://ai-academy.asia/mn'
 const REMINDER_MESSAGE = process.env.REMINDER_MESSAGE
   || `Сайн байна уу? Танд өөр асуух зүйл байна уу?
 
-Дэлгэрэнгүй мэдээллийг https://www.ai-academy.asia/ai-acceleration.html
-
-📝 Бүртгүүлэх холбоос:
-${REGISTER_URL}`
+Дэлгэрэнгүй мэдээллийг ${WEBSITE_URL}`
 const DUPLICATE_SIMILARITY = Number(process.env.DUPLICATE_SIMILARITY || 0.88)
 const DUPLICATE_LOOKBACK = Number(process.env.DUPLICATE_LOOKBACK || 30)
 const recentOutgoingCache = new Map()
@@ -240,8 +236,6 @@ function markBrochureSent(recipientId, filename) {
 }
 
 const MAIN_MENU_OPTIONS = [
-  { title: '🤖 AI Agents', payload: 'PROGRAM_AI_AGENTS' },
-  { title: '💼 AI for Business', payload: 'PROGRAM_AI_BUSINESS' },
   { title: '👔 AI Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
   { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
