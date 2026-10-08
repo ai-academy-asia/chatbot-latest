@@ -16,6 +16,7 @@ module.exports = {
       PAGE_ID: process.env.PAGE_ID,
       COMMENT_REPLY_MESSAGE: process.env.COMMENT_REPLY_MESSAGE,
       IG_PAGE_ACCESS_TOKEN: process.env.IG_PAGE_ACCESS_TOKEN,
+      IG_PAGE_ACCESS_TOKEN_2: process.env.IG_PAGE_ACCESS_TOKEN_2,
       META_API_VERSION: process.env.META_API_VERSION || 'v25.0',
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       DATABASE_URL: process.env.DATABASE_URL,

@@ -42,8 +42,8 @@ app.use(express.json())
 const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN
 const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
 const FB_PRIVATE_REPLY_TOKEN = process.env.FB_PRIVATE_REPLY_TOKEN
-// IG_ACCESS_TOKEN is accepted as an alias of IG_PAGE_ACCESS_TOKEN.
-const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN || process.env.IG_ACCESS_TOKEN
+const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
+const IG_PAGE_ACCESS_TOKEN_2 = process.env.IG_PAGE_ACCESS_TOKEN_2
 const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
@@ -68,8 +68,8 @@ if (process.env.PAGE_ID_2) {
     forcedTrack: process.env.PAGE_TRACK_2 || 'junior',
   })
 }
-// Instagram accounts served by this bot. The first uses IG_PAGE_ACCESS_TOKEN (or IG_ACCESS_TOKEN);
-// the second (IG_ACCESS_TOKEN_2) is locked to one program track like the second Facebook page.
+// Instagram accounts served by this bot. The first uses IG_PAGE_ACCESS_TOKEN;
+// the second (IG_PAGE_ACCESS_TOKEN_2) is locked to one program track like the second Facebook page.
 // accountId is discovered from the token at startup (or set via IG_ACCOUNT_ID / IG_ACCOUNT_ID_2).
 const DEFAULT_IG = {
   channel: 'instagram',
@@ -78,19 +78,19 @@ const DEFAULT_IG = {
   accessToken: IG_PAGE_ACCESS_TOKEN,
   privateReplyToken: IG_PAGE_ACCESS_TOKEN || FB_PRIVATE_REPLY_TOKEN,
   forcedTrack: null,
-  tokenName: process.env.IG_PAGE_ACCESS_TOKEN ? 'IG_PAGE_ACCESS_TOKEN' : 'IG_ACCESS_TOKEN',
+  tokenName: 'IG_PAGE_ACCESS_TOKEN',
 }
 const IG_ACCOUNTS = [DEFAULT_IG]
-if (process.env.IG_ACCESS_TOKEN_2) {
+if (IG_PAGE_ACCESS_TOKEN_2) {
   const secondAccountId = process.env.IG_ACCOUNT_ID_2 ? String(process.env.IG_ACCOUNT_ID_2) : null
   IG_ACCOUNTS.push({
     channel: 'instagram',
     pageId: secondAccountId,
     accountId: secondAccountId,
-    accessToken: process.env.IG_ACCESS_TOKEN_2,
-    privateReplyToken: process.env.IG_ACCESS_TOKEN_2,
+    accessToken: IG_PAGE_ACCESS_TOKEN_2,
+    privateReplyToken: IG_PAGE_ACCESS_TOKEN_2,
     forcedTrack: process.env.IG_TRACK_2 || process.env.PAGE_TRACK_2 || 'junior',
-    tokenName: 'IG_ACCESS_TOKEN_2',
+    tokenName: 'IG_PAGE_ACCESS_TOKEN_2',
   })
 }
 
