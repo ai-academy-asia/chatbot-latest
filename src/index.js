@@ -20,6 +20,7 @@ const {
   getRecentOutgoingTexts,
   setProgramTrack,
   getProgramTrack,
+  setConversationPage,
   DEFAULT_REMINDER_HOURS,
 } = require('./database')
 
@@ -44,6 +45,42 @@ const FB_PRIVATE_REPLY_TOKEN = process.env.FB_PRIVATE_REPLY_TOKEN
 const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
 const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
+
+// Facebook pages served by this bot. The default page keeps the original env vars; the second
+// page (PAGE_ID_2) is locked to one program track (default: junior), so it only ever answers
+// about that program.
+const DEFAULT_PAGE = {
+  pageId: PAGE_ID,
+  accessToken: FB_PAGE_ACCESS_TOKEN,
+  privateReplyToken: FB_PRIVATE_REPLY_TOKEN,
+  forcedTrack: null,
+}
+const PAGES = new Map()
+if (PAGE_ID) PAGES.set(PAGE_ID, DEFAULT_PAGE)
+if (process.env.PAGE_ID_2) {
+  const secondPageId = String(process.env.PAGE_ID_2)
+  const secondPageToken = process.env.FB_PAGE_ACCESS_TOKEN_2
+  PAGES.set(secondPageId, {
+    pageId: secondPageId,
+    accessToken: secondPageToken,
+    privateReplyToken: process.env.FB_PRIVATE_REPLY_TOKEN_2 || secondPageToken,
+    forcedTrack: process.env.PAGE_TRACK_2 || 'junior',
+  })
+}
+const pageContext = new AsyncLocalStorage()
+
+function pageConfigFor(pageId) {
+  return PAGES.get(String(pageId)) || DEFAULT_PAGE
+}
+
+function activePage() {
+  return pageContext.getStore() || DEFAULT_PAGE
+}
+
+function pageTokenName(page) {
+  return page === DEFAULT_PAGE ? 'FB_PAGE_ACCESS_TOKEN' : 'FB_PAGE_ACCESS_TOKEN_2'
+}
+
 const INTENTS_DATA = require('../data/intents.json')
 const PRIVATE_REPLY_INTENT_ID = 'surgaltiin_medeelel'
 const COMMENT_REPLY_MESSAGE = (
@@ -460,10 +497,11 @@ async function validateInstagramConnection() {
 
 function getChannelConfig(object) {
   if (object === 'page') {
+    const page = activePage()
     return {
-      accessToken: FB_PAGE_ACCESS_TOKEN,
+      accessToken: page.accessToken,
       apiBase: 'https://graph.facebook.com',
-      tokenName: 'FB_PAGE_ACCESS_TOKEN',
+      tokenName: pageTokenName(page),
     }
   }
 
@@ -590,14 +628,14 @@ function getCommentReplyToken(channel) {
   if (channel === 'instagram') {
     return IG_PAGE_ACCESS_TOKEN || FB_PRIVATE_REPLY_TOKEN
   }
-  return FB_PRIVATE_REPLY_TOKEN
+  return activePage().privateReplyToken
 }
 
 function commentReplyTokenName(channel) {
   if (channel === 'instagram') {
     return IG_PAGE_ACCESS_TOKEN ? 'IG_PAGE_ACCESS_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN'
   }
-  return 'FB_PRIVATE_REPLY_TOKEN'
+  return activePage() === DEFAULT_PAGE ? 'FB_PRIVATE_REPLY_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN_2'
 }
 
 const JUNIOR_POST_RE = /junior|жуниор|жүниор|хүүхдийн/i
@@ -653,6 +691,7 @@ function trackFromText(text) {
 // track === null clears a stale track (e.g. a new ad click we could not classify).
 async function rememberTrack(channel, userId, track) {
   if (!userId || track === undefined) return
+  if (activePage().forcedTrack) return // page is locked to one program
   try {
     await setProgramTrack(channel, userId, track)
     logEvent('program_track_set', { channel, userId, track })
@@ -662,6 +701,8 @@ async function rememberTrack(channel, userId, track) {
 }
 
 async function currentTrack(channel, userId) {
+  const forcedTrack = activePage().forcedTrack
+  if (forcedTrack) return forcedTrack
   try {
     return await getProgramTrack(channel, userId)
   } catch (error) {
@@ -757,7 +798,7 @@ async function sendPublicCommentReply(channel, commentId, text) {
 
 function isOwnComment(channel, fromId, accountId) {
   if (!fromId) return false
-  if (channel === 'page') return Boolean(PAGE_ID && fromId === PAGE_ID)
+  if (channel === 'page') return PAGES.has(fromId)
   const ownId = accountId || connectedInstagramAccountId
   return Boolean(ownId && fromId === String(ownId))
 }
@@ -794,7 +835,8 @@ async function processComment({
     repliedCommentIds.delete(oldest)
   }
 
-  const juniorPost = await isJuniorPost(channel, postId)
+  const forcedTrack = activePage().forcedTrack
+  const juniorPost = forcedTrack ? forcedTrack === 'junior' : await isJuniorPost(channel, postId)
 
   let privateReplyResult
   try {
@@ -922,6 +964,12 @@ async function sendMenuCard(object, recipientId, title, subtitle, options) {
 }
 
 async function sendWelcomeMenu(object, recipientId) {
+  const forcedTrack = activePage().forcedTrack
+  if (forcedTrack && PROGRAM_FAQ_MENUS[forcedTrack]) {
+    await sendProgramFaqMenu(object, recipientId, forcedTrack)
+    return
+  }
+
   await sendMenuCard(
     object,
     recipientId,
@@ -953,12 +1001,16 @@ async function sendProgramActions(object, recipientId) {
 
 async function sendProgramFaqMenu(object, recipientId, track) {
   const menu = PROGRAM_FAQ_MENUS[track]
+  // A locked page has no main menu to go back to.
+  const options = activePage().forcedTrack
+    ? menu.options.filter(option => option.payload !== 'MAIN_MENU')
+    : menu.options
   await sendMenuCard(
     object,
     recipientId,
     menu.title,
     'Доорх сонголтоос сонгоно уу.',
-    menu.options,
+    options,
   )
 }
 
@@ -1230,6 +1282,13 @@ const PROGRAM_TRACKS = {
   PROGRAM_JUNIOR_AI: 'junior',
 }
 
+// Intents with no per-program answer that are safe on any page (no other program mentioned).
+const TRACK_NEUTRAL_INTENTS = new Set(['greeting', 'phone_number', 'kids_training', 'surgaltiin_medeelel'])
+
+function intentAllowedForTrack(intentId, track) {
+  return TRACK_NEUTRAL_INTENTS.has(intentId) || Boolean(intentAnswer(intentId, track))
+}
+
 const PROGRAM_INTENT_TRACKS = {
   ai_engineer: 'engineer',
   corporate_leaders: 'leaders',
@@ -1298,7 +1357,8 @@ async function handleMessagingEvent(object, event) {
   }
 
   const senderId = event.sender.id
-  const payload = message?.quick_reply?.payload || event.postback?.payload
+  let payload = message?.quick_reply?.payload || event.postback?.payload
+  const forcedTrack = activePage().forcedTrack
   const eventKey = message?.mid
     || event.postback?.mid
     || (payload && event.timestamp ? `postback:${senderId}:${event.timestamp}:${payload}` : null)
@@ -1343,8 +1403,25 @@ async function handleMessagingEvent(object, event) {
     },
   })
 
+  if (object === 'page' && activePage() !== DEFAULT_PAGE) {
+    setConversationPage(object, senderId, activePage().pageId).catch(error => {
+      console.error('Conversation page save failed:', error.message)
+    })
+  }
+
   if (object !== 'web' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
     return
+  }
+
+  // A page locked to one program never shows the other programs' menus or answers.
+  if (forcedTrack && payload) {
+    const faqTrack = PROGRAM_FAQ_BUTTONS[payload]?.track
+    const programTrack = PROGRAM_TRACKS[payload]
+    if (payload === 'MORE_OPTIONS' || (faqTrack && faqTrack !== forcedTrack)) {
+      payload = 'MAIN_MENU'
+    } else if (programTrack && programTrack !== forcedTrack) {
+      payload = PROGRAM_MAIN_SCREENS[forcedTrack] || 'MAIN_MENU'
+    }
   }
 
   if (payload === 'MAIN_MENU' || payload === 'WELCOME_MESSAGE') {
@@ -1408,6 +1485,17 @@ async function handleMessagingEvent(object, event) {
       prediction = await classifyIntent(message.text)
     } catch (error) {
       console.error('Intent classification failed:', error.message)
+    }
+
+    if (forcedTrack && prediction && !prediction.multiIntent
+      && !intentAllowedForTrack(prediction.intentId, forcedTrack)) {
+      logEvent('intent_out_of_scope', {
+        channel: object,
+        senderId,
+        intent: prediction.intentId,
+        track: forcedTrack,
+      })
+      prediction = null
     }
 
     if (prediction?.multiIntent) {
@@ -1501,14 +1589,16 @@ app.post('/webhook', (req, res) => {
       continue
     }
 
+    const page = body.object === 'page' ? pageConfigFor(entry.id) : DEFAULT_PAGE
+
     for (const event of entry.messaging || []) {
-      handleMessagingEvent(body.object, event).catch(error => {
+      pageContext.run(page, () => handleMessagingEvent(body.object, event)).catch(error => {
         console.error('Webhook event handling failed:', error.message)
       })
     }
 
     for (const change of entry.changes || []) {
-      handleCommentChange(body.object, change, entry).catch(error => {
+      pageContext.run(page, () => handleCommentChange(body.object, change, entry)).catch(error => {
         console.error('Comment webhook handling failed:', error.message)
       })
     }
@@ -1637,9 +1727,12 @@ async function processDueReminders() {
 
   for (const conversation of due) {
     try {
-      await sendMetaMessage(conversation.channel, conversation.user_id, {
+      const page = conversation.channel === 'page'
+        ? pageConfigFor(conversation.page_id)
+        : DEFAULT_PAGE
+      await pageContext.run(page, () => sendMetaMessage(conversation.channel, conversation.user_id, {
         text: REMINDER_MESSAGE,
-      })
+      }))
       logEvent('reminder_sent', {
         channel: conversation.channel,
         userId: conversation.user_id,
@@ -1681,6 +1774,11 @@ async function start() {
       privateReplyTokenSet: Boolean(FB_PRIVATE_REPLY_TOKEN),
       privateReplyMessageReady: Boolean(PRIVATE_REPLY_MESSAGE),
       pageId: PAGE_ID,
+      pages: [...PAGES.values()].map(page => ({
+        pageId: page.pageId,
+        tokenSet: Boolean(page.accessToken),
+        forcedTrack: page.forcedTrack,
+      })),
       instagramPageTokenSet: Boolean(IG_PAGE_ACCESS_TOKEN),
     })
 

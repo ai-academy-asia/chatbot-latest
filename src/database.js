@@ -51,6 +51,8 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ;
     ALTER TABLE conversations
       ADD COLUMN IF NOT EXISTS program_track TEXT;
+    ALTER TABLE conversations
+      ADD COLUMN IF NOT EXISTS page_id TEXT;
 
     CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_idx
       ON conversation_messages (conversation_id, created_at);
@@ -304,7 +306,7 @@ async function claimDueReminderConversations({
        FOR UPDATE SKIP LOCKED
        LIMIT $3
      )
-     RETURNING id, channel, user_id, last_incoming_at`,
+     RETURNING id, channel, user_id, page_id, last_incoming_at`,
     [safeHours, META_MESSAGING_WINDOW_HOURS, limit],
   )
 
@@ -375,6 +377,22 @@ async function setProgramTrack(channel, userId, track) {
   )
 }
 
+// Remembers which Facebook page a conversation belongs to (needed to pick the right token for reminders).
+const memoryPages = new Map()
+
+async function setConversationPage(channel, userId, pageId) {
+  const key = `${channel}:${userId}`
+  if (memoryPages.get(key) === pageId) return
+  memoryPages.set(key, pageId)
+  if (memoryPages.size > 10000) memoryPages.delete(memoryPages.keys().next().value)
+  if (!pool) return
+
+  await pool.query(
+    'UPDATE conversations SET page_id = $3 WHERE channel = $1 AND user_id = $2',
+    [channel, String(userId), pageId],
+  )
+}
+
 async function getProgramTrack(channel, userId) {
   const key = `${channel}:${userId}`
   if (memoryTracks.has(key)) return memoryTracks.get(key)
@@ -395,6 +413,7 @@ module.exports = {
   initializeDatabase,
   setProgramTrack,
   getProgramTrack,
+  setConversationPage,
   getOrCreateConversation,
   recordConversationMessage,
   recordThreadMessage,
