@@ -42,7 +42,8 @@ app.use(express.json())
 const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN
 const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
 const FB_PRIVATE_REPLY_TOKEN = process.env.FB_PRIVATE_REPLY_TOKEN
-const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN
+// IG_ACCESS_TOKEN is accepted as an alias of IG_PAGE_ACCESS_TOKEN.
+const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN || process.env.IG_ACCESS_TOKEN
 const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
@@ -67,10 +68,53 @@ if (process.env.PAGE_ID_2) {
     forcedTrack: process.env.PAGE_TRACK_2 || 'junior',
   })
 }
+// Instagram accounts served by this bot. The first uses IG_PAGE_ACCESS_TOKEN (or IG_ACCESS_TOKEN);
+// the second (IG_ACCESS_TOKEN_2) is locked to one program track like the second Facebook page.
+// accountId is discovered from the token at startup (or set via IG_ACCOUNT_ID / IG_ACCOUNT_ID_2).
+const DEFAULT_IG = {
+  channel: 'instagram',
+  pageId: process.env.IG_ACCOUNT_ID ? String(process.env.IG_ACCOUNT_ID) : null,
+  accountId: process.env.IG_ACCOUNT_ID ? String(process.env.IG_ACCOUNT_ID) : null,
+  accessToken: IG_PAGE_ACCESS_TOKEN,
+  privateReplyToken: IG_PAGE_ACCESS_TOKEN || FB_PRIVATE_REPLY_TOKEN,
+  forcedTrack: null,
+  tokenName: process.env.IG_PAGE_ACCESS_TOKEN ? 'IG_PAGE_ACCESS_TOKEN' : 'IG_ACCESS_TOKEN',
+}
+const IG_ACCOUNTS = [DEFAULT_IG]
+if (process.env.IG_ACCESS_TOKEN_2) {
+  const secondAccountId = process.env.IG_ACCOUNT_ID_2 ? String(process.env.IG_ACCOUNT_ID_2) : null
+  IG_ACCOUNTS.push({
+    channel: 'instagram',
+    pageId: secondAccountId,
+    accountId: secondAccountId,
+    accessToken: process.env.IG_ACCESS_TOKEN_2,
+    privateReplyToken: process.env.IG_ACCESS_TOKEN_2,
+    forcedTrack: process.env.IG_TRACK_2 || process.env.PAGE_TRACK_2 || 'junior',
+    tokenName: 'IG_ACCESS_TOKEN_2',
+  })
+}
+
 const pageContext = new AsyncLocalStorage()
 
 function pageConfigFor(pageId) {
   return PAGES.get(String(pageId)) || DEFAULT_PAGE
+}
+
+function activeInstagram() {
+  const store = pageContext.getStore()
+  return store?.channel === 'instagram' ? store : DEFAULT_IG
+}
+
+function instagramConfigFor(accountId) {
+  if (!accountId) return DEFAULT_IG
+  return IG_ACCOUNTS.find(account => account.accountId === String(accountId)) || DEFAULT_IG
+}
+
+// Picks the account for a webhook entry; null means the entry belongs to an unknown account.
+function instagramAccountForEntry(entryId) {
+  const match = IG_ACCOUNTS.find(account => account.accountId === String(entryId))
+  if (match) return match
+  return IG_ACCOUNTS.some(account => account.accountId) ? null : DEFAULT_IG
 }
 
 function activePage() {
@@ -439,15 +483,19 @@ if (!PRIVATE_REPLY_MESSAGE) {
   console.error(`Private reply text missing for intent ${PRIVATE_REPLY_INTENT_ID}`)
 }
 
-let connectedInstagramAccountId = null
+async function validateInstagramConnections() {
+  await Promise.all(IG_ACCOUNTS.map(account => validateInstagramConnection(account).catch(error => {
+    console.error(`Instagram startup check failed (${account.tokenName}):`, error.message)
+  })))
+}
 
-async function validateInstagramConnection() {
-  if (!IG_PAGE_ACCESS_TOKEN) {
-    console.error('Instagram startup check failed: IG_PAGE_ACCESS_TOKEN is not set')
+async function validateInstagramConnection(account) {
+  if (!account.accessToken) {
+    console.error(`Instagram startup check failed: ${account.tokenName} is not set`)
     return
   }
 
-  const headers = { Authorization: `Bearer ${IG_PAGE_ACCESS_TOKEN}` }
+  const headers = { Authorization: `Bearer ${account.accessToken}` }
   const [identityResponse, subscriptionsResponse] = await Promise.all([
     fetch(
       `https://graph.facebook.com/${META_API_VERSION}/me`
@@ -462,6 +510,7 @@ async function validateInstagramConnection() {
 
   if (!identityResponse.ok) {
     console.error('Instagram token validation failed:', {
+      token: account.tokenName,
       status: identityResponse.status,
       code: identity.error?.code || null,
       message: identity.error?.message || 'Unknown error',
@@ -471,6 +520,7 @@ async function validateInstagramConnection() {
 
   if (!subscriptionsResponse.ok) {
     console.error('Instagram subscription check failed:', {
+      token: account.tokenName,
       status: subscriptionsResponse.status,
       code: subscriptions.error?.code || null,
       message: subscriptions.error?.message || 'Unknown error',
@@ -481,11 +531,14 @@ async function validateInstagramConnection() {
   const subscribedFields = [
     ...new Set((subscriptions.data || []).flatMap(item => item.subscribed_fields || [])),
   ]
-  connectedInstagramAccountId = identity.instagram_business_account?.id
-    ? String(identity.instagram_business_account.id)
-    : null
+  if (identity.instagram_business_account?.id) {
+    account.accountId = String(identity.instagram_business_account.id)
+    account.pageId = account.accountId
+  }
 
   console.log('Instagram connection ready:', {
+    token: account.tokenName,
+    forcedTrack: account.forcedTrack,
     pageId: identity.id,
     pageName: identity.name || null,
     accountId: identity.instagram_business_account?.id || null,
@@ -506,10 +559,11 @@ function getChannelConfig(object) {
   }
 
   if (object === 'instagram') {
+    const account = activeInstagram()
     return {
-      accessToken: IG_PAGE_ACCESS_TOKEN,
+      accessToken: account.accessToken,
       apiBase: 'https://graph.facebook.com',
-      tokenName: 'IG_PAGE_ACCESS_TOKEN',
+      tokenName: account.tokenName,
     }
   }
 
@@ -626,14 +680,15 @@ async function sendTextChunks(object, recipientId, text) {
 
 function getCommentReplyToken(channel) {
   if (channel === 'instagram') {
-    return IG_PAGE_ACCESS_TOKEN || FB_PRIVATE_REPLY_TOKEN
+    return activeInstagram().accessToken || FB_PRIVATE_REPLY_TOKEN
   }
   return activePage().privateReplyToken
 }
 
 function commentReplyTokenName(channel) {
   if (channel === 'instagram') {
-    return IG_PAGE_ACCESS_TOKEN ? 'IG_PAGE_ACCESS_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN'
+    const account = activeInstagram()
+    return account.accessToken ? account.tokenName : 'FB_PRIVATE_REPLY_TOKEN'
   }
   return activePage() === DEFAULT_PAGE ? 'FB_PRIVATE_REPLY_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN_2'
 }
@@ -799,7 +854,7 @@ async function sendPublicCommentReply(channel, commentId, text) {
 function isOwnComment(channel, fromId, accountId) {
   if (!fromId) return false
   if (channel === 'page') return PAGES.has(fromId)
-  const ownId = accountId || connectedInstagramAccountId
+  const ownId = accountId || activeInstagram().accountId
   return Boolean(ownId && fromId === String(ownId))
 }
 
@@ -894,7 +949,7 @@ async function handleCommentChange(object, change, entry) {
     fromId: value.from?.id ? String(value.from.id) : null,
     postId: value.media?.id || value.post_id || null,
     text: value.text || value.message || null,
-    accountId: entry?.id ? String(entry.id) : connectedInstagramAccountId,
+    accountId: entry?.id ? String(entry.id) : activeInstagram().accountId,
     canPublicReply: change.field !== 'live_comments',
   })
 }
@@ -1403,8 +1458,13 @@ async function handleMessagingEvent(object, event) {
     },
   })
 
-  if (object === 'page' && activePage() !== DEFAULT_PAGE) {
-    setConversationPage(object, senderId, activePage().pageId).catch(error => {
+  const savePageId = object === 'page' && activePage() !== DEFAULT_PAGE
+    ? activePage().pageId
+    : object === 'instagram' && activePage() !== DEFAULT_IG
+      ? activePage().accountId
+      : null
+  if (savePageId) {
+    setConversationPage(object, senderId, savePageId).catch(error => {
       console.error('Conversation page save failed:', error.message)
     })
   }
@@ -1581,15 +1641,11 @@ app.post('/webhook', (req, res) => {
   }
 
   for (const entry of entries) {
-    if (
-      body.object === 'instagram'
-      && connectedInstagramAccountId
-      && String(entry.id) !== connectedInstagramAccountId
-    ) {
-      continue
-    }
+    const page = body.object === 'page'
+      ? pageConfigFor(entry.id)
+      : instagramAccountForEntry(entry.id)
 
-    const page = body.object === 'page' ? pageConfigFor(entry.id) : DEFAULT_PAGE
+    if (!page) continue
 
     for (const event of entry.messaging || []) {
       pageContext.run(page, () => handleMessagingEvent(body.object, event)).catch(error => {
@@ -1729,7 +1785,9 @@ async function processDueReminders() {
     try {
       const page = conversation.channel === 'page'
         ? pageConfigFor(conversation.page_id)
-        : DEFAULT_PAGE
+        : conversation.channel === 'instagram'
+          ? instagramConfigFor(conversation.page_id)
+          : DEFAULT_PAGE
       await pageContext.run(page, () => sendMetaMessage(conversation.channel, conversation.user_id, {
         text: REMINDER_MESSAGE,
       }))
@@ -1779,12 +1837,14 @@ async function start() {
         tokenSet: Boolean(page.accessToken),
         forcedTrack: page.forcedTrack,
       })),
-      instagramPageTokenSet: Boolean(IG_PAGE_ACCESS_TOKEN),
+      instagramAccounts: IG_ACCOUNTS.map(account => ({
+        tokenName: account.tokenName,
+        tokenSet: Boolean(account.accessToken),
+        forcedTrack: account.forcedTrack,
+      })),
     })
 
-    validateInstagramConnection().catch(error => {
-      console.error('Instagram startup check failed:', error.message)
-    })
+    validateInstagramConnections()
   })
 
   warmIntentClassifier().catch(error => {
