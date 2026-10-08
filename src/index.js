@@ -146,13 +146,23 @@ async function wasSimilarMessageSent(channel, userId, text) {
   return recent.some(previous => messageSimilarity(previous, text) >= threshold)
 }
 
+function normalizeSilentText(text) {
+  return String(text || '').replace(/\s+/g, ' ').trim()
+}
+
+// Meta Business Suite FAQ buttons answer these itself; replying too would double up.
 const SILENT_MESSAGES = new Set([
   'AI Agents хөтөлбөр яг юу заах вэ?',
   'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
   'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ?',
   'IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
   'Энэ хоёр хөтөлбөр хоорондоо ямар ялгаатай вэ?',
-])
+  'Төлбөр шилжүүлэх дансны мэдээлэл?',
+  'Төлбөр хэд вэ? Урьдчилгаа төлж болох уу?',
+  'Сургалт хаана, ямар хэлбэрээр хичээллэх вэ?',
+  'Хичээл хэзээ эхлэх вэ? Хуваариа хэрхэн сонгох вэ?',
+  'Junior AI Engineer хөтөлбөр хэдэн насныханд зориулагдсан бэ?',
+].map(normalizeSilentText))
 
 const BROCHURES = new Map([
   ['AI-Agents-brochure.pdf', path.join(__dirname, '..', 'AI-Agents-brochure.pdf')],
@@ -1333,7 +1343,7 @@ async function handleMessagingEvent(object, event) {
     },
   })
 
-  if (object !== 'web' && SILENT_MESSAGES.has(message?.text)) {
+  if (object !== 'web' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
     return
   }
 
