@@ -1498,7 +1498,6 @@ async function handleMessagingEvent(object, event) {
     const { track, intentId } = PROGRAM_FAQ_BUTTONS[payload]
     await rememberTrack(object, senderId, track)
     await sendTextChunks(object, senderId, intentAnswer(intentId, track) || intentDefaultAnswer(intentId))
-    await sendProgramFaqMenu(object, senderId, track)
     return
   }
 
