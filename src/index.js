@@ -136,7 +136,7 @@ const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia
 const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
 const REMINDER_CRON = process.env.REMINDER_CRON || '*/15 * * * *'
 const WEBSITE_URL = process.env.WEBSITE_URL || 'https://ai-academy.asia/mn'
-const INSTAGRAM_WELCOME_MESSAGE = process.env.INSTAGRAM_WELCOME_MESSAGE
+const WELCOME_TEXT_MESSAGE = process.env.WELCOME_TEXT_MESSAGE
   || `Сайн байна уу? Танд юугаар туслах вэ?
 
 Дэлгэрэнгүй мэдээллийг ${WEBSITE_URL}`
@@ -154,6 +154,46 @@ const WEB_RATE_LIMIT = Number(process.env.WEB_CHAT_RATE_LIMIT || 20)
 const WEB_RATE_WINDOW_MS = 60 * 1000
 const webRateHits = new Map()
 
+// Our Instagram/Facebook accounts can end up messaging each other; without these guards
+// each bot answers the other's replies forever and burns Gemini credits.
+const BLOCKED_SENDER_IDS = new Set(
+  String(process.env.BLOCKED_SENDER_IDS || '').split(',').map(id => id.trim()).filter(Boolean),
+)
+const SENDER_RATE_LIMIT = Number(process.env.SENDER_RATE_LIMIT || 15)
+const SENDER_RATE_WINDOW_MS = 5 * 60 * 1000
+const senderRateHits = new Map()
+const OWN_OUTGOING_LIMIT = 2000
+const ownOutgoingTexts = new Set()
+
+function rememberOwnOutgoing(text) {
+  const key = normalizeMessageText(text)
+  if (!key) return
+  ownOutgoingTexts.delete(key)
+  ownOutgoingTexts.add(key)
+  if (ownOutgoingTexts.size > OWN_OUTGOING_LIMIT) {
+    ownOutgoingTexts.delete(ownOutgoingTexts.values().next().value)
+  }
+}
+
+function isOwnBotText(text) {
+  const key = normalizeMessageText(text)
+  return Boolean(key) && (
+    ownOutgoingTexts.has(key) || key === normalizeMessageText(WELCOME_TEXT_MESSAGE)
+  )
+}
+
+function senderRateLimited(channel, senderId) {
+  const key = `${channel}:${senderId}`
+  const now = Date.now()
+  const hits = (senderRateHits.get(key) || []).filter(time => now - time < SENDER_RATE_WINDOW_MS)
+  hits.push(now)
+  senderRateHits.set(key, hits)
+  if (senderRateHits.size > 10000) {
+    senderRateHits.delete(senderRateHits.keys().next().value)
+  }
+  return hits.length > SENDER_RATE_LIMIT
+}
+
 function logEvent(event, details) {
   process.stdout.write(`${JSON.stringify({
     time: new Date().toISOString(),
@@ -168,6 +208,7 @@ function outgoingCacheKey(channel, userId) {
 
 function rememberOutgoingText(channel, userId, text) {
   if (!text) return
+  rememberOwnOutgoing(text)
   const key = outgoingCacheKey(channel, userId)
   const list = recentOutgoingCache.get(key) || []
   list.unshift(text)
@@ -975,50 +1016,24 @@ function splitMessage(text, maxLength = 900) {
   return chunks
 }
 
+// Facebook and Instagram are text-only; only the website chat shows buttons.
 async function sendMenuCard(object, recipientId, title, subtitle, options) {
-  if (object === 'instagram') return
+  if (object !== 'web') return
 
-  if (object === 'web') {
-    const text = [title, subtitle].filter(Boolean).join('\n')
-    await sendMetaMessage(object, recipientId, {
-      text,
-      quick_replies: options.map(option => ({
-        content_type: 'text',
-        title: option.title,
-        payload: option.payload,
-      })),
-    }, { allowDuplicate: true })
-    return
-  }
-
-  // Messenger generic template elements allow at most 3 buttons, so larger menus become a carousel.
-  const elements = []
-  for (let index = 0; index < options.length; index += 3) {
-    elements.push({
-      title,
-      subtitle,
-      buttons: options.slice(index, index + 3).map(option => ({
-        type: 'postback',
-        title: option.title,
-        payload: option.payload,
-      })),
-    })
-  }
-
+  const text = [title, subtitle].filter(Boolean).join('\n')
   await sendMetaMessage(object, recipientId, {
-    attachment: {
-      type: 'template',
-      payload: {
-        template_type: 'generic',
-        elements,
-      },
-    },
-  })
+    text,
+    quick_replies: options.map(option => ({
+      content_type: 'text',
+      title: option.title,
+      payload: option.payload,
+    })),
+  }, { allowDuplicate: true })
 }
 
 async function sendWelcomeMenu(object, recipientId) {
-  if (object === 'instagram') {
-    await sendMetaMessage(object, recipientId, { text: INSTAGRAM_WELCOME_MESSAGE }, { allowDuplicate: true })
+  if (object !== 'web') {
+    await sendMetaMessage(object, recipientId, { text: WELCOME_TEXT_MESSAGE }, { allowDuplicate: true })
     return
   }
 
@@ -1415,6 +1430,18 @@ async function handleMessagingEvent(object, event) {
   }
 
   const senderId = event.sender.id
+  if (object !== 'web') {
+    if (BLOCKED_SENDER_IDS.has(String(senderId))) return
+    if (message?.text && isOwnBotText(message.text)) {
+      logEvent('bot_loop_skipped', { channel: object, senderId })
+      return
+    }
+    if (senderRateLimited(object, senderId)) {
+      logEvent('sender_rate_limited', { channel: object, senderId })
+      return
+    }
+  }
+
   let payload = message?.quick_reply?.payload || event.postback?.payload
   const forcedTrack = activePage().forcedTrack
   const eventKey = message?.mid

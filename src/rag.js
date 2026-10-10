@@ -242,6 +242,75 @@ function allowedForTrack(program, track) {
   return true
 }
 
+// Mongolian words inflect heavily (төлбөр / төлбөрийн), so terms are compared by prefix.
+const KEYWORD_STEM_LENGTH = 5
+
+function keywordStems(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFKC')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(token => token.length >= 3)
+    .map(token => token.slice(0, KEYWORD_STEM_LENGTH))
+}
+
+let keywordIndex = null
+
+function getKeywordIndex() {
+  if (keywordIndex) return keywordIndex
+  const { chunks } = readChunkSource()
+  const items = chunks.map(chunk => ({
+    ...chunk,
+    titleStems: new Set(keywordStems(chunk.title)),
+    stems: new Set(keywordStems(`${chunk.title} ${chunk.content}`)),
+  }))
+  const documentFrequency = new Map()
+  for (const item of items) {
+    for (const stem of item.stems) {
+      documentFrequency.set(stem, (documentFrequency.get(stem) || 0) + 1)
+    }
+  }
+  keywordIndex = { items, documentFrequency }
+  return keywordIndex
+}
+
+// Used when Gemini embeddings are unavailable (quota, billing, outage).
+function retrieveByKeywords(text, options = {}) {
+  const topK = Number(options.topK || process.env.RAG_TOP_K || 6)
+  const { items, documentFrequency } = getKeywordIndex()
+  const queryStems = [...new Set(keywordStems(text))]
+  if (!queryStems.length) return []
+
+  const allowJobs = isExplicitJobQuery(text)
+  const trackProgram = TRACK_PROGRAMS[options.track]?.[0]
+  const ranked = items
+    .filter(item => allowJobs || !RESTRICTED_CHUNK_IDS.has(item.id))
+    .filter(item => allowedForTrack(item.program, options.track))
+    .map(item => {
+      let score = 0
+      for (const stem of queryStems) {
+        if (!item.stems.has(stem)) continue
+        const idf = Math.log(1 + items.length / documentFrequency.get(stem))
+        score += item.titleStems.has(stem) ? idf * 2 : idf
+      }
+      if (trackProgram && item.program === trackProgram) score *= 1.5
+      return {
+        id: item.id,
+        category: item.category,
+        program: item.program,
+        title: item.title,
+        content: item.content,
+        score,
+      }
+    })
+    .filter(item => item.score > 0)
+    .sort((left, right) => right.score - left.score)
+
+  return ranked.slice(0, topK)
+}
+
 async function retrieveRag(text, options = {}) {
   const topK = Number(options.topK || process.env.RAG_TOP_K || 6)
   const minimumScore = Number(options.minScore || process.env.RAG_MIN_SIMILARITY || 0.5)
@@ -292,7 +361,7 @@ URL байвал хариултад үлдээ.
 Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
 ${TRACK_HINTS[track] || ''}
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:
-"Энэ талаар нарийн мэдээлэл алга. Цэснээс сонгох эсвэл 7505-1055 руу холбогдоорой."
+"Энэ талаар нарийн мэдээлэл алга. 7505-1055 руу холбогдоорой."
 
 QUESTION:
 ${question}
@@ -340,11 +409,21 @@ ${context}`
 }
 
 async function answerWithRag(question, options = {}) {
-  const hits = await retrieveRag(question, options)
+  let hits
+  let keywordFallback = false
+  try {
+    hits = await retrieveRag(question, options)
+  } catch (error) {
+    console.error('RAG embedding retrieval failed, using keyword search:', error.message)
+    hits = retrieveByKeywords(question, options)
+    keywordFallback = true
+  }
   if (!hits.length) return null
 
-  const chunkAnswer = formatChunkAnswer(hits)
-  const trustChunks = hits[0].score >= Number(process.env.RAG_TRUST_SCORE || 0.58)
+  // Keyword matches are less precise, so only the best chunk is used as the raw answer.
+  const chunkAnswer = keywordFallback ? hits[0].content : formatChunkAnswer(hits)
+  const trustChunks = keywordFallback
+    || hits[0].score >= Number(process.env.RAG_TRUST_SCORE || 0.58)
 
   let answer
   try {
