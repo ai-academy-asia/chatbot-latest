@@ -1469,7 +1469,7 @@ async function handleMessagingEvent(object, event) {
     })
   }
 
-  if (object !== 'web' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
+  if (object === 'page' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
     return
   }
 
