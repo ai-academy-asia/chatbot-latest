@@ -136,6 +136,10 @@ const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia
 const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
 const REMINDER_CRON = process.env.REMINDER_CRON || '*/15 * * * *'
 const WEBSITE_URL = process.env.WEBSITE_URL || 'https://ai-academy.asia/mn'
+const INSTAGRAM_WELCOME_MESSAGE = process.env.INSTAGRAM_WELCOME_MESSAGE
+  || `Сайн байна уу? Танд юугаар туслах вэ?
+
+Дэлгэрэнгүй мэдээллийг ${WEBSITE_URL}`
 const REMINDER_MESSAGE = process.env.REMINDER_MESSAGE
   || `Сайн байна уу? Танд өөр асуух зүйл байна уу?
 
@@ -971,25 +975,19 @@ function splitMessage(text, maxLength = 900) {
   return chunks
 }
 
-// Instagram inbox cannot render Messenger generic templates (shows "Use Latest App").
-// Use quick replies instead — they work in Instagram DM.
-function truncateQuickReplyTitle(title, maxLength = 20) {
-  const value = String(title || '').trim()
-  if (value.length <= maxLength) return value
-  return `${value.slice(0, maxLength - 1)}…`
-}
-
 async function sendMenuCard(object, recipientId, title, subtitle, options) {
-  if (object === 'instagram' || object === 'web') {
+  if (object === 'instagram') return
+
+  if (object === 'web') {
     const text = [title, subtitle].filter(Boolean).join('\n')
     await sendMetaMessage(object, recipientId, {
       text,
       quick_replies: options.map(option => ({
         content_type: 'text',
-        title: object === 'instagram' ? truncateQuickReplyTitle(option.title) : option.title,
+        title: option.title,
         payload: option.payload,
       })),
-    })
+    }, { allowDuplicate: true })
     return
   }
 
@@ -1019,6 +1017,11 @@ async function sendMenuCard(object, recipientId, title, subtitle, options) {
 }
 
 async function sendWelcomeMenu(object, recipientId) {
+  if (object === 'instagram') {
+    await sendMetaMessage(object, recipientId, { text: INSTAGRAM_WELCOME_MESSAGE }, { allowDuplicate: true })
+    return
+  }
+
   const forcedTrack = activePage().forcedTrack
   if (forcedTrack && PROGRAM_FAQ_MENUS[forcedTrack]) {
     await sendProgramFaqMenu(object, recipientId, forcedTrack)
