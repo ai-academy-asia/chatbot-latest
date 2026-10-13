@@ -3,8 +3,7 @@
     "Add 10-20 natural Mongolian user messages to each examples array.",
     "Include short messages, complete questions, spelling mistakes, and common alternative wording.",
     "Do not add keywords alone unless a real user would send only that word.",
-    "Keep each example under the correct intent only.",
-    "Treat questions about AI Agents and AI for Business as one surgaltiin_medeelel intent."
+    "Keep each example under the correct intent only."
   ],
   "intents": [
     {
@@ -450,11 +449,6 @@
         "хоёр сургалт юугаараа өөр вэ",
         "сургалт хоорондоо юугаараа өөр вэ",
         "хөтөлбөр хоорондоо юугаараа өөр вэ",
-        "AI Agents AI for Business хоёрын ялгаа",
-        "AI Agents болон AI for Business хоёрын ялгаа",
-        "AI Agents, AI for Business ялгаа юу вэ",
-        "AI Agents ба AI for Business юугаараа ялгаатай вэ",
-        "AI Agents болон AI for Business юугаараа өөр вэ",
         "ymar ylgaatai ve",
         "ymar ylgaatai",
         "yugaaraa ylgaatai ve",
@@ -488,15 +482,10 @@
         "hoyor kursiin ylgaa yu ve",
         "hoyor surgalt yugaaraa oor ve",
         "surgalt hoorondoo yugaaraa oor ve",
-        "hutulbur hoorondoo yugaaraa oor ve",
-        "AI Agents AI for Business ylgaa",
-        "AI Agents bolon AI for Business hoyorin ylgaa",
-        "AI Agents AI for Business ylgaa yu ve",
-        "AI Agents ba AI for Business yugaaraa ylgaatai ve",
-        "AI Agents bolon AI for Business yugaaraa oor ve"
+        "hutulbur hoorondoo yugaaraa oor ve"
       ],
       "answers": {
-        "default": "🔎 ХӨТӨЛБӨРҮҮДИЙН ЯЛГАА\n\n🧡 AI AGENTS\nОффисын давтагддаг ажлууд, PDF, Excel, тайлан, имэйл болон workflow-г Claude AI ашиглан автоматжуулахад төвлөрнө.\n\n💚 AI FOR BUSINESS\nFacebook контент, хэрэглэгчийн чат, захиалга болон борлуулалтын процессыг 24/7 автоматжуулахад төвлөрнө.\n\nТовчхондоо:\n• Дотоод ажил, бүтээмжээ автоматжуулах бол — AI Agents\n• Сошиал борлуулалтаа автоматжуулах бол — AI for Business"
+        "default": "🔎 ХӨТӨЛБӨРҮҮДИЙН ЯЛГАА\n\n🚀 AI ENGINEER (насанд хүрэгчид · 7 сар)\nPython-оос эхлээд Machine Learning, Deep Learning, MLOps хүртэл сурч, ажилд бүрэн бэлэн (Job-Ready) мэргэжлийн AI инженер болно.\n\n👔 AI LEADERS (удирдлага, бизнес эрхлэгчид · 6 долоо хоног)\nБизнесийн процессоо AI-аар автоматжуулж, шийдвэр гаргалтад AI нэгтгэнэ.\n\n🎓 JUNIOR AI ENGINEER (10–18 нас)\nХүүхэд, залууст AI ашиглан бодит төсөл, тоглоом бүтээж сурах хөтөлбөр.\n\nТовчхондоо:\n• AI инженер мэргэжилтэй болох бол — AI Engineer\n• Байгууллагадаа AI нэвтрүүлэх бол — AI Leaders\n• 10–18 насны хүүхдэд — Junior AI Engineer"
       }
     },
     {
@@ -749,8 +738,8 @@
         "nasnii shaardlaga bna uu"
       ],
       "answers": {
-        "default": "👤 НАСНЫ ХЯЗГААР\n\n🧡💚 Насанд хүрэгчдийн хөтөлбөр (AI Agents, AI for Business, AI Engineer, AI Leaders): 18-аас дээш нас.\n\n🎓 Хүүхэд, залууст — Junior AI Engineer: 10–18 нас (10–13 болон 14–18 ангилал).\n\n☎️ Дэлгэрэнгүй: 7505-1055",
-        "adult": "👤 НАСНЫ ХЯЗГААР\n\nAI Agents, AI for Business, AI Engineer, AI Leaders хөтөлбөрүүд 18-аас дээш насныханд зориулагдсан.\n\n🎓 10–18 насны хүүхэд, залууст Junior AI Engineer хөтөлбөр бий.",
+        "default": "👤 НАСНЫ ХЯЗГААР\n\n👔🚀 Насанд хүрэгчдийн хөтөлбөр (AI Engineer, AI Leaders): 18-аас дээш нас.\n\n🎓 Хүүхэд, залууст — Junior AI Engineer: 10–18 нас (10–13 болон 14–18 ангилал).\n\n☎️ Дэлгэрэнгүй: 7505-1055",
+        "adult": "👤 НАСНЫ ХЯЗГААР\n\nAI Engineer, AI Leaders хөтөлбөрүүд 18-аас дээш насныханд зориулагдсан.\n\n🎓 10–18 насны хүүхэд, залууст Junior AI Engineer хөтөлбөр бий.",
         "junior": "👦 НАСНЫ АНГИЛАЛ\n\nТус хөтөлбөр нь хүүхдийн насны онцлогт тохирсон 2 үндсэн ангилалтай:\n\n👦 10–13 нас (Innovator)\nAI ашиглан тоглоом болон бүтээлч төсөл (Gamified Capstone) хийх, асуудал шийдвэрлэх, илтгэх ур чадвар болон санхүүгийн суурь ойлголт (Business Kids) олгоно.\n\n👩‍💻 14–18 нас (Builder)\nAI технологийг ашиглан бодит төсөл (Capstone) хөгжүүлэх, асуудал шийдвэрлэх, илтгэх ур чадвар болон их сургуулийн бэлтгэл, мэргэжил сонголт (College Prep) чиглэлээр суралцана."
       }
     },

@@ -3,8 +3,6 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const cron = require('node-cron')
-const path = require('node:path')
-const { readFile } = require('node:fs/promises')
 const { randomUUID: uuidv4 } = require('node:crypto')
 const { AsyncLocalStorage } = require('node:async_hooks')
 const { classifyIntent, warmIntentClassifier } = require('./intent-classifier')
@@ -132,7 +130,6 @@ const COMMENT_REPLY_MESSAGE = (
   || 'Сайн байна уу! Дэлгэрэнгүй мэдээллийг танд чатаар илгээлээ'
 ).trim()
 const repliedCommentIds = new Set()
-const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://ai-academy.asia/chatbot-api').replace(/\/$/, '')
 const REMINDER_HOURS = Number(process.env.REMINDER_HOURS || DEFAULT_REMINDER_HOURS)
 const REMINDER_CRON = process.env.REMINDER_CRON || '*/15 * * * *'
 const WEBSITE_URL = process.env.WEBSITE_URL || 'https://ai-academy.asia/mn'
@@ -278,80 +275,42 @@ function normalizeSilentText(text) {
 
 // Meta Business Suite FAQ buttons answer these itself; replying too would double up.
 const SILENT_MESSAGES = new Set([
-  'AI Agents хөтөлбөр яг юу заах вэ?',
-  'AI for Business хөтөлбөр ямар бодит үр дүн өгөх вэ?',
   'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ?',
   'IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
-  'Энэ хоёр хөтөлбөр хоорондоо ямар ялгаатай вэ?',
   'Төлбөр шилжүүлэх дансны мэдээлэл?',
   'Төлбөр хэд вэ? Урьдчилгаа төлж болох уу?',
   'Сургалт хаана, ямар хэлбэрээр хичээллэх вэ?',
   'Хичээл хэзээ эхлэх вэ? Хуваариа хэрхэн сонгох вэ?',
   'Junior AI Engineer хөтөлбөр хэдэн насныханд зориулагдсан бэ?',
+  '👦 Насны ангилал',
+  '📍 Байршил',
+  '📅 Хичээлийн хуваарь',
+  '📅 Хичээлийн хуваарь сонголт',
 ].map(normalizeSilentText))
 
-const BROCHURES = new Map([
-  ['AI-Agents-brochure.pdf', path.join(__dirname, '..', 'AI-Agents-brochure.pdf')],
-  ['AI-for-Business-brochure.pdf', path.join(__dirname, '..', 'AI-for-Business-brochure.pdf')],
-])
+// Meta Business Suite quick-reply buttons ("👦 Насны ангилал", "📍 Байршил", ...) arrive
+// as plain text with no payload, and Meta already answers them.
+const META_BUTTON_LABEL = /^\p{Extended_Pictographic}/u
+const META_BUTTON_MAX_LENGTH = 60
 
-const PROGRAM_BROCHURES = {
-  PROGRAM_AI_AGENTS: 'AI-Agents-brochure.pdf',
-  PROGRAM_AI_BUSINESS: 'AI-for-Business-brochure.pdf',
+function isMetaButtonLabel(text) {
+  const normalized = normalizeSilentText(text)
+  return normalized.length > 0
+    && normalized.length <= META_BUTTON_MAX_LENGTH
+    && META_BUTTON_LABEL.test(normalized)
 }
 
-const BROCHURE_INTENTS = new Set([
+const PROGRAM_SCREEN_INTENTS = new Set([
   'surgaltiin_medeelel',
   'result',
   'curriculum',
 ])
-const BROCHURE_INTRO = '📄 Та дараах брошуртай танилцана уу.'
-
-function brochurePublicUrl(filename) {
-  return `${PUBLIC_BASE_URL}/brochures/${encodeURIComponent(filename)}`
-}
-
-function brochureLinksText(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
-  const labels = {
-    PROGRAM_AI_AGENTS: 'AI Agents брошур',
-    PROGRAM_AI_BUSINESS: 'AI for Business брошур',
-  }
-
-  return payloads
-    .map(payload => {
-      const filename = PROGRAM_BROCHURES[payload]
-      if (!filename) return null
-      return `${labels[payload] || filename}:\n${brochurePublicUrl(filename)}`
-    })
-    .filter(Boolean)
-    .join('\n\n')
-}
-
-function brochureLinkMessage(payloads = ['PROGRAM_AI_AGENTS', 'PROGRAM_AI_BUSINESS']) {
-  return `${BROCHURE_INTRO}\n\n${brochureLinksText(payloads)}`
-}
 
 function intentDefaultAnswer(intentId) {
   return INTENTS_DATA.intents.find(intent => intent.id === intentId)?.answers?.default || null
 }
 
 const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
-
-const brochureAttachmentIds = new Map()
-const BROCHURE_RESEND_MS = Number(process.env.BROCHURE_RESEND_HOURS || 24) * 60 * 60 * 1000
-const recentBrochureSends = new Map()
-
-function brochureRecentlySent(recipientId, filename) {
-  const sentAt = recentBrochureSends.get(`${recipientId}:${filename}`)
-  return Boolean(sentAt && Date.now() - sentAt < BROCHURE_RESEND_MS)
-}
-
-function markBrochureSent(recipientId, filename) {
-  recentBrochureSends.set(`${recipientId}:${filename}`, Date.now())
-  if (recentBrochureSends.size > 5000) {
-    recentBrochureSends.delete(recentBrochureSends.keys().next().value)
-  }
-}
 
 const MAIN_MENU_OPTIONS = [
   { title: '👔 AI Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
@@ -440,68 +399,6 @@ const DETAIL_ACTION_OPTIONS = [
 ]
 
 const MENU_RESPONSES = {
-  PROGRAM_AI_AGENTS: `🧡 AI AGENTS
-
-“2 өдөр хийдэг ажлаа 3 минутад хийдэг болгоно.”
-
-🎯 ХӨТӨЛБӨРИЙН ЗОРИЛГО
-
-AI Agents хөтөлбөрөөр та AI-г зүгээр нэг асуулт асуудаг хэрэгсэл биш, харин таны ажлыг өөрөө гүйцэтгэдэг AI туслах системийг бүтээж сурна.
-
-PDF, Excel, тайлан, имэйл, маягттай холбоотой давтагддаг ажлуудаа автоматжуулна.
-
-🛠 ЭЗЭМШИХ УР ЧАДВАР
-
-• Баримт бичиг уншиж, дүн шинжилгээ хийх
-• Excel дата цэвэрлэх, нэгтгэх, шалгах
-• Давтагддаг ажлаа Skill болгон хувиргах
-• Өдөр бүр автоматаар ажиллах AI Agent бүтээх
-• Олон PDF, Excel файл дээр ажиллах скрипт бүтээх
-• Форм, имэйлээс мэдээлэл цуглуулах автомат урсгал үүсгэх
-• Өөрийн хэрэгцээнд тохирсон AI workflow бүтээх
-• Бүтээсэн системээ Capstone төслөөр хамгаалах
-
-🌱 Суурь мэдлэг
-
-Кодчилолын суурь мэдлэг шаардалагагүй.
-
-🏆 ТӨГСӨХДӨӨ
-
-Өдөр тутмын ажилдаа шууд ашиглах AI Agent-ийг бүтээж сурна.
-
-📌 СУРГАЛТЫН МЭДЭЭЛЭЛ
-
-📅 Эхлэх: 2026.10.02
-⏱ 6 долоо хоног · 12 хичээл
-🗓 Даваа, Лхагва · 12:30–14:00
-💻 Танхим + онлайн хосолсон
-💰 2,880,000₮
-
-${BROCHURE_INTRO}`,
-  PROGRAM_AI_BUSINESS: `💚 AI FOR BUSINESS
-
-Сошиал контент, чат, захиалгын 24/7 автомат систем бүтээх хөтөлбөр.
-
-🎯 Эзэмших ур чадвар
-
-• Facebook контент бэлтгэх
-• Хэрэглэгчийн чатад автоматаар хариулах
-• Захиалга бүртгэх
-• Бүтэн цикл бүхий автомат систем угсрах
-• Удирдлагын админ самбар бүтээх
-
-🛠 АШИГЛАХ ТЕХНОЛОГИ ХЭРЭГСЛҮҮД
-
-Facebook API · Meta for Developers · n8n · Supabase · Vibe Coding
-
-📅 Эхлэх: 2026.10.02
-🗓 Мягмар, Пүрэв · 07:30–09:00
-🎥 12 лайв хичээл
-🏫 Офлайн воркшоп
-
-💡 23:41 цагт ирсэн чат маргааш өглөөг хүлээхгүй — таны борлуулалтын систем 24/7 ажиллана.
-
-${BROCHURE_INTRO}`,
   PROGRAM_JUNIOR_AI: intentDefaultAnswer('kids_training'),
   PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
   PROGRAM_CORPORATE_LEADERS: intentDefaultAnswer('corporate_leaders'),
@@ -773,7 +670,7 @@ async function isJuniorPost(channel, postId) {
   }
 }
 
-const ADULT_TEXT_RE = /ai\s*agents?|for\s*business|ai\s*business|агент|эйжент|бизнес/i
+const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
 const ENGINEER_TEXT_RE = /(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
 const LEADERS_TEXT_RE = /corporate|ai\s*leaders?|ai4corp|лидер|удирдлаг/i
 const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
@@ -1097,197 +994,6 @@ async function sendDetailActions(object, recipientId) {
   )
 }
 
-function graphPagePath() {
-  return PAGE_ID || 'me'
-}
-
-function toPdfFile(filename, bytes) {
-  return new File([new Uint8Array(bytes)], filename, { type: 'application/pdf' })
-}
-
-async function recordOutgoingMetaMessage(object, recipientId, message, result) {
-  const messageType = message.text
-    ? 'text'
-    : message.attachment?.payload?.template_type || message.attachment?.type || 'file'
-  const content = message.text
-    || message.attachment?.payload?.elements?.[0]?.title
-    || (message.attachment?.type ? `[${message.attachment.type}]` : '[file]')
-
-  logEvent('reply_sent', {
-    channel: object,
-    recipientId,
-    type: messageType,
-    answer: content,
-  })
-
-  if (message.text) {
-    rememberOutgoingText(object, recipientId, message.text)
-  }
-
-  await recordConversationMessage({
-    channel: object,
-    userId: recipientId,
-    direction: 'outgoing',
-    messageType,
-    content,
-    metadata: { metaMessageId: result?.message_id || null },
-  })
-}
-
-async function uploadFacebookBrochure(filename) {
-  const cachedAttachmentId = brochureAttachmentIds.get(filename)
-  if (cachedAttachmentId) return cachedAttachmentId
-  if (!FB_PAGE_ACCESS_TOKEN) throw new Error('FB_PAGE_ACCESS_TOKEN is not set')
-
-  const brochurePath = BROCHURES.get(filename)
-  if (!brochurePath) throw new Error(`Unknown brochure: ${filename}`)
-
-  const bytes = await readFile(brochurePath)
-  const form = new FormData()
-  form.set('message', JSON.stringify({
-    attachment: {
-      type: 'file',
-      payload: { is_reusable: true },
-    },
-  }))
-  form.set('filedata', toPdfFile(filename, bytes))
-
-  const response = await fetch(
-    `https://graph.facebook.com/${META_API_VERSION}/${graphPagePath()}/message_attachments`,
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${FB_PAGE_ACCESS_TOKEN}` },
-      body: form,
-    },
-  )
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Facebook brochure upload failed (${response.status}): ${error}`)
-  }
-
-  const result = await response.json()
-  if (!result.attachment_id) throw new Error('Facebook brochure upload returned no attachment_id')
-
-  brochureAttachmentIds.set(filename, result.attachment_id)
-  return result.attachment_id
-}
-
-async function sendFacebookBrochureMultipart(recipientId, filename, options = {}) {
-  if (!FB_PAGE_ACCESS_TOKEN) throw new Error('FB_PAGE_ACCESS_TOKEN is not set')
-
-  const brochurePath = BROCHURES.get(filename)
-  if (!brochurePath) throw new Error(`Unknown brochure: ${filename}`)
-
-  const bytes = await readFile(brochurePath)
-  const form = new FormData()
-  form.set('recipient', JSON.stringify({ id: recipientId }))
-  if (options.messagingType !== null) {
-    form.set('messaging_type', options.messagingType || 'RESPONSE')
-  }
-  form.set('message', JSON.stringify({
-    attachment: {
-      type: 'file',
-      payload: {},
-    },
-  }))
-  form.set('filedata', toPdfFile(filename, bytes))
-
-  const response = await fetch(
-    `https://graph.facebook.com/${META_API_VERSION}/${graphPagePath()}/messages`,
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${FB_PAGE_ACCESS_TOKEN}` },
-      body: form,
-    },
-  )
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Facebook brochure multipart send failed (${response.status}): ${error}`)
-  }
-
-  const result = await response.json()
-  await recordOutgoingMetaMessage('page', recipientId, {
-    attachment: { type: 'file', payload: { filename } },
-  }, result)
-  return result
-}
-
-async function sendFacebookBrochure(recipientId, filename, options = {}) {
-  const sendOptions = { messagingType: options.messagingType }
-
-  const cachedAttachmentId = brochureAttachmentIds.get(filename)
-  if (cachedAttachmentId) {
-    try {
-      await sendMetaMessage('page', recipientId, {
-        attachment: {
-          type: 'file',
-          payload: { attachment_id: cachedAttachmentId },
-        },
-      }, sendOptions)
-      logEvent('brochure_sent', { filename, method: 'attachment_id', recipientId })
-      return
-    } catch (error) {
-      console.error('Cached brochure attachment send failed:', error.message)
-      brochureAttachmentIds.delete(filename)
-    }
-  }
-
-  try {
-    const attachmentId = await uploadFacebookBrochure(filename)
-    await sendMetaMessage('page', recipientId, {
-      attachment: {
-        type: 'file',
-        payload: { attachment_id: attachmentId },
-      },
-    }, sendOptions)
-    logEvent('brochure_sent', { filename, method: 'upload', recipientId })
-    return
-  } catch (error) {
-    console.error('Brochure upload/send failed:', error.message)
-  }
-
-  try {
-    await sendFacebookBrochureMultipart(recipientId, filename, sendOptions)
-    logEvent('brochure_sent', { filename, method: 'multipart', recipientId })
-    return
-  } catch (error) {
-    console.error('Brochure multipart send failed:', error.message)
-  }
-
-  await sendMetaMessage('page', recipientId, {
-    attachment: {
-      type: 'file',
-      payload: {
-        url: brochurePublicUrl(filename),
-        is_reusable: true,
-      },
-    },
-  }, sendOptions)
-  logEvent('brochure_sent', { filename, method: 'url', recipientId })
-}
-
-async function sendProgramBrochure(object, recipientId, payload, options = {}) {
-  const filename = PROGRAM_BROCHURES[payload]
-  if (!filename) return
-
-  if (object === 'page') {
-    if (brochureRecentlySent(recipientId, filename)) {
-      logEvent('brochure_skipped_duplicate', { filename, recipientId })
-      return
-    }
-    await sendFacebookBrochure(recipientId, filename, options)
-    markBrochureSent(recipientId, filename)
-    return
-  }
-
-  // Instagram does not reliably support PDF file attachments — send download links.
-  await sendMetaMessage(object, recipientId, {
-    text: brochureLinkMessage([payload]),
-  }, { allowDuplicate: true, ...options })
-}
-
 async function sendIntentAnswer(object, recipientId, prediction) {
   if (prediction.intentId === 'greeting') {
     await sendWelcomeMenu(object, recipientId)
@@ -1325,7 +1031,7 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
-  if (mainScreen && BROCHURE_INTENTS.has(prediction.intentId)) {
+  if (mainScreen && PROGRAM_SCREEN_INTENTS.has(prediction.intentId)) {
     await sendTextChunks(object, recipientId, MENU_RESPONSES[mainScreen])
     return
   }
@@ -1348,8 +1054,6 @@ const TRACK_MENU_INTENTS = {
 }
 
 const PROGRAM_TRACKS = {
-  PROGRAM_AI_AGENTS: 'adult',
-  PROGRAM_AI_BUSINESS: 'adult',
   PROGRAM_AI_ENGINEER: 'engineer',
   PROGRAM_CORPORATE_LEADERS: 'leaders',
   PROGRAM_JUNIOR_AI: 'junior',
@@ -1499,7 +1203,12 @@ async function handleMessagingEvent(object, event) {
     })
   }
 
-  if (object === 'page' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
+  if (object !== 'web' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
+    return
+  }
+
+  if (object !== 'web' && !payload && isMetaButtonLabel(message?.text)) {
+    logEvent('meta_button_skipped', { channel: object, senderId, text: message.text })
     return
   }
 
@@ -1540,27 +1249,20 @@ async function handleMessagingEvent(object, event) {
       : null
     await sendTextChunks(object, senderId, trackAnswer || MENU_RESPONSES[payload])
 
-    if (payload === 'PROGRAM_AI_AGENTS' || payload === 'PROGRAM_AI_BUSINESS') {
-      try {
-        await sendProgramBrochure(object, senderId, payload)
-      } catch (error) {
-        console.error('Program brochure send failed:', error.message)
-        try {
-          await sendMetaMessage(object, senderId, {
-            text: brochureLinkMessage([payload]),
-          }, { allowDuplicate: true })
-        } catch (fallbackError) {
-          console.error('Program brochure link fallback failed:', fallbackError.message)
-        }
-      }
-      await sendProgramActions(object, senderId)
-    } else if (PROGRAM_FAQ_MENUS[PROGRAM_TRACKS[payload]]) {
+    if (PROGRAM_FAQ_MENUS[PROGRAM_TRACKS[payload]]) {
       await sendProgramFaqMenu(object, senderId, PROGRAM_TRACKS[payload])
     } else if (PROGRAM_TRACKS[payload]) {
       await sendProgramActions(object, senderId)
     } else if (payload === 'PAYMENT' || payload === 'LOCATION') {
       await sendDetailActions(object, senderId)
     }
+    return
+  }
+
+  // Button taps are answered from the menus above; never send them to the AI.
+  if (payload) {
+    logEvent('unknown_payload', { channel: object, senderId, payload })
+    if (object === 'web') await sendWelcomeMenu(object, senderId)
     return
   }
 
@@ -1630,18 +1332,6 @@ async function handleMessagingEvent(object, event) {
 // ── Health ──────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ ok: true })
-})
-
-// ── Public brochures used by Meta file attachments ──
-app.get('/brochures/:filename', (req, res) => {
-  const filename = req.params.filename
-  const brochurePath = BROCHURES.get(filename)
-
-  if (!brochurePath) return res.sendStatus(404)
-
-  res.setHeader('Content-Type', 'application/pdf')
-  res.setHeader('Content-Disposition', `inline; filename="${filename}"`)
-  res.sendFile(brochurePath)
 })
 
 // ── Facebook Webhook VERIFY (Meta "Verify and save") ─
