@@ -2,7 +2,7 @@ const { randomUUID } = require('node:crypto')
 const { Pool } = require('pg')
 const { initializeRag } = require('./rag')
 
-const RETENTION_DAYS = 3
+const RETENTION_DAYS = 2
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000
 const DEFAULT_REMINDER_HOURS = 4
 const META_MESSAGING_WINDOW_HOURS = 23
