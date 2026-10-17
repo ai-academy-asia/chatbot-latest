@@ -313,6 +313,7 @@ function intentDefaultAnswer(intentId) {
 const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
 
 const MAIN_MENU_OPTIONS = [
+  { title: '🌟 Changemakers', payload: 'PROGRAM_CHANGEMAKERS' },
   { title: '👔 AI Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
   { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
@@ -351,6 +352,10 @@ const PROGRAM_FAQ_BUTTONS = {
   LEADERS_PRICE: { track: 'leaders', intentId: 'payment_info' },
   LEADERS_BANK: { track: 'leaders', intentId: 'bank_account' },
   LEADERS_LOCATION: { track: 'leaders', intentId: 'location' },
+  CM_ABOUT: { track: 'changemakers', intentId: 'ai_changemakers' },
+  CM_WHO: { track: 'changemakers', answerKey: 'who' },
+  CM_DATES: { track: 'changemakers', answerKey: 'dates' },
+  CM_SELECT: { track: 'changemakers', answerKey: 'select' },
 }
 
 const LEADERS_FAQ_OPTIONS = [
@@ -387,10 +392,55 @@ const JUNIOR_FAQ_OPTIONS = [
   { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
 
+const CHANGEMAKERS_FAQ_OPTIONS = [
+  { title: '🌟 Хөтөлбөрийн тухай', payload: 'CM_ABOUT' },
+  { title: '👥 Хэн өргөдөл гаргах вэ', payload: 'CM_WHO' },
+  { title: '🗓 Огноо', payload: 'CM_DATES' },
+  { title: '✅ Шалгаруулалт', payload: 'CM_SELECT' },
+  { title: '📝 Анкет бөглөх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
+]
+
+const CHANGEMAKERS_FAQ_ANSWERS = {
+  who: `👥 AI CHANGEMAKERS — ХЭН ӨРГӨДӨЛ ГАРГАХ ВЭ?
+
+Хоёр ангилалтай:
+
+👔 Залуу мэргэжилтэн (25–40 нас)
+AI агент болон систем бүтээх, бизнесийн урсгал автоматжуулах, өгөгдөлд суурилсан шийдвэр гаргах, байгууллагадаа AI нэвтрүүлэлтийг манлайлах чадварт суралцана.
+
+🎓 Оюутан залуус (их, дээд сургуульд суралцаж буй)
+Хиймэл оюуны програмчлалын суурьтай болж, хэрэглээний AI аппликейшн хөгжүүлэн, ажил олгогчдын шаарддаг техникийн ур чадварыг эзэмшинэ.
+
+🔗 Анкет: https://www.ai-academy.asia/mn/anket`,
+  dates: `🗓 AI CHANGEMAKERS — ОГНОО
+
+📝 Бүртгэл (анкет): 2026.10.19 – 10.31
+✅ 2-р шатны шалгаруулалт: 2026.10.26 – 11.01
+🎓 Хөтөлбөр: 2026.11.07 – 12.26 (7 долоо хоног)
+
+🎁 Тэнцсэн хүмүүст тэтгэлэг олгоно.
+
+🔗 Анкет: https://www.ai-academy.asia/mn/anket
+📞 Утас: 7505-1055`,
+  select: `✅ AI CHANGEMAKERS — СОНГОН ШАЛГАРУУЛАЛТ
+
+1️⃣ 1-р шат · Анкетийн үнэлгээ (нийт 100 оноо)
+60-аас дээш оноотой анкетуудыг эрэмбэлж, залуу мэргэжилтэн / оюутан тус бүрийн эхний 100 хүн 1-р шатанд тэнцэнэ.
+
+2️⃣ 2-р шат (2026.10.26 – 11.01)
+20 минутын ур чадвар, логик, асуудал шийдвэрлэх тест. Шаардлагатай тохиолдолд 5–10 минутын богино ярилцлага хийнэ.
+
+Эцсийн шатанд 100 залуу мэргэжилтэн, 100 оюутныг шалгаруулж авна.
+
+🔗 Анкет: https://www.ai-academy.asia/mn/anket`,
+}
+
 const PROGRAM_FAQ_MENUS = {
   junior: { title: 'Junior AI Engineer — түгээмэл асуултууд', options: JUNIOR_FAQ_OPTIONS },
   engineer: { title: 'AI Engineer — түгээмэл асуултууд', options: ENGINEER_FAQ_OPTIONS },
   leaders: { title: 'AI Leaders — түгээмэл асуултууд', options: LEADERS_FAQ_OPTIONS },
+  changemakers: { title: 'AI Changemakers 100×100 — мэдээлэл', options: CHANGEMAKERS_FAQ_OPTIONS },
 }
 
 const DETAIL_ACTION_OPTIONS = [
@@ -402,6 +452,7 @@ const MENU_RESPONSES = {
   PROGRAM_JUNIOR_AI: intentDefaultAnswer('kids_training'),
   PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
   PROGRAM_CORPORATE_LEADERS: intentDefaultAnswer('corporate_leaders'),
+  PROGRAM_CHANGEMAKERS: intentDefaultAnswer('ai_changemakers'),
   PAYMENT: intentDefaultAnswer('payment_info'),
   LOCATION: `📍 ХАЯГ, БАЙРШИЛ
 
@@ -674,9 +725,11 @@ const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
 const ENGINEER_TEXT_RE = /(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
 const LEADERS_TEXT_RE = /corporate|ai\s*leaders?|ai4corp|лидер|удирдлаг/i
 const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
+const CHANGEMAKERS_TEXT_RE = /changemaker|чейжмэйкер|чейнжмэйкер|100\s*[x×]\s*100|тэтгэлэгт\s*хөтөлбөр/i
 
 function trackFromText(text) {
   const matches = [
+    CHANGEMAKERS_TEXT_RE.test(text) && 'changemakers',
     ENGINEER_TEXT_RE.test(text) && 'engineer',
     LEADERS_TEXT_RE.test(text) && 'leaders',
     ADULT_TEXT_RE.test(text) && 'adult',
@@ -1007,8 +1060,12 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   }
 
   if (PROGRAM_INTENT_TRACKS[prediction.intentId]) {
-    await rememberTrack(object, recipientId, PROGRAM_INTENT_TRACKS[prediction.intentId])
+    const track = PROGRAM_INTENT_TRACKS[prediction.intentId]
+    await rememberTrack(object, recipientId, track)
     await sendTextChunks(object, recipientId, prediction.answer)
+    if (object === 'web' && PROGRAM_FAQ_MENUS[track]) {
+      await sendProgramFaqMenu(object, recipientId, track)
+    }
     return
   }
 
@@ -1057,6 +1114,7 @@ const PROGRAM_TRACKS = {
   PROGRAM_AI_ENGINEER: 'engineer',
   PROGRAM_CORPORATE_LEADERS: 'leaders',
   PROGRAM_JUNIOR_AI: 'junior',
+  PROGRAM_CHANGEMAKERS: 'changemakers',
 }
 
 // Intents with no per-program answer that are safe on any page (no other program mentioned).
@@ -1069,12 +1127,14 @@ function intentAllowedForTrack(intentId, track) {
 const PROGRAM_INTENT_TRACKS = {
   ai_engineer: 'engineer',
   corporate_leaders: 'leaders',
+  ai_changemakers: 'changemakers',
 }
 
 const PROGRAM_MAIN_SCREENS = {
   junior: 'PROGRAM_JUNIOR_AI',
   engineer: 'PROGRAM_AI_ENGINEER',
   leaders: 'PROGRAM_CORPORATE_LEADERS',
+  changemakers: 'PROGRAM_CHANGEMAKERS',
 }
 
 async function handleMessagingEvent(object, event) {
@@ -1234,9 +1294,12 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (payload && PROGRAM_FAQ_BUTTONS[payload]) {
-    const { track, intentId } = PROGRAM_FAQ_BUTTONS[payload]
+    const { track, intentId, answerKey } = PROGRAM_FAQ_BUTTONS[payload]
     await rememberTrack(object, senderId, track)
-    await sendTextChunks(object, senderId, intentAnswer(intentId, track) || intentDefaultAnswer(intentId))
+    const answer = (answerKey && CHANGEMAKERS_FAQ_ANSWERS[answerKey])
+      || intentAnswer(intentId, track)
+      || intentDefaultAnswer(intentId)
+    await sendTextChunks(object, senderId, answer)
     return
   }
 
