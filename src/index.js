@@ -278,12 +278,12 @@ const SILENT_MESSAGES = new Set([
   'Сургалт ямар хуваарьтай, ямар форматаар хичээллэх вэ?',
   'IT эсвэл код бичих урьдчилсан мэдлэг шаардлагатай юу?',
   'Төлбөр шилжүүлэх дансны мэдээлэл?',
-  'Төлбөр хэд вэ? Урьдчилгаа төлж болох уу?',
+  'Төлбөр хэд вэ? Урьдчилгаа төлж болох уу?','Хичээлийн хуваарь',
   'Сургалт хаана, ямар хэлбэрээр хичээллэх вэ?','Насны ангилал?',
   'Хичээл хэзээ эхлэх вэ? Хуваариа хэрхэн сонгох вэ?',
   'Junior AI Engineer хөтөлбөр хэдэн насныханд зориулагдсан бэ?','Холбогдох дугаар + Байршил',
   '👦 Насны ангилал',
-  '📍 Байршил',
+  '📍 Байршил','Байршил',
   '📅 Хичээлийн хуваарь',
   '📅 Хичээлийн хуваарь сонголт', 'Corporate Leaders (AI LEADERS) хөтөлбөрийн мэдээлэл', 'AI Engineer хөтөлбөрийн мэдээлэл',
 ].map(normalizeSilentText))
@@ -1263,11 +1263,12 @@ async function handleMessagingEvent(object, event) {
     })
   }
 
-  if (object !== 'web' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
+  // Silent handling only applies to Facebook; Instagram and web always get a reply.
+  if (object === 'page' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
     return
   }
 
-  if (object !== 'web' && !payload && isMetaButtonLabel(message?.text)) {
+  if (object === 'page' && !payload && isMetaButtonLabel(message?.text)) {
     logEvent('meta_button_skipped', { channel: object, senderId, text: message.text })
     return
   }
