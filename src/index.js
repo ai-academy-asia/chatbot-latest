@@ -14,6 +14,7 @@ const {
   recordThreadMessage,
   claimDueReminderConversations,
   claimWebhookEvent,
+  releaseWebhookEvent,
   clearReminderSent,
   getRecentOutgoingTexts,
   setProgramTrack,
@@ -482,63 +483,102 @@ async function validateInstagramConnections() {
   })))
 }
 
+const IG_COMMENT_FIELDS = ['comments', 'live_comments']
+
+function instagramTokenCandidates(account) {
+  const fallbackNames = account === DEFAULT_IG
+    ? ['FB_PRIVATE_REPLY_TOKEN', 'FB_PAGE_ACCESS_TOKEN']
+    : ['FB_PAGE_ACCESS_TOKEN_2', 'FB_PRIVATE_REPLY_TOKEN']
+  const seen = new Set()
+  const candidates = [
+    { token: account.accessToken, name: account.tokenName },
+    ...fallbackNames.map(name => ({ token: process.env[name], name })),
+  ]
+  return candidates.filter(candidate => {
+    if (!candidate.token || seen.has(candidate.token)) return false
+    seen.add(candidate.token)
+    return true
+  })
+}
+
+async function readPageIdentity(token) {
+  const response = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/me`
+    + '?fields=id,name,instagram_business_account{id,username}',
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  return { ok: response.ok, status: response.status, body: await response.json() }
+}
+
+async function ensureInstagramCommentSubscription(account) {
+  const response = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/${account.accountId}/subscribed_apps`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${account.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ subscribed_fields: IG_COMMENT_FIELDS }),
+    },
+  )
+  const body = await response.json()
+  if (!response.ok) {
+    console.error('Instagram comment subscription failed:', {
+      token: account.tokenName,
+      accountId: account.accountId,
+      code: body.error?.code || null,
+      message: body.error?.message || 'Unknown error',
+    })
+    return
+  }
+  console.log('Instagram comment webhooks subscribed:', {
+    token: account.tokenName,
+    accountId: account.accountId,
+    fields: IG_COMMENT_FIELDS,
+  })
+}
+
 async function validateInstagramConnection(account) {
-  if (!account.accessToken) {
+  const candidates = instagramTokenCandidates(account)
+  if (candidates.length === 0) {
     console.error(`Instagram startup check failed: ${account.tokenName} is not set`)
     return
   }
 
-  const headers = { Authorization: `Bearer ${account.accessToken}` }
-  const [identityResponse, subscriptionsResponse] = await Promise.all([
-    fetch(
-      `https://graph.facebook.com/${META_API_VERSION}/me`
-      + '?fields=id,name,instagram_business_account{id,username}',
-      { headers },
-    ),
-    fetch(`https://graph.facebook.com/${META_API_VERSION}/me/subscribed_apps`, { headers }),
-  ])
+  let lastError = null
+  for (const candidate of candidates) {
+    const identity = await readPageIdentity(candidate.token)
+    const instagramAccount = identity.body.instagram_business_account
+    if (!identity.ok || !instagramAccount?.id) {
+      lastError = {
+        token: candidate.name,
+        status: identity.status,
+        code: identity.body.error?.code || null,
+        message: identity.body.error?.message || (identity.ok ? 'No linked Instagram account' : 'Unknown error'),
+      }
+      continue
+    }
 
-  const identity = await identityResponse.json()
-  const subscriptions = await subscriptionsResponse.json()
-
-  if (!identityResponse.ok) {
-    console.error('Instagram token validation failed:', {
-      token: account.tokenName,
-      status: identityResponse.status,
-      code: identity.error?.code || null,
-      message: identity.error?.message || 'Unknown error',
-    })
-    return
-  }
-
-  if (!subscriptionsResponse.ok) {
-    console.error('Instagram subscription check failed:', {
-      token: account.tokenName,
-      status: subscriptionsResponse.status,
-      code: subscriptions.error?.code || null,
-      message: subscriptions.error?.message || 'Unknown error',
-    })
-    return
-  }
-
-  const subscribedFields = [
-    ...new Set((subscriptions.data || []).flatMap(item => item.subscribed_fields || [])),
-  ]
-  if (identity.instagram_business_account?.id) {
-    account.accountId = String(identity.instagram_business_account.id)
+    account.accessToken = candidate.token
+    account.privateReplyToken = candidate.token
+    account.tokenName = candidate.name
+    account.accountId = String(instagramAccount.id)
     account.pageId = account.accountId
+    await ensureInstagramCommentSubscription(account)
+
+    console.log('Instagram connection ready:', {
+      token: account.tokenName,
+      forcedTrack: account.forcedTrack,
+      pageId: identity.body.id,
+      pageName: identity.body.name || null,
+      accountId: instagramAccount.id,
+      username: instagramAccount.username || null,
+    })
+    return
   }
 
-  console.log('Instagram connection ready:', {
-    token: account.tokenName,
-    forcedTrack: account.forcedTrack,
-    pageId: identity.id,
-    pageName: identity.name || null,
-    accountId: identity.instagram_business_account?.id || null,
-    username: identity.instagram_business_account?.username || null,
-    subscribedFields,
-    postbacksEnabled: subscribedFields.includes('messaging_postbacks'),
-  })
+  console.error('Instagram token validation failed:', lastError)
 }
 
 function getChannelConfig(object) {
@@ -888,33 +928,36 @@ async function processComment({
   const forcedTrack = activePage().forcedTrack
   const juniorPost = forcedTrack ? forcedTrack === 'junior' : await isJuniorPost(channel, postId)
 
-  let privateReplyResult
+  let privateReplyResult = null
   try {
-    if (juniorPost) {
-      privateReplyResult = await sendPrivateReply(
-        channel,
-        commentId,
-        MENU_RESPONSES.PROGRAM_JUNIOR_AI,
-        'kids_training',
-      )
-    } else {
-      privateReplyResult = await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
-    }
+    privateReplyResult = juniorPost
+      ? await sendPrivateReply(channel, commentId, MENU_RESPONSES.PROGRAM_JUNIOR_AI, 'kids_training')
+      : await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
   } catch (error) {
-    repliedCommentIds.delete(commentId)
-    throw error
+    console.error('Private reply failed:', error.message)
   }
 
   const recipientId = privateReplyResult?.recipient_id
-  if (juniorPost !== null) {
+  if (privateReplyResult && juniorPost !== null) {
     await rememberTrack(channel, recipientId, juniorPost ? 'junior' : 'adult')
   }
-  if (!canPublicReply) return
 
-  try {
-    await sendPublicCommentReply(channel, commentId, COMMENT_REPLY_MESSAGE)
-  } catch (error) {
-    console.error('Public comment reply failed:', error.message)
+  let publicReplyFailed = false
+  if (canPublicReply) {
+    try {
+      await sendPublicCommentReply(channel, commentId, COMMENT_REPLY_MESSAGE)
+    } catch (error) {
+      publicReplyFailed = true
+      console.error('Public comment reply failed:', error.message)
+    }
+  }
+
+  // A failed attempt must not stay claimed, or Meta's retry is ignored forever.
+  if (!privateReplyResult && (!canPublicReply || publicReplyFailed)) {
+    repliedCommentIds.delete(commentId)
+    await releaseWebhookEvent(channel, `comment:${commentId}`).catch(error => {
+      console.error('Comment claim release failed:', error.message)
+    })
   }
 }
 
@@ -1428,7 +1471,10 @@ app.post('/webhook', (req, res) => {
       ? pageConfigFor(entry.id)
       : instagramAccountForEntry(entry.id)
 
-    if (!page) continue
+    if (!page) {
+      console.error('Instagram webhook ignored: unrecognized account', entry.id)
+      continue
+    }
 
     for (const event of entry.messaging || []) {
       pageContext.run(page, () => handleMessagingEvent(body.object, event)).catch(error => {
@@ -1606,6 +1652,7 @@ function startReminderCron() {
 
 async function start() {
   await initializeDatabase()
+  await validateInstagramConnections()
   startReminderCron()
   app.listen(port, '0.0.0.0', () => {
     console.log(`Running on port ${port}`, {
@@ -1627,7 +1674,6 @@ async function start() {
       })),
     })
 
-    validateInstagramConnections()
   })
 
   warmIntentClassifier().catch(error => {

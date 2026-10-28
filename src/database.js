@@ -324,6 +324,15 @@ async function clearReminderSent(conversationId) {
   )
 }
 
+async function releaseWebhookEvent(channel, eventKey) {
+  if (!pool || !eventKey) return
+
+  await pool.query(
+    'DELETE FROM webhook_events WHERE channel = $1 AND event_key = $2',
+    [channel, String(eventKey)],
+  )
+}
+
 async function claimWebhookEvent(channel, eventKey) {
   if (!pool || !eventKey) return true
 
@@ -420,6 +429,7 @@ module.exports = {
   claimDueReminderConversations,
   clearReminderSent,
   claimWebhookEvent,
+  releaseWebhookEvent,
   getRecentOutgoingTexts,
   DEFAULT_REMINDER_HOURS,
 }
