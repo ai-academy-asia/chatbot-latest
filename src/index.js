@@ -315,9 +315,7 @@ const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
 
 const MAIN_MENU_OPTIONS = [
   { title: '🌟 Changemakers', payload: 'PROGRAM_CHANGEMAKERS' },
-  { title: '👔 AI Leaders', payload: 'PROGRAM_CORPORATE_LEADERS' },
   { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
-  { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
 
