@@ -234,6 +234,7 @@ const TRACK_PROGRAMS = {
   junior: ['junior_ai', ...SHARED_PROGRAMS],
   engineer: ['ai_engineer', ...SHARED_PROGRAMS],
   leaders: ['corporate_leaders', ...SHARED_PROGRAMS],
+  accelerator: ['ai_accelerator', ...SHARED_PROGRAMS],
 }
 
 function allowedForTrack(program, track) {
@@ -342,6 +343,7 @@ const TRACK_HINTS = {
   engineer: 'Хэрэглэгч насанд хүрэгчдийн 7 сарын AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН AI Engineer-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд. Junior AI Engineer (10–18 нас)-тэй бүү холь.',
   junior: 'Хэрэглэгч хүүхэд, залууст зориулсан Junior AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН Junior AI Engineer-ийн мэдээллийг өг. Насанд хүрэгчдийн хөтөлбөрүүдийг (AI Engineer, AI Leaders) огт бүү дурд.',
   adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Engineer, AI Leaders)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг (Junior AI Engineer-ийг бүү дурд, асуугаагүй бол). AI Engineer (насанд хүрэгчид) болон Junior AI Engineer (10–18 нас) өөр хөтөлбөр гэдгийг бүү холь.',
+  accelerator: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator Program (онлайн + танхим, 2026.11.16 – 12.23, Да/Лх 12:00–13:30, урьдчилгаа төлбөргүй)-ийг сонирхож байна. Бүх асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
   changemakers: 'Хэрэглэгч AI Changemakers 100×100 тэтгэлэгт сонгон шалгаруулалтын хөтөлбөрийг сонирхож байна. Бүх асуултад ЗӨВХӨН Changemakers-ийн мэдээллийг өг (бүртгэл 10.19–10.31, хөтөлбөр 11.07–12.26, анкет https://www.ai-academy.asia/mn/anket). Төлбөртэй сургалтууд (AI Engineer, AI Leaders, Junior)-ийг огт бүү холь.',
 }
 
@@ -359,7 +361,7 @@ async function generateRagAnswer(question, hits, track = null) {
 Асуулт олон хэсэгтэй бол (жишээ: хуваарь + танхим/онлайн + төлбөр) бүх хэсэгт нь тусад нь хариул.
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
-Одоо AI Engineer, AI Leaders, Junior AI Engineer, мөн AI Changemakers 100×100 (тэтгэлэгт сонгон шалгаруулалт) байна. AI Agents, AI for Business хөтөлбөрийг огт бүү дурд.
+Одоо AI Engineer, AI Accelerator Program, AI Leaders, Junior AI Engineer, мөн AI Changemakers 100×100 (тэтгэлэгт сонгон шалгаруулалт) байна. AI Agents, AI for Business хөтөлбөрийг огт бүү дурд.
 Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
 ${TRACK_HINTS[track] || ''}
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:

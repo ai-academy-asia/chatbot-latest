@@ -315,6 +315,7 @@ const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
 
 const MAIN_MENU_OPTIONS = [
   { title: '🌟 Changemakers', payload: 'PROGRAM_CHANGEMAKERS' },
+  { title: '⚡ AI Accelerator', payload: 'PROGRAM_AI_ACCELERATOR' },
   { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
@@ -355,6 +356,10 @@ const PROGRAM_FAQ_BUTTONS = {
   CM_WHO: { track: 'changemakers', answerKey: 'who' },
   CM_DATES: { track: 'changemakers', answerKey: 'dates' },
   CM_SELECT: { track: 'changemakers', answerKey: 'select' },
+  ACC_ABOUT: { track: 'accelerator', intentId: 'ai_accelerator' },
+  ACC_SCHEDULE: { track: 'accelerator', intentId: 'schedule' },
+  ACC_FORMAT: { track: 'accelerator', intentId: 'training_format' },
+  ACC_PRICE: { track: 'accelerator', intentId: 'payment_info' },
 }
 
 const LEADERS_FAQ_OPTIONS = [
@@ -400,6 +405,15 @@ const CHANGEMAKERS_FAQ_OPTIONS = [
   { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
 
+const ACCELERATOR_FAQ_OPTIONS = [
+  { title: '⚡ Хөтөлбөрийн тухай', payload: 'ACC_ABOUT' },
+  { title: '🗓 Хуваарь', payload: 'ACC_SCHEDULE' },
+  { title: '💻 Онлайн / Танхим', payload: 'ACC_FORMAT' },
+  { title: '💰 Төлбөр', payload: 'ACC_PRICE' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
+]
+
 const CHANGEMAKERS_FAQ_ANSWERS = {
   who: `👥 AI CHANGEMAKERS — ХЭН ӨРГӨДӨЛ ГАРГАХ ВЭ?
 
@@ -440,6 +454,7 @@ const PROGRAM_FAQ_MENUS = {
   engineer: { title: 'AI Engineer — түгээмэл асуултууд', options: ENGINEER_FAQ_OPTIONS },
   leaders: { title: 'AI Leaders — түгээмэл асуултууд', options: LEADERS_FAQ_OPTIONS },
   changemakers: { title: 'AI Changemakers 100×100 — мэдээлэл', options: CHANGEMAKERS_FAQ_OPTIONS },
+  accelerator: { title: 'AI Accelerator Program — түгээмэл асуултууд', options: ACCELERATOR_FAQ_OPTIONS },
 }
 
 const DETAIL_ACTION_OPTIONS = [
@@ -452,6 +467,7 @@ const MENU_RESPONSES = {
   PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
   PROGRAM_CORPORATE_LEADERS: intentDefaultAnswer('corporate_leaders'),
   PROGRAM_CHANGEMAKERS: intentDefaultAnswer('ai_changemakers'),
+  PROGRAM_AI_ACCELERATOR: intentDefaultAnswer('ai_accelerator'),
   PAYMENT: intentDefaultAnswer('payment_info'),
   LOCATION: `📍 ХАЯГ, БАЙРШИЛ
 
@@ -763,11 +779,13 @@ const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
 const ENGINEER_TEXT_RE = /(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
 const LEADERS_TEXT_RE = /corporate|ai\s*leaders?|ai4corp|лидер|удирдлаг/i
 const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
+const ACCELERATOR_TEXT_RE = /accelerator|акс?селератор/i
 const CHANGEMAKERS_TEXT_RE = /changemaker|чейжмэйкер|чейнжмэйкер|100\s*[x×]\s*100|тэтгэлэгт\s*хөтөлбөр/i
 
 function trackFromText(text) {
   const matches = [
     CHANGEMAKERS_TEXT_RE.test(text) && 'changemakers',
+    ACCELERATOR_TEXT_RE.test(text) && 'accelerator',
     ENGINEER_TEXT_RE.test(text) && 'engineer',
     LEADERS_TEXT_RE.test(text) && 'leaders',
     ADULT_TEXT_RE.test(text) && 'adult',
@@ -1156,6 +1174,7 @@ const PROGRAM_TRACKS = {
   PROGRAM_CORPORATE_LEADERS: 'leaders',
   PROGRAM_JUNIOR_AI: 'junior',
   PROGRAM_CHANGEMAKERS: 'changemakers',
+  PROGRAM_AI_ACCELERATOR: 'accelerator',
 }
 
 // Intents with no per-program answer that are safe on any page (no other program mentioned).
@@ -1169,6 +1188,7 @@ const PROGRAM_INTENT_TRACKS = {
   ai_engineer: 'engineer',
   corporate_leaders: 'leaders',
   ai_changemakers: 'changemakers',
+  ai_accelerator: 'accelerator',
 }
 
 const PROGRAM_MAIN_SCREENS = {
@@ -1176,6 +1196,7 @@ const PROGRAM_MAIN_SCREENS = {
   engineer: 'PROGRAM_AI_ENGINEER',
   leaders: 'PROGRAM_CORPORATE_LEADERS',
   changemakers: 'PROGRAM_CHANGEMAKERS',
+  accelerator: 'PROGRAM_AI_ACCELERATOR',
 }
 
 async function handleMessagingEvent(object, event) {
