@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "Organized from data/rag-source.txt. Open: AI Engineer, AI Accelerator. Registration closed: AI Leaders, Junior AI Engineer.",
+  "notes": "Organized from data/rag-source.txt. Open: AI Engineer, AI Accelerator. AI Changemakers 100x100 (scholarship) answered only on direct ask.",
   "chunks": [
     {
       "id": "academy-overview",
@@ -14,77 +14,28 @@
       "category": "overview",
       "program": "all",
       "title": "Сургалтын мэдээлэл — одоогийн хөтөлбөрүүд, юу сурах, хуваарь, үнэ / medeelel",
-      "content": "🎓 СУРГАЛТЫН МЭДЭЭЛЭЛ\n\nAI Academy Asia-ийн хөтөлбөрүүд:\n\n🚀 AI ENGINEER (насанд хүрэгчид · 7 сар)\nАжилд бүрэн бэлэн (Job-Ready) мэргэжлийн AI инженер бэлтгэнэ. Код бичих мэдлэг шаардлагагүй.\n📚 Python → Data Analysis → Machine Learning → Deep Learning (PyTorch) → Computer Vision & NLP → ML Deployment (MLOps) → Capstone\n🗓 2026.11.03 – 2027.05.29 · Даваа, Лхагва, Баасан · 18:30–20:00\n💰 $5,000 (17,900,000₮) — $5,500-аас 10% урамшуулал · 20% урьдчилгаа 3,580,000₮\n🏆 CPD сертификат (100+ улс), GitHub портфолио, Membership Card\n\n👔 AI Leaders — бүртгэл хаагдсан байна.\n\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна.\n\n📍 ITC Tower, 11 давхар (CU-гийн ард талын лифт)\n📞 7505-1055 · 🔗 https://ai-academy.asia/mn"
+      "content": "🎓 СУРГАЛТЫН МЭДЭЭЛЭЛ\n\nAI Academy Asia-ийн хөтөлбөрүүд:\n\n🚀 AI ENGINEER (насанд хүрэгчид · 7 сар)\nАжилд бүрэн бэлэн (Job-Ready) мэргэжлийн AI инженер бэлтгэнэ. Код бичих мэдлэг шаардлагагүй.\n📚 Python → Data Analysis → Machine Learning → Deep Learning (PyTorch) → Computer Vision & NLP → ML Deployment (MLOps) → Capstone\n🗓 2026.11.03 – 2027.05.29 · Даваа, Лхагва, Баасан · 18:30–20:00\n💰 $5,000 (17,900,000₮) — $5,500-аас 10% урамшуулал · 20% урьдчилгаа 3,580,000₮\n🏆 CPD сертификат (100+ улс), GitHub портфолио, Membership Card\n\n⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид · 6 долоо хоног · 14 хичээл)\nКод бичих мэдлэггүйгээр өөрийн 24/7 AI агент ба утаснаас хянадаг Admin Panel бүтээнэ. Танхим + онлайн хосолсон.\n🗓 Эхлэх огноо: 11 сарын 16 · Даваа, Лхагва · 12:00–13:30\n💰 2,880,000₮ (20% хөнгөлөлттэй) · 🛒 Storepay боломжтой\n🏆 AI Academy Asia + ITU AI Skills Coalition хос гэрчилгээ\n\n📍 ITC Tower, 11 давхар (CU-гийн ард талын лифт)\n📞 7505-1055 · 🔗 https://ai-academy.asia/mn"
     },
     {
       "id": "schedule-both",
       "category": "schedule",
       "program": "all",
       "title": "Хөтөлбөрүүдийн хуваарь / heden udur doloo honog",
-      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n\n🚀 AI Engineer — 2026.11.03-аас (7 сар) · Даваа, Лхагва, Баасан · 18:30–20:00\n👔 AI Leaders — бүртгэл хаагдсан байна.\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна."
+      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n\n🚀 AI Engineer — 2026.11.03-аас (7 сар) · Даваа, Лхагва, Баасан · 18:30–20:00\n⚡ AI Accelerator — 11-р сарын 16-наас (6 долоо хоног · 14 хичээл) · Даваа, Лхагва · 12:00–13:30"
     },
     {
       "id": "price",
       "category": "price",
       "program": "all",
       "title": "Сургалтын төлбөр / tolbor une",
-      "content": "💳 Сургалтын төлбөр (tolbor, une)\n\n🚀 AI Engineer (7 сар · 2026.11.03 – 2027.05.29):\n💰 Үндсэн төлбөр: $5,500\n🏷️ 10% урамшуулалттай үнэ: $5,000 (17,900,000₮)\n💡 20% урьдчилгаа: 3,580,000₮\n\n👔 AI Leaders — бүртгэл хаагдсан байна.\n\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна.\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
+      "content": "💳 Сургалтын төлбөр (tolbor, une)\n\n🚀 AI Engineer (7 сар · 2026.11.03 – 2027.05.29):\n💰 Үндсэн төлбөр: $5,500\n🏷️ 10% урамшуулалттай үнэ: $5,000 (17,900,000₮)\n💡 20% урьдчилгаа: 3,580,000₮\n\n⚡ AI Accelerator (6 долоо хоног · 14 хичээл):\n💰 2,880,000₮ (20% хөнгөлөлттэй) · 🛒 Storepay боломжтой\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
     },
     {
       "id": "age-requirement",
       "category": "prerequisites",
       "program": "general",
       "title": "Насны ангилал насанд хүрэгчид 18+",
-      "content": "AI Engineer, AI Accelerator хөтөлбөрүүд насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна.\n👔 AI Leaders — бүртгэл хаагдсан байна."
-    },
-    {
-      "id": "junior-ai-overview",
-      "category": "overview",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer хөтөлбөр юу вэ",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "junior-ai-price-register",
-      "category": "price",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer төлбөр хөнгөлөлт урьдчилгаа / huuhdiin surgaltiin tulbur",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "junior-ai-schedule",
-      "category": "schedule",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer хуваарь хэзээ эхлэх",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "junior-ai-age",
-      "category": "prerequisites",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer хэдэн насны хүүхдэд, Innovator Builder",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "junior-ai-outcomes",
-      "category": "outcomes",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer хүүхдэд ямар үр дүн үлдэх, Demo Day",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "junior-ai-bank",
-      "category": "price",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer дансны дугаар гүйлгээний утга",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "junior-ai-location",
-      "category": "location",
-      "program": "junior_ai",
-      "title": "Junior AI Engineer хаана хичээллэх, iMac танхим байршил",
-      "content": "🎓 JUNIOR AI ENGINEER (хүүхэд, залууст · 10–18 нас): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
+      "content": "AI Engineer, AI Accelerator хөтөлбөрүүд насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\n📞 Дэлгэрэнгүй: 7505-1055"
     },
     {
       "id": "ai-engineer-overview",
@@ -136,48 +87,6 @@
       "content": "💳 AI ACADEMY ASIA MEMBERSHIP CARD\n\nAI Engineer хөтөлбөрт хамрагдсанаар та зөвхөн сургалтад суух биш, AI Academy Asia Private Membership (Inner Circle) гишүүнчлэлийн карттай болно.\n\nЭнэхүү гишүүнчлэлээр:\n\n🏢 Орчин & Тоног төхөөрөмж: GPU тооцоолууртай машинуудтай High-Performance Co-working space орчин, хурлын өрөөг ашиглах (09:00–20:00)\n\n🎓 Олон улсын сургалт: Дэлхийн топ сургуулиудын профессор, багш нарын тусгай мастерклассуудад хамрагдах\n\n🌐 VIP Сүлжээ & Коммунити: Private community, сар бүрийн Founders & Engineers Community уулзалтууд болон олон улсын AI сүлжээнд холбогдох\n\n💼 Карьер дэмжлэг: Тэргүүлэх технологийн компаниудад ажлын байранд нэр дэвших, CEO-гийн хувийн батламж (Recommendation Letter) болон олон улсын хөтөлбөрүүдэд нэгдэх онцгой эрх авна."
     },
     {
-      "id": "corporate-leaders-overview",
-      "category": "overview",
-      "program": "corporate_leaders",
-      "title": "AI Leaders хөтөлбөр юу вэ / удирдлагуудад",
-      "content": "👔 AI LEADERS (AI4CorpLeaders): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "corporate-leaders-schedule-price",
-      "category": "schedule",
-      "program": "corporate_leaders",
-      "title": "AI Leaders хуваарь төлбөр урьдчилгаа",
-      "content": "👔 AI LEADERS (AI4CorpLeaders): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "corporate-leaders-curriculum-outcomes",
-      "category": "curriculum",
-      "program": "corporate_leaders",
-      "title": "AI Leaders юу сурах вэ, үр дүн",
-      "content": "👔 AI LEADERS (AI4CorpLeaders): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "corporate-leaders-location",
-      "category": "location",
-      "program": "corporate_leaders",
-      "title": "AI Leaders хаана хичээллэх байршил",
-      "content": "👔 AI LEADERS (AI4CorpLeaders): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "corporate-leaders-bank",
-      "category": "price",
-      "program": "corporate_leaders",
-      "title": "AI Leaders дансны дугаар гүйлгээний утга",
-      "content": "👔 AI LEADERS (AI4CorpLeaders): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
-      "id": "corporate-leaders-membership",
-      "category": "outcomes",
-      "program": "corporate_leaders",
-      "title": "AI Leaders Membership Card гишүүнчлэл",
-      "content": "👔 AI LEADERS (AI4CorpLeaders): 🔒 Бүртгэл хаагдсан байна. Бусад хөтөлбөр: https://www.ai-academy.asia/mn/what-we-offer · 📞 7505-1055"
-    },
-    {
       "id": "location",
       "category": "location",
       "program": "general",
@@ -196,14 +105,14 @@
       "category": "schedule",
       "program": "all",
       "title": "Хөтөлбөр хэзээ эхлэх вэ / эхлэх огноо",
-      "content": "📅 ЭХЛЭХ ОГНОО\n\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна.\n🚀 AI Engineer: 11-р сарын 3\n👔 AI Leaders — бүртгэл хаагдсан байна.\n\n🚀 AI Engineer: 2026.11.03 – 2027.05.29 · Даваа, Лхагва, Баасан 18:30–20:00\n👔 AI Leaders — бүртгэл хаагдсан байна.\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна."
+      "content": "📅 ЭХЛЭХ ОГНОО\n\n🚀 AI Engineer: 11-р сарын 3 (2026.11.03 – 2027.05.29) · Даваа, Лхагва, Баасан 18:30–20:00\n⚡ AI Accelerator: 11-р сарын 16 (6 долоо хоног · 14 хичээл) · Даваа, Лхагва 12:00–13:30"
     },
     {
       "id": "registration",
       "category": "registration",
       "program": "general",
       "title": "Бүртгүүлэх",
-      "content": "📝 БҮРТГЭЛ\n\n🎓 Junior AI Engineer — бүртгэл хаагдсан байна.\n🚀 AI Engineer (11-р сарын 3-нд эхэлнэ)\n👔 AI Leaders — бүртгэл хаагдсан байна.\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
+      "content": "📝 БҮРТГЭЛ\n\n🚀 AI Engineer (11-р сарын 3-нд эхэлнэ)\n⚡ AI Accelerator Program (11-р сарын 16-нд эхэлнэ · 2,880,000₮, Storepay боломжтой)\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
     },
     {
       "id": "jobs",
@@ -216,8 +125,8 @@
       "id": "ai-accelerator-overview",
       "category": "overview",
       "program": "ai_accelerator",
-      "title": "AI Accelerator Program юу вэ, хуваарь, төлбөр / accelerator",
-      "content": "⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид)\n\n💻 Онлайн + 🏫 Танхим\n\n📌 ТОВЧ МЭДЭЭЛЭЛ\n✓ AI Academy болон ITU AI Skills Coalition хос гэрчилгээ\n✓ 12 онлайн хичээл + 2 танхимын workshop + танхимын хамгаалалт\n✓ Урьдчилсан мэдлэг, код бичих чадвар шаардлагагүй\n✓ Төгсөхдөө: өөрийн Admin Panel, контент, мессеж, захиалгын AI агентууд\n\n🗓 ХУВААРЬ\n🗓️ 2026.11.16 – 2026.12.23\n📅 Даваа, Лхагва · 12:00–13:30\n\n💻 Онлайн хичээл Google Meet дээр, бүгд бичлэгтэй. Хичээл бүр бодит дадлага ажилтай.\n\n💡 Урьдчилгаа төлбөр шаардлагагүй.\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
+      "title": "AI Accelerator Program юу вэ, хуваарь, төлбөр, үнэ / accelerator",
+      "content": "⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид)\n\nХэзээ ч, хаанаас ч AI-г бодитоор эзэмш. Таны 24/7 тасралтгүй ажиллах AI агент ба утаснаас хянадаг админ самбарыг өөрийн гараар бүтээнэ.\n\n📌 ТОВЧ МЭДЭЭЛЭЛ\n✓ AI Academy Asia + ITU AI Skills Coalition хос гэрчилгээ\n✓ 6 долоо хоног · 14 хичээл (танхим + онлайн хосолсон)\n✓ Үндсэн хичээлүүд: онлайн лайв (бичлэг хадгалагдана)\n✓ Воркшопууд: биечлэн (офлайн)\n✓ Capstone төслийн хамгаалалт: биечлэн (офлайн)\n✓ Урьдчилсан мэдлэг, код бичих чадвар шаардлагагүй\n✓ Төгсөхдөө: өөрийн Admin Panel, контент, мессеж, захиалгын AI агентууд\n\n🗓 ХУВААРЬ\n🗓️ Эхлэх огноо: 11 сарын 16\n📅 Даваа, Лхагва · 12:00–13:30\n\n💰 Үнэ: 2,880,000₮ (20% хөнгөлөлттэй)\n🛒 Storepay боломжтой.\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
     }
   ]
 }

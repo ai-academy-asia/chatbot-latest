@@ -231,16 +231,13 @@ function isRefusalAnswer(text) {
 
 const SHARED_PROGRAMS = ['general', 'all']
 const TRACK_PROGRAMS = {
-  junior: ['junior_ai', ...SHARED_PROGRAMS],
   engineer: ['ai_engineer', ...SHARED_PROGRAMS],
-  leaders: ['corporate_leaders', ...SHARED_PROGRAMS],
   accelerator: ['ai_accelerator', ...SHARED_PROGRAMS],
 }
 
 function allowedForTrack(program, track) {
   if (TRACK_PROGRAMS[track]) return TRACK_PROGRAMS[track].includes(program)
-  if (track === 'adult') return program !== 'junior_ai'
-  return true
+  return program !== 'junior_ai' && program !== 'corporate_leaders'
 }
 
 // Mongolian words inflect heavily (төлбөр / төлбөрийн), so terms are compared by prefix.
@@ -339,12 +336,10 @@ async function retrieveRag(text, options = {}) {
 }
 
 const TRACK_HINTS = {
-  leaders: 'Хэрэглэгч AI Leaders (AI4CorpLeaders) хөтөлбөрийг сонирхож байна. AI Leaders хөтөлбөрийн бүртгэл хаагдсан. Ямар ч асуултад (хуваарь, төлбөр, данс, байршил, бүртгэл) "AI Leaders хөтөлбөрийн бүртгэл хаагдсан байна" гэж хариулж, 7505-1055 утсыг өг. Хуучин хуваарь, үнийг бүү хэл.',
-  engineer: 'Хэрэглэгч насанд хүрэгчдийн 7 сарын AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН AI Engineer-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд. Junior AI Engineer (10–18 нас)-тэй бүү холь.',
-  junior: 'Хэрэглэгч Junior AI Engineer хөтөлбөрийг сонирхож байна. Junior AI Engineer хөтөлбөрийн бүртгэл хаагдсан. Ямар ч асуултад (хуваарь, төлбөр, данс, байршил, бүртгэл) "Junior AI Engineer хөтөлбөрийн бүртгэл хаагдсан байна" гэж хариулж, 7505-1055 утсыг өг. Хуучин хуваарь, үнийг бүү хэл. Насанд хүрэгчдийн хөтөлбөрүүдийг бүү дурд.',
-  adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Engineer, AI Accelerator)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг. AI Leaders-ийн бүртгэл хаагдсан. Junior AI Engineer-ийг бүү дурд, асуугаагүй бол.',
-  accelerator: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator Program (онлайн + танхим, 2026.11.16 – 12.23, Да/Лх 12:00–13:30, урьдчилгаа төлбөргүй)-ийг сонирхож байна. Бүх асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
-  changemakers: 'Хэрэглэгч AI Changemakers 100×100 тэтгэлэгт сонгон шалгаруулалтын хөтөлбөрийг сонирхож байна. Бүх асуултад ЗӨВХӨН Changemakers-ийн мэдээллийг өг (бүртгэл 10.19–10.31, хөтөлбөр 11.07–12.26, анкет https://www.ai-academy.asia/mn/anket). Төлбөртэй сургалтууд (AI Engineer, AI Leaders, Junior)-ийг огт бүү холь.',
+  engineer: 'Хэрэглэгч насанд хүрэгчдийн 7 сарын AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН AI Engineer-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
+  adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Engineer, AI Accelerator)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг.',
+  accelerator: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator Program (танхим + онлайн хосолсон, 6 долоо хоног · 14 хичээл, эхлэх 11-р сарын 16, Да/Лх 12:00–13:30, үнэ 2,880,000₮ 20% хөнгөлөлттэй, Storepay боломжтой, AI Academy Asia + ITU хос гэрчилгээ)-ийг сонирхож байна. Бүх асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
+  changemakers: 'Хэрэглэгч AI Changemakers 100×100 тэтгэлэгт сонгон шалгаруулалтын хөтөлбөрийг сонирхож байна. Бүх асуултад ЗӨВХӨН Changemakers-ийн мэдээллийг өг (бүртгэл 10.19–10.31, хөтөлбөр 11.07–12.26, анкет https://www.ai-academy.asia/mn/anket). Бусад төлбөртэй сургалтыг огт бүү холь.',
 }
 
 async function generateRagAnswer(question, hits, track = null) {
@@ -361,7 +356,7 @@ async function generateRagAnswer(question, hits, track = null) {
 Асуулт олон хэсэгтэй бол (жишээ: хуваарь + танхим/онлайн + төлбөр) бүх хэсэгт нь тусад нь хариул.
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
-Одоо бүртгэл нээлттэй: AI Engineer, AI Accelerator Program. AI Leaders болон Junior AI Engineer хөтөлбөрийн бүртгэл хаагдсан — эдгээрийн талаар асуувал "бүртгэл хаагдсан байна" гэж хэлээд хуучин хуваарь, үнийг бүү өг. AI Changemakers 100×100 (тэтгэлэгт сонгон шалгаруулалт) мөн байна. AI Agents, AI for Business хөтөлбөрийг огт бүү дурд.
+Одоо бүртгэл нээлттэй: AI Engineer, AI Accelerator Program. AI Changemakers 100×100-ийг өөрөө санаачлан бүү дурд — хэрэглэгч шууд асуусан үед л мэдээллийг өг. AI Leaders, Junior AI Engineer, AI Agents, AI for Business хөтөлбөрийг огт бүү дурд.
 Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
 ${TRACK_HINTS[track] || ''}
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:

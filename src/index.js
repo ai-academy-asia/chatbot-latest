@@ -47,7 +47,7 @@ const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
 // Facebook pages served by this bot. The default page keeps the original env vars; the second
-// page (PAGE_ID_2) is locked to one program track (default: junior), so it only ever answers
+// page (PAGE_ID_2) is locked to one program track (default: engineer), so it only ever answers
 // about that program.
 const DEFAULT_PAGE = {
   pageId: PAGE_ID,
@@ -64,7 +64,7 @@ if (process.env.PAGE_ID_2) {
     pageId: secondPageId,
     accessToken: secondPageToken,
     privateReplyToken: process.env.FB_PRIVATE_REPLY_TOKEN_2 || secondPageToken,
-    forcedTrack: process.env.PAGE_TRACK_2 || 'junior',
+    forcedTrack: process.env.PAGE_TRACK_2 || 'engineer',
   })
 }
 // Instagram accounts served by this bot. The first uses IG_PAGE_ACCESS_TOKEN;
@@ -88,7 +88,7 @@ if (IG_PAGE_ACCESS_TOKEN_2) {
     accountId: secondAccountId,
     accessToken: IG_PAGE_ACCESS_TOKEN_2,
     privateReplyToken: IG_PAGE_ACCESS_TOKEN_2,
-    forcedTrack: process.env.IG_TRACK_2 || process.env.PAGE_TRACK_2 || 'junior',
+    forcedTrack: process.env.IG_TRACK_2 || process.env.PAGE_TRACK_2 || 'engineer',
     tokenName: 'IG_PAGE_ACCESS_TOKEN_2',
   })
 }
@@ -282,11 +282,11 @@ const SILENT_MESSAGES = new Set([
   'Төлбөр хэд вэ? Урьдчилгаа төлж болох уу?','Хичээлийн хуваарь',
   'Сургалт хаана, ямар хэлбэрээр хичээллэх вэ?','Насны ангилал?',
   'Хичээл хэзээ эхлэх вэ? Хуваариа хэрхэн сонгох вэ?',
-  'Junior AI Engineer хөтөлбөр хэдэн насныханд зориулагдсан бэ?','Холбогдох дугаар + Байршил',
+  'Холбогдох дугаар + Байршил',
   '👦 Насны ангилал',
   '📍 Байршил','Байршил',
   '📅 Хичээлийн хуваарь',
-  '📅 Хичээлийн хуваарь сонголт', 'Corporate Leaders (AI LEADERS) хөтөлбөрийн мэдээлэл', 'AI Engineer хөтөлбөрийн мэдээлэл',
+  '📅 Хичээлийн хуваарь сонголт', 'AI Engineer хөтөлбөрийн мэдээлэл',
 ].map(normalizeSilentText))
 
 // Meta Business Suite quick-reply buttons ("👦 Насны ангилал", "📍 Байршил", ...) arrive
@@ -314,7 +314,6 @@ function intentDefaultAnswer(intentId) {
 const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
 
 const MAIN_MENU_OPTIONS = [
-  { title: '🌟 Changemakers', payload: 'PROGRAM_CHANGEMAKERS' },
   { title: '⚡ AI Accelerator', payload: 'PROGRAM_AI_ACCELERATOR' },
   { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
@@ -333,25 +332,12 @@ const PROGRAM_ACTION_OPTIONS = [
 ]
 
 const PROGRAM_FAQ_BUTTONS = {
-  JUNIOR_AGE: { track: 'junior', intentId: 'age_limit' },
-  JUNIOR_SCHEDULE: { track: 'junior', intentId: 'schedule' },
-  JUNIOR_LOCATION: { track: 'junior', intentId: 'training_format' },
-  JUNIOR_PRICE: { track: 'junior', intentId: 'payment_info' },
-  JUNIOR_BANK: { track: 'junior', intentId: 'bank_account' },
-  JUNIOR_RESULT: { track: 'junior', intentId: 'result' },
   ENGINEER_SCHEDULE: { track: 'engineer', intentId: 'schedule' },
   ENGINEER_CURRICULUM: { track: 'engineer', intentId: 'curriculum' },
   ENGINEER_MEMBERSHIP: { track: 'engineer', intentId: 'membership_card' },
   ENGINEER_PRICE: { track: 'engineer', intentId: 'payment_info' },
   ENGINEER_BANK: { track: 'engineer', intentId: 'bank_account' },
   ENGINEER_LOCATION: { track: 'engineer', intentId: 'location' },
-  LEADERS_ABOUT: { track: 'leaders', intentId: 'corporate_leaders' },
-  LEADERS_SCHEDULE: { track: 'leaders', intentId: 'schedule' },
-  LEADERS_CURRICULUM: { track: 'leaders', intentId: 'curriculum' },
-  LEADERS_MEMBERSHIP: { track: 'leaders', intentId: 'membership_card' },
-  LEADERS_PRICE: { track: 'leaders', intentId: 'payment_info' },
-  LEADERS_BANK: { track: 'leaders', intentId: 'bank_account' },
-  LEADERS_LOCATION: { track: 'leaders', intentId: 'location' },
   CM_ABOUT: { track: 'changemakers', intentId: 'ai_changemakers' },
   CM_WHO: { track: 'changemakers', answerKey: 'who' },
   CM_DATES: { track: 'changemakers', answerKey: 'dates' },
@@ -362,18 +348,6 @@ const PROGRAM_FAQ_BUTTONS = {
   ACC_PRICE: { track: 'accelerator', intentId: 'payment_info' },
 }
 
-const LEADERS_FAQ_OPTIONS = [
-  { title: '👔 Хөтөлбөрийн тухай', payload: 'LEADERS_ABOUT' },
-  { title: '🗓 Хуваарь', payload: 'LEADERS_SCHEDULE' },
-  { title: '📚 Юу сурах вэ', payload: 'LEADERS_CURRICULUM' },
-  { title: '💳 Membership Card', payload: 'LEADERS_MEMBERSHIP' },
-  { title: '💰 Төлбөр', payload: 'LEADERS_PRICE' },
-  { title: '🏛 Дансны мэдээлэл', payload: 'LEADERS_BANK' },
-  { title: '📍 Байршил', payload: 'LEADERS_LOCATION' },
-  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
-  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
-]
-
 const ENGINEER_FAQ_OPTIONS = [
   { title: '🗓 Хуваарь', payload: 'ENGINEER_SCHEDULE' },
   { title: '📚 Агуулга', payload: 'ENGINEER_CURRICULUM' },
@@ -381,17 +355,6 @@ const ENGINEER_FAQ_OPTIONS = [
   { title: '💰 Төлбөр', payload: 'ENGINEER_PRICE' },
   { title: '🏛 Дансны мэдээлэл', payload: 'ENGINEER_BANK' },
   { title: '📍 Байршил', payload: 'ENGINEER_LOCATION' },
-  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
-  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
-]
-
-const JUNIOR_FAQ_OPTIONS = [
-  { title: '👦 Насны ангилал', payload: 'JUNIOR_AGE' },
-  { title: '🗓 Хуваарь', payload: 'JUNIOR_SCHEDULE' },
-  { title: '📍 Байршил', payload: 'JUNIOR_LOCATION' },
-  { title: '💰 Төлбөр', payload: 'JUNIOR_PRICE' },
-  { title: '🏛 Дансны мэдээлэл', payload: 'JUNIOR_BANK' },
-  { title: '🏆 Үр дүн', payload: 'JUNIOR_RESULT' },
   { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
   { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
 ]
@@ -450,9 +413,7 @@ AI агент болон систем бүтээх, бизнесийн урсг�
 }
 
 const PROGRAM_FAQ_MENUS = {
-  junior: { title: 'Junior AI Engineer — түгээмэл асуултууд', options: JUNIOR_FAQ_OPTIONS },
   engineer: { title: 'AI Engineer — түгээмэл асуултууд', options: ENGINEER_FAQ_OPTIONS },
-  leaders: { title: 'AI Leaders — түгээмэл асуултууд', options: LEADERS_FAQ_OPTIONS },
   changemakers: { title: 'AI Changemakers 100×100 — мэдээлэл', options: CHANGEMAKERS_FAQ_OPTIONS },
   accelerator: { title: 'AI Accelerator Program — түгээмэл асуултууд', options: ACCELERATOR_FAQ_OPTIONS },
 }
@@ -463,9 +424,7 @@ const DETAIL_ACTION_OPTIONS = [
 ]
 
 const MENU_RESPONSES = {
-  PROGRAM_JUNIOR_AI: intentDefaultAnswer('kids_training'),
   PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
-  PROGRAM_CORPORATE_LEADERS: intentDefaultAnswer('corporate_leaders'),
   PROGRAM_CHANGEMAKERS: intentDefaultAnswer('ai_changemakers'),
   PROGRAM_AI_ACCELERATOR: intentDefaultAnswer('ai_accelerator'),
   PAYMENT: intentDefaultAnswer('payment_info'),
@@ -740,45 +699,8 @@ function commentReplyTokenName(channel) {
   return activePage() === DEFAULT_PAGE ? 'FB_PRIVATE_REPLY_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN_2'
 }
 
-const JUNIOR_POST_RE = /junior|жуниор|жүниор|хүүхдийн/i
-const postJuniorCache = new Map()
-
-// Returns true/false when the post text was read, null when it could not be read.
-async function isJuniorPost(channel, postId) {
-  if (!postId) return null
-  const cacheKey = `${channel}:${postId}`
-  if (postJuniorCache.has(cacheKey)) return postJuniorCache.get(cacheKey)
-
-  const accessToken = getCommentReplyToken(channel)
-  if (!accessToken) return null
-
-  const field = channel === 'instagram' ? 'caption' : 'message'
-  try {
-    const response = await fetch(
-      `https://graph.facebook.com/${META_API_VERSION}/${encodeURIComponent(postId)}?fields=${field}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } },
-    )
-    if (!response.ok) {
-      console.error(`${channel} post lookup failed (${response.status}): ${await response.text()}`)
-      return null
-    }
-    const data = await response.json()
-    const isJunior = JUNIOR_POST_RE.test(String(data[field] || ''))
-    postJuniorCache.set(cacheKey, isJunior)
-    if (postJuniorCache.size > 1000) {
-      postJuniorCache.delete(postJuniorCache.keys().next().value)
-    }
-    return isJunior
-  } catch (error) {
-    console.error(`${channel} post lookup failed:`, error.message)
-    return null
-  }
-}
-
 const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
-const ENGINEER_TEXT_RE = /(?<!junior\s*)ai\s*engineer|ai\s*инженер/i
-const LEADERS_TEXT_RE = /corporate|ai\s*leaders?|ai4corp|лидер|удирдлаг/i
-const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
+const ENGINEER_TEXT_RE = /ai\s*engineer|ai\s*инженер/i
 const ACCELERATOR_TEXT_RE = /accelerator|акс?селератор/i
 const CHANGEMAKERS_TEXT_RE = /changemaker|чейжмэйкер|чейнжмэйкер|100\s*[x×]\s*100|тэтгэлэгт\s*хөтөлбөр/i
 
@@ -787,9 +709,7 @@ function trackFromText(text) {
     CHANGEMAKERS_TEXT_RE.test(text) && 'changemakers',
     ACCELERATOR_TEXT_RE.test(text) && 'accelerator',
     ENGINEER_TEXT_RE.test(text) && 'engineer',
-    LEADERS_TEXT_RE.test(text) && 'leaders',
     ADULT_TEXT_RE.test(text) && 'adult',
-    JUNIOR_TEXT_RE.test(text) && 'junior',
   ].filter(Boolean)
   return matches.length === 1 ? matches[0] : null
 }
@@ -821,12 +741,7 @@ async function trackFromReferral(channel, referral) {
   if (!referral) return null
   const context = referral.ads_context_data || {}
   const label = [context.ad_title, referral.ref].filter(Boolean).join(' ')
-  if (JUNIOR_POST_RE.test(label)) return 'junior'
-
-  const juniorPost = await isJuniorPost(channel, context.post_id)
-  if (juniorPost === true) return 'junior'
-  if (juniorPost === false) return 'adult'
-  return null
+  return trackFromText(label)
 }
 
 async function sendPrivateReply(channel, commentId, text, intent = PRIVATE_REPLY_INTENT_ID) {
@@ -941,21 +856,16 @@ async function processComment({
     repliedCommentIds.delete(oldest)
   }
 
-  const forcedTrack = activePage().forcedTrack
-  const juniorPost = forcedTrack ? forcedTrack === 'junior' : await isJuniorPost(channel, postId)
-
   let privateReplyResult = null
   try {
-    privateReplyResult = juniorPost
-      ? await sendPrivateReply(channel, commentId, MENU_RESPONSES.PROGRAM_JUNIOR_AI, 'kids_training')
-      : await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
+    privateReplyResult = await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
   } catch (error) {
     console.error('Private reply failed:', error.message)
   }
 
   const recipientId = privateReplyResult?.recipient_id
-  if (privateReplyResult && juniorPost !== null) {
-    await rememberTrack(channel, recipientId, juniorPost ? 'junior' : 'adult')
+  if (privateReplyResult) {
+    await rememberTrack(channel, recipientId, 'adult')
   }
 
   let publicReplyFailed = false
@@ -1112,12 +1022,6 @@ async function sendIntentAnswer(object, recipientId, prediction) {
     return
   }
 
-  if (prediction.intentId === 'kids_training') {
-    await rememberTrack(object, recipientId, 'junior')
-    await sendTextChunks(object, recipientId, prediction.answer)
-    return
-  }
-
   if (PROGRAM_INTENT_TRACKS[prediction.intentId]) {
     const track = PROGRAM_INTENT_TRACKS[prediction.intentId]
     await rememberTrack(object, recipientId, track)
@@ -1153,7 +1057,7 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   }
 
   const answer = (track && prediction.answers?.[track])
-    || ((track === 'engineer' || track === 'leaders') && prediction.answers?.adult)
+    || (track === 'engineer' && prediction.answers?.adult)
     || prediction.answer
 
   await sendTextChunks(object, recipientId, answer)
@@ -1171,14 +1075,12 @@ const TRACK_MENU_INTENTS = {
 
 const PROGRAM_TRACKS = {
   PROGRAM_AI_ENGINEER: 'engineer',
-  PROGRAM_CORPORATE_LEADERS: 'leaders',
-  PROGRAM_JUNIOR_AI: 'junior',
   PROGRAM_CHANGEMAKERS: 'changemakers',
   PROGRAM_AI_ACCELERATOR: 'accelerator',
 }
 
 // Intents with no per-program answer that are safe on any page (no other program mentioned).
-const TRACK_NEUTRAL_INTENTS = new Set(['greeting', 'phone_number', 'kids_training', 'surgaltiin_medeelel'])
+const TRACK_NEUTRAL_INTENTS = new Set(['greeting', 'phone_number', 'surgaltiin_medeelel'])
 
 function intentAllowedForTrack(intentId, track) {
   return TRACK_NEUTRAL_INTENTS.has(intentId) || Boolean(intentAnswer(intentId, track))
@@ -1186,15 +1088,12 @@ function intentAllowedForTrack(intentId, track) {
 
 const PROGRAM_INTENT_TRACKS = {
   ai_engineer: 'engineer',
-  corporate_leaders: 'leaders',
   ai_changemakers: 'changemakers',
   ai_accelerator: 'accelerator',
 }
 
 const PROGRAM_MAIN_SCREENS = {
-  junior: 'PROGRAM_JUNIOR_AI',
   engineer: 'PROGRAM_AI_ENGINEER',
-  leaders: 'PROGRAM_CORPORATE_LEADERS',
   changemakers: 'PROGRAM_CHANGEMAKERS',
   accelerator: 'PROGRAM_AI_ACCELERATOR',
 }
