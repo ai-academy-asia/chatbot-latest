@@ -16,6 +16,18 @@ const pool = process.env.DATABASE_URL
   })
   : null
 
+// Separate database for phone leads (e.g. a local Postgres), driven by
+// LEADS_DATABASE_URL. Falls back to the main pool when the var is not set, so
+// existing deployments keep working. Set LEADS_DB_SSL=true to force SSL.
+const leadsPool = process.env.LEADS_DATABASE_URL
+  ? new Pool({
+    connectionString: process.env.LEADS_DATABASE_URL,
+    ssl: process.env.LEADS_DB_SSL === 'true'
+      ? { rejectUnauthorized: false }
+      : undefined,
+  })
+  : pool
+
 async function initializeDatabase() {
   if (!pool) {
     console.warn('DATABASE_URL is not set — conversation storage is disabled')
@@ -55,6 +67,8 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS page_id TEXT;
     ALTER TABLE conversations
       ADD COLUMN IF NOT EXISTS phone_asked_at TIMESTAMPTZ;
+    ALTER TABLE conversations
+      ADD COLUMN IF NOT EXISTS greeting_sent_at TIMESTAMPTZ;
 
     CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_idx
       ON conversation_messages (conversation_id, created_at);
@@ -136,7 +150,36 @@ async function initializeDatabase() {
   }, CLEANUP_INTERVAL_MS)
   cleanupTimer.unref()
 
+  await initializeLeadsDatabase()
+
   console.log(`Conversation database ready (${RETENTION_DAYS}-day inactivity retention)`)
+}
+
+// Ensures the phone_leads table and its unique constraint exist in whichever
+// database leadsPool points to (the separate leads DB, or the main one as a
+// fallback). The ON CONFLICT upsert in savePhoneLead needs the unique index.
+async function initializeLeadsDatabase() {
+  if (!leadsPool) return
+
+  await leadsPool.query(`
+    CREATE TABLE IF NOT EXISTS phone_leads (
+      id SERIAL PRIMARY KEY,
+      channel TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      fb_name TEXT,
+      phone TEXT NOT NULL,
+      program_track TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+
+  await leadsPool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS phone_leads_channel_user_id_uidx
+      ON phone_leads (channel, user_id)
+  `)
+
+  console.log('Phone-leads database ready' + (process.env.LEADS_DATABASE_URL ? ' (separate DB)' : ' (shared with main DB)'))
 }
 
 async function getOrCreateConversation(channel, userId) {
@@ -449,12 +492,39 @@ async function claimPhoneAsk(channel, userId) {
   return result.rowCount > 0
 }
 
+// Atomically claims the one-time greeting for a user. Returns true for the FIRST
+// call only, so the greeting text is sent exactly once per (channel, user), even
+// across restarts and concurrent messages. In-memory fallback when there is no DB.
+const memoryGreetingSent = new Set()
+
+async function claimGreetingSent(channel, userId) {
+  const key = `${channel}:${userId}`
+  if (!pool) {
+    if (memoryGreetingSent.has(key)) return false
+    memoryGreetingSent.add(key)
+    if (memoryGreetingSent.size > 10000) memoryGreetingSent.delete(memoryGreetingSent.values().next().value)
+    return true
+  }
+
+  const conversationId = await getOrCreateConversation(channel, userId)
+  if (!conversationId) return false
+
+  const result = await pool.query(
+    `UPDATE conversations
+     SET greeting_sent_at = NOW()
+     WHERE id = $1 AND greeting_sent_at IS NULL
+     RETURNING id`,
+    [conversationId],
+  )
+  return result.rowCount > 0
+}
+
 // Saves a phone-number lead. Upserts on (channel, user_id): a later submission
 // overwrites the stored number and program for that user. fb_name is optional.
 async function savePhoneLead({ channel, userId, phone, programTrack = null, fbName = null }) {
-  if (!pool) return false
+  if (!leadsPool) return false
 
-  await pool.query(
+  await leadsPool.query(
     `INSERT INTO phone_leads (channel, user_id, phone, program_track, fb_name)
      VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (channel, user_id)
@@ -473,6 +543,7 @@ module.exports = {
   setProgramTrack,
   getProgramTrack,
   claimPhoneAsk,
+  claimGreetingSent,
   savePhoneLead,
   setConversationPage,
   getOrCreateConversation,

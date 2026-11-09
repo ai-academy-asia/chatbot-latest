@@ -21,6 +21,7 @@ const {
   getProgramTrack,
   setConversationPage,
   claimPhoneAsk,
+  claimGreetingSent,
   savePhoneLead,
   DEFAULT_REMINDER_HOURS,
 } = require('./database')
@@ -355,6 +356,8 @@ async function handlePhoneLead(channel, userId, phone) {
   try {
     const programTrack = await currentTrack(channel, userId)
     await savePhoneLead({ channel, userId, phone, programTrack })
+    // Burn the one-time "ask for phone" flag so we never ask a user who already gave it.
+    await claimPhoneAsk(channel, userId).catch(() => {})
     logEvent('phone_lead_saved', { channel, senderId: userId, phone, programTrack: programTrack || null })
   } catch (error) {
     console.error('Phone lead save failed:', error.message)
@@ -1000,13 +1003,20 @@ async function sendMenuCard(object, recipientId, title, subtitle, options) {
 
 async function sendWelcomeMenu(object, recipientId) {
   if (object !== 'web') {
-    await sendMetaMessage(object, recipientId, { text: WELCOME_TEXT_MESSAGE }, { allowDuplicate: true })
+    // Send the full greeting only once per user; afterwards use the shorter follow-up
+    // ("өөр асуух зүйл байна уу?") so the greeting text is not repeated.
+    const firstGreeting = await claimGreetingSent(object, recipientId).catch(() => true)
+    const text = firstGreeting ? WELCOME_TEXT_MESSAGE : REMINDER_MESSAGE
+    await sendMetaMessage(object, recipientId, { text }, { allowDuplicate: true })
+    // After the greeting, ask once for the phone number (greeting first, then phone).
+    await maybeAskForPhone(object, recipientId)
     return
   }
 
   const forcedTrack = activePage().forcedTrack
   if (forcedTrack && PROGRAM_FAQ_MENUS[forcedTrack]) {
     await sendProgramFaqMenu(object, recipientId, forcedTrack)
+    await maybeAskForPhone(object, recipientId)
     return
   }
 
@@ -1017,6 +1027,7 @@ async function sendWelcomeMenu(object, recipientId) {
     undefined,
     MAIN_MENU_OPTIONS,
   )
+  await maybeAskForPhone(object, recipientId)
 }
 
 async function sendMoreMenu(object, recipientId) {
@@ -1272,18 +1283,17 @@ async function handleMessagingEvent(object, event) {
     })
   }
 
-  // On the user's first incoming message, ask once for their phone number. This runs
-  // before the silent-message short-circuit below, so even otherwise-ignored silent
-  // messages trigger the one-time phone question (and only once per user).
-  await maybeAskForPhone(object, senderId)
-
   // Silent handling only applies to Facebook; Instagram and web always get a reply.
+  // These messages are otherwise ignored, but we still send the one-time phone ask
+  // (standalone — no greeting precedes it here).
   if (object === 'page' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
+    await maybeAskForPhone(object, senderId)
     return
   }
 
   if (object === 'page' && !payload && isMetaButtonLabel(message?.text)) {
     logEvent('meta_button_skipped', { channel: object, senderId, text: message.text })
+    await maybeAskForPhone(object, senderId)
     return
   }
 
@@ -1390,6 +1400,8 @@ async function handleMessagingEvent(object, event) {
         intent: prediction.intentId,
       })
       await sendIntentAnswer(object, senderId, prediction)
+      // After the first reply, ask once for the phone number (one-time per user).
+      await maybeAskForPhone(object, senderId)
       return
     }
 
@@ -1405,6 +1417,8 @@ async function handleMessagingEvent(object, event) {
           hits: rag.hits,
         })
         await sendTextChunks(object, senderId, rag.answer)
+        // After the first reply, ask once for the phone number (one-time per user).
+        await maybeAskForPhone(object, senderId)
         return
       }
     } catch (error) {
