@@ -53,6 +53,8 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS program_track TEXT;
     ALTER TABLE conversations
       ADD COLUMN IF NOT EXISTS page_id TEXT;
+    ALTER TABLE conversations
+      ADD COLUMN IF NOT EXISTS phone_asked_at TIMESTAMPTZ;
 
     CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_idx
       ON conversation_messages (conversation_id, created_at);
@@ -418,10 +420,60 @@ async function getProgramTrack(channel, userId) {
   return track
 }
 
+// Atomically claims the one-time "ask for phone number" prompt for a user.
+// Returns true for the FIRST call only; every later call returns false, so the
+// question is sent exactly once per (channel, user) even across restarts and
+// concurrent messages. When there is no database, falls back to an in-memory set
+// (best-effort, per-process).
+const memoryPhoneAsked = new Set()
+
+async function claimPhoneAsk(channel, userId) {
+  const key = `${channel}:${userId}`
+  if (!pool) {
+    if (memoryPhoneAsked.has(key)) return false
+    memoryPhoneAsked.add(key)
+    if (memoryPhoneAsked.size > 10000) memoryPhoneAsked.delete(memoryPhoneAsked.values().next().value)
+    return true
+  }
+
+  const conversationId = await getOrCreateConversation(channel, userId)
+  if (!conversationId) return false
+
+  const result = await pool.query(
+    `UPDATE conversations
+     SET phone_asked_at = NOW()
+     WHERE id = $1 AND phone_asked_at IS NULL
+     RETURNING id`,
+    [conversationId],
+  )
+  return result.rowCount > 0
+}
+
+// Saves a phone-number lead. Upserts on (channel, user_id): a later submission
+// overwrites the stored number and program for that user. fb_name is optional.
+async function savePhoneLead({ channel, userId, phone, programTrack = null, fbName = null }) {
+  if (!pool) return false
+
+  await pool.query(
+    `INSERT INTO phone_leads (channel, user_id, phone, program_track, fb_name)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (channel, user_id)
+     DO UPDATE SET
+       phone = EXCLUDED.phone,
+       program_track = COALESCE(EXCLUDED.program_track, phone_leads.program_track),
+       fb_name = COALESCE(EXCLUDED.fb_name, phone_leads.fb_name),
+       updated_at = NOW()`,
+    [channel, String(userId), phone, programTrack, fbName],
+  )
+  return true
+}
+
 module.exports = {
   initializeDatabase,
   setProgramTrack,
   getProgramTrack,
+  claimPhoneAsk,
+  savePhoneLead,
   setConversationPage,
   getOrCreateConversation,
   recordConversationMessage,

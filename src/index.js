@@ -20,6 +20,8 @@ const {
   setProgramTrack,
   getProgramTrack,
   setConversationPage,
+  claimPhoneAsk,
+  savePhoneLead,
   DEFAULT_REMINDER_HOURS,
 } = require('./database')
 
@@ -312,6 +314,52 @@ function intentDefaultAnswer(intentId) {
 }
 
 const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
+
+// Sent exactly once per user, on their first incoming message (including otherwise-ignored
+// "silent" messages). See claimPhoneAsk() for the one-time guarantee.
+const PHONE_ASK_MESSAGE = 'Та утасны дугаараа үлдээвэл бид тань руу залгаж дэлгэрэнгүй мэдээлэл өгье. 📞'
+
+async function maybeAskForPhone(channel, userId) {
+  try {
+    if (await claimPhoneAsk(channel, userId)) {
+      await sendTextChunks(channel, userId, PHONE_ASK_MESSAGE)
+      logEvent('phone_ask_sent', { channel, senderId: userId })
+    }
+  } catch (error) {
+    console.error('Phone ask failed:', error.message)
+  }
+}
+
+const PHONE_SAVED_MESSAGE = 'Баярлалаа! 📞 Бид тань руу удахгүй залгаж дэлгэрэнгүй мэдээлэл өгөх болно.'
+
+// Extracts a Mongolian phone number from free text, or null. Accepts an optional
+// +976 / 976 country code and spaces, dashes or parentheses, and requires an
+// 8-digit local number (Mongolian mobiles/landlines). Rejects longer digit runs
+// (dates, IDs) to avoid false positives.
+function extractPhoneNumber(text) {
+  if (typeof text !== 'string') return null
+  // Pull candidate runs that look phone-ish: digits with optional +, spaces, -, ().
+  const candidates = text.match(/\+?[\d][\d\s().-]{6,}\d/g)
+  if (!candidates) return null
+  for (const raw of candidates) {
+    let digits = raw.replace(/\D/g, '')
+    if (digits.startsWith('976')) digits = digits.slice(3)
+    if (digits.length === 8 && /^[5-9]/.test(digits)) {
+      return digits
+    }
+  }
+  return null
+}
+
+async function handlePhoneLead(channel, userId, phone) {
+  try {
+    const programTrack = await currentTrack(channel, userId)
+    await savePhoneLead({ channel, userId, phone, programTrack })
+    logEvent('phone_lead_saved', { channel, senderId: userId, phone, programTrack: programTrack || null })
+  } catch (error) {
+    console.error('Phone lead save failed:', error.message)
+  }
+}
 
 const MAIN_MENU_OPTIONS = [
   { title: '⚡ AI Accelerator', payload: 'PROGRAM_AI_ACCELERATOR' },
@@ -1224,6 +1272,11 @@ async function handleMessagingEvent(object, event) {
     })
   }
 
+  // On the user's first incoming message, ask once for their phone number. This runs
+  // before the silent-message short-circuit below, so even otherwise-ignored silent
+  // messages trigger the one-time phone question (and only once per user).
+  await maybeAskForPhone(object, senderId)
+
   // Silent handling only applies to Facebook; Instagram and web always get a reply.
   if (object === 'page' && SILENT_MESSAGES.has(normalizeSilentText(message?.text))) {
     return
@@ -1292,6 +1345,16 @@ async function handleMessagingEvent(object, event) {
   }
 
   if (message?.text) {
+    // If the user left a phone number, save it as a lead, thank them, and stop
+    // (a bare number is not a question to answer with intent/RAG).
+    const phone = extractPhoneNumber(message.text)
+    if (phone) {
+      await handlePhoneLead(object, senderId, phone)
+      await sendTextChunks(object, senderId, PHONE_SAVED_MESSAGE)
+      await sendWelcomeMenu(object, senderId)
+      return
+    }
+
     const textTrack = trackFromText(message.text)
     if (textTrack) await rememberTrack(object, senderId, textTrack)
 
