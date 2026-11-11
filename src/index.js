@@ -754,6 +754,20 @@ const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
 const ENGINEER_TEXT_RE = /ai\s*engineer|ai\s*инженер/i
 const ACCELERATOR_TEXT_RE = /accelerator|акс?селератор/i
 const CHANGEMAKERS_TEXT_RE = /changemaker|чейжмэйкер|чейнжмэйкер|100\s*[x×]\s*100|тэтгэлэгт\s*хөтөлбөр/i
+// Only a kids-program question (Cyrillic or Latin), not a general age or adult-program question.
+const KIDS_PROGRAM_RE = new RegExp([
+  'хүүхд\\S{0,12}\\s*(хөтөлбөр|сургалт|хичээл|анги)',
+  '(хөтөлбөр|сургалт)\\S{0,24}хүүхд',
+  'хүүхд\\S{0,8}\\s*зориул',
+  'h[uüv]{2,3}hd\\w{0,8}\\s*(hutulb\\w*|hoto+l?b\\w*|surgalt\\w*|hicheel\\w*|program)',
+  'kids?\\s*(program|course)',
+  "children'?s?\\s*(program|course)",
+  'junior\\s*ai',
+].join('|'), 'i')
+const KIDS_PROGRAM_REPLY = 'Хүүхдэд зориулагдсан хөтөлбөр маань удахгүй зарлагдах тул хүлээгээрэй.'
+const WEBSITE_ASK_RE = /вэб\s*сайт|веб\s*сайт|website|web\s*site|вэб\s*хаяг|veb\s*sait|web\s*hayg|сайт(?:аа|ын|ыг|ад)?(?:\s|$)|сайтын\s*хаяг/i
+const WEBSITE_REPLY = `Манай вэбсайт: ${WEBSITE_URL}
+Дэлгэрэнгүй мэдээлэл авахыг хүсвэл 7505-1055 дугаарт холбогдоорой.`
 
 function trackFromText(text) {
   const matches = [
@@ -1362,6 +1376,20 @@ async function handleMessagingEvent(object, event) {
       await handlePhoneLead(object, senderId, phone)
       await sendTextChunks(object, senderId, PHONE_SAVED_MESSAGE)
       await sendWelcomeMenu(object, senderId)
+      return
+    }
+
+    if (KIDS_PROGRAM_RE.test(message.text)) {
+      logEvent('kids_program_reply', { channel: object, senderId })
+      await sendTextChunks(object, senderId, KIDS_PROGRAM_REPLY)
+      await maybeAskForPhone(object, senderId)
+      return
+    }
+
+    if (WEBSITE_ASK_RE.test(message.text)) {
+      logEvent('website_reply', { channel: object, senderId })
+      await sendTextChunks(object, senderId, WEBSITE_REPLY)
+      await maybeAskForPhone(object, senderId)
       return
     }
 
