@@ -921,9 +921,23 @@ async function processComment({
     repliedCommentIds.delete(oldest)
   }
 
+  // One private reply per comment, so the phone ask is the next part of that
+  // same message. Same one-time rule as chats: only the first time we see this person.
+  let privateText = PRIVATE_REPLY_MESSAGE
+  if (fromId) {
+    try {
+      if (await claimPhoneAsk(channel, fromId)) {
+        privateText = `${PRIVATE_REPLY_MESSAGE}\n\n${PHONE_ASK_MESSAGE}`
+        logEvent('phone_ask_sent', { channel, senderId: fromId, via: 'comment' })
+      }
+    } catch (error) {
+      console.error('Phone ask failed:', error.message)
+    }
+  }
+
   let privateReplyResult = null
   try {
-    privateReplyResult = await sendPrivateReply(channel, commentId, PRIVATE_REPLY_MESSAGE)
+    privateReplyResult = await sendPrivateReply(channel, commentId, privateText)
   } catch (error) {
     console.error('Private reply failed:', error.message)
   }
