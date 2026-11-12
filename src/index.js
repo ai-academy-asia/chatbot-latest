@@ -337,6 +337,8 @@ const PHONE_SAVED_MESSAGE = 'Баярлалаа! 📞 Бид тань руу у�
 // +976 / 976 country code and spaces, dashes or parentheses, and requires an
 // 8-digit local number (Mongolian mobiles/landlines). Rejects longer digit runs
 // (dates, IDs) to avoid false positives.
+const OWN_PHONE_NUMBERS = new Set(['75051055'])
+
 function extractPhoneNumber(text) {
   if (typeof text !== 'string') return null
   // Pull candidate runs that look phone-ish: digits with optional +, spaces, -, ().
@@ -345,6 +347,7 @@ function extractPhoneNumber(text) {
   for (const raw of candidates) {
     let digits = raw.replace(/\D/g, '')
     if (digits.startsWith('976')) digits = digits.slice(3)
+    if (OWN_PHONE_NUMBERS.has(digits)) continue
     if (digits.length === 8 && /^[5-9]/.test(digits)) {
       return digits
     }
