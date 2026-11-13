@@ -1037,6 +1037,9 @@ async function sendMenuCard(object, recipientId, title, subtitle, options) {
 
 async function sendWelcomeMenu(object, recipientId) {
   if (object !== 'web') {
+    // A saved number already got the thank-you. Do not follow it with the greeting.
+    if (await hasPhoneLead(object, recipientId).catch(() => false)) return
+
     // Send the full greeting only once per user; afterwards use the shorter follow-up
     // ("өөр асуух зүйл байна уу?") so the greeting text is not repeated.
     const firstGreeting = await claimGreetingSent(object, recipientId).catch(() => true)
@@ -1497,7 +1500,7 @@ app.get('/webhook', (req, res) => {
 })
 
 // ── Facebook and Instagram webhook events ───────────
-app.post('/webhook', (req, res) => {
+app.post('/webhook', async (req, res) => {
   const body = req.body
 
   // Meta requires 200 quickly — always respond first
@@ -1518,14 +1521,24 @@ app.post('/webhook', (req, res) => {
       continue
     }
 
-    for (const event of entry.messaging || []) {
-      pageContext.run(page, () => handleMessagingEvent(body.object, event)).catch(error => {
+    const messaging = entry.messaging || []
+    // Mark numbers before handling, so a greeting in the same batch is not sent
+    // after (or beside) the phone thank-you. Instagram often delivers both at once.
+    for (const event of messaging) {
+      const phone = extractPhoneNumber(event.message?.text || event.message_edit?.text)
+      if (phone && event.sender?.id && !event.message?.is_echo) {
+        await markPhoneReceived(body.object, event.sender.id).catch(() => {})
+      }
+    }
+
+    for (const event of messaging) {
+      await pageContext.run(page, () => handleMessagingEvent(body.object, event)).catch(error => {
         console.error('Webhook event handling failed:', error.message)
       })
     }
 
     for (const change of entry.changes || []) {
-      pageContext.run(page, () => handleCommentChange(body.object, change, entry)).catch(error => {
+      await pageContext.run(page, () => handleCommentChange(body.object, change, entry)).catch(error => {
         console.error('Comment webhook handling failed:', error.message)
       })
     }
