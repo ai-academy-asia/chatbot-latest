@@ -69,6 +69,8 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS phone_asked_at TIMESTAMPTZ;
     ALTER TABLE conversations
       ADD COLUMN IF NOT EXISTS greeting_sent_at TIMESTAMPTZ;
+    ALTER TABLE conversations
+      ADD COLUMN IF NOT EXISTS phone_received_at TIMESTAMPTZ;
 
     CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_idx
       ON conversation_messages (conversation_id, created_at);
@@ -343,6 +345,7 @@ async function claimDueReminderConversations({
        SELECT id
        FROM conversations
        WHERE reminder_sent_at IS NULL
+         AND phone_received_at IS NULL
          AND last_incoming_at IS NOT NULL
          AND channel IN ('page', 'instagram')
          AND last_incoming_at <= NOW() - ($1::double precision * INTERVAL '1 hour')
@@ -521,6 +524,37 @@ async function claimGreetingSent(channel, userId) {
 
 // Saves a phone-number lead. Upserts on (channel, user_id): a later submission
 // overwrites the stored number and program for that user. fb_name is optional.
+const memoryPhoneReceived = new Set()
+
+async function markPhoneReceived(channel, userId) {
+  if (!userId) return
+  const key = `${channel}:${userId}`
+  memoryPhoneReceived.add(key)
+  if (memoryPhoneReceived.size > 10000) {
+    memoryPhoneReceived.delete(memoryPhoneReceived.values().next().value)
+  }
+  if (!pool) return
+  await pool.query(
+    `UPDATE conversations
+     SET phone_received_at = NOW()
+     WHERE channel = $1 AND user_id = $2`,
+    [channel, String(userId)],
+  )
+}
+
+async function hasPhoneLead(channel, userId) {
+  if (!userId) return false
+  if (memoryPhoneReceived.has(`${channel}:${userId}`)) return true
+  if (!leadsPool) return false
+  const result = await leadsPool.query(
+    `SELECT 1 FROM phone_leads
+     WHERE channel = $1 AND user_id = $2
+     LIMIT 1`,
+    [channel, String(userId)],
+  )
+  return result.rowCount > 0
+}
+
 async function savePhoneLead({ channel, userId, phone, programTrack = null, fbName = null }) {
   if (!leadsPool) return false
 
@@ -545,6 +579,8 @@ module.exports = {
   claimPhoneAsk,
   claimGreetingSent,
   savePhoneLead,
+  markPhoneReceived,
+  hasPhoneLead,
   setConversationPage,
   getOrCreateConversation,
   recordConversationMessage,

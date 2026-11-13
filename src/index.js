@@ -23,6 +23,8 @@ const {
   claimPhoneAsk,
   claimGreetingSent,
   savePhoneLead,
+  markPhoneReceived,
+  hasPhoneLead,
   DEFAULT_REMINDER_HOURS,
 } = require('./database')
 
@@ -142,7 +144,7 @@ const WELCOME_TEXT_MESSAGE = process.env.WELCOME_TEXT_MESSAGE
 
 Дэлгэрэнгүй мэдээллийг ${WEBSITE_URL}`
 const REMINDER_MESSAGE = process.env.REMINDER_MESSAGE
-  || `Сайн байна уу? Танд өөр асуух зүйл байна уу?
+  || `Танд өөр асуух зүйл байна уу?
 
 Дэлгэрэнгүй мэдээллийг ${WEBSITE_URL}`
 const DUPLICATE_SIMILARITY = Number(process.env.DUPLICATE_SIMILARITY || 0.88)
@@ -359,6 +361,7 @@ async function handlePhoneLead(channel, userId, phone) {
   try {
     const programTrack = await currentTrack(channel, userId)
     await savePhoneLead({ channel, userId, phone, programTrack })
+    await markPhoneReceived(channel, userId)
     // Burn the one-time "ask for phone" flag so we never ask a user who already gave it.
     await claimPhoneAsk(channel, userId).catch(() => {})
     logEvent('phone_lead_saved', { channel, senderId: userId, phone, programTrack: programTrack || null })
@@ -1392,7 +1395,6 @@ async function handleMessagingEvent(object, event) {
     if (phone) {
       await handlePhoneLead(object, senderId, phone)
       await sendTextChunks(object, senderId, PHONE_SAVED_MESSAGE)
-      await sendWelcomeMenu(object, senderId)
       return
     }
 
@@ -1652,6 +1654,16 @@ async function processDueReminders() {
 
   for (const conversation of due) {
     try {
+      if (await hasPhoneLead(conversation.channel, conversation.user_id)) {
+        await markPhoneReceived(conversation.channel, conversation.user_id)
+        logEvent('reminder_skipped_phone', {
+          channel: conversation.channel,
+          userId: conversation.user_id,
+          conversationId: conversation.id,
+        })
+        continue
+      }
+
       const page = conversation.channel === 'page'
         ? pageConfigFor(conversation.page_id)
         : conversation.channel === 'instagram'
