@@ -52,8 +52,7 @@ const PAGE_ID = process.env.PAGE_ID ? String(process.env.PAGE_ID) : null
 const META_API_VERSION = process.env.META_API_VERSION || 'v25.0'
 
 // Facebook pages served by this bot. The default page keeps the original env vars; the second
-// page (PAGE_ID_2) is locked to one program track (default: engineer), so it only ever answers
-// about that program.
+// page (PAGE_ID_2) is locked to one program track (default: accelerator).
 const DEFAULT_PAGE = {
   pageId: PAGE_ID,
   accessToken: FB_PAGE_ACCESS_TOKEN,
@@ -69,7 +68,7 @@ if (process.env.PAGE_ID_2) {
     pageId: secondPageId,
     accessToken: secondPageToken,
     privateReplyToken: process.env.FB_PRIVATE_REPLY_TOKEN_2 || secondPageToken,
-    forcedTrack: process.env.PAGE_TRACK_2 || 'engineer',
+    forcedTrack: process.env.PAGE_TRACK_2 || 'accelerator',
   })
 }
 // Instagram accounts served by this bot. The first uses IG_PAGE_ACCESS_TOKEN;
@@ -93,7 +92,7 @@ if (IG_PAGE_ACCESS_TOKEN_2) {
     accountId: secondAccountId,
     accessToken: IG_PAGE_ACCESS_TOKEN_2,
     privateReplyToken: IG_PAGE_ACCESS_TOKEN_2,
-    forcedTrack: process.env.IG_TRACK_2 || process.env.PAGE_TRACK_2 || 'engineer',
+    forcedTrack: process.env.IG_TRACK_2 || process.env.PAGE_TRACK_2 || 'accelerator',
     tokenName: 'IG_PAGE_ACCESS_TOKEN_2',
   })
 }
@@ -291,7 +290,7 @@ const SILENT_MESSAGES = new Set([
   '👦 Насны ангилал',
   '📍 Байршил','Байршил',
   '📅 Хичээлийн хуваарь',
-  '📅 Хичээлийн хуваарь сонголт', 'AI Engineer хөтөлбөрийн мэдээлэл',
+  '📅 Хичээлийн хуваарь сонголт',
 ].map(normalizeSilentText))
 
 // Meta Business Suite quick-reply buttons ("👦 Насны ангилал", "📍 Байршил", ...) arrive
@@ -372,7 +371,6 @@ async function handlePhoneLead(channel, userId, phone) {
 
 const MAIN_MENU_OPTIONS = [
   { title: '⚡ AI Accelerator', payload: 'PROGRAM_AI_ACCELERATOR' },
-  { title: '🚀 AI Engineer', payload: 'PROGRAM_AI_ENGINEER' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
 
@@ -389,12 +387,6 @@ const PROGRAM_ACTION_OPTIONS = [
 ]
 
 const PROGRAM_FAQ_BUTTONS = {
-  ENGINEER_SCHEDULE: { track: 'engineer', intentId: 'schedule' },
-  ENGINEER_CURRICULUM: { track: 'engineer', intentId: 'curriculum' },
-  ENGINEER_MEMBERSHIP: { track: 'engineer', intentId: 'membership_card' },
-  ENGINEER_PRICE: { track: 'engineer', intentId: 'payment_info' },
-  ENGINEER_BANK: { track: 'engineer', intentId: 'bank_account' },
-  ENGINEER_LOCATION: { track: 'engineer', intentId: 'location' },
   CM_ABOUT: { track: 'changemakers', intentId: 'ai_changemakers' },
   CM_WHO: { track: 'changemakers', answerKey: 'who' },
   CM_DATES: { track: 'changemakers', answerKey: 'dates' },
@@ -404,17 +396,6 @@ const PROGRAM_FAQ_BUTTONS = {
   ACC_FORMAT: { track: 'accelerator', intentId: 'training_format' },
   ACC_PRICE: { track: 'accelerator', intentId: 'payment_info' },
 }
-
-const ENGINEER_FAQ_OPTIONS = [
-  { title: '🗓 Хуваарь', payload: 'ENGINEER_SCHEDULE' },
-  { title: '📚 Агуулга', payload: 'ENGINEER_CURRICULUM' },
-  { title: '💳 Membership Card', payload: 'ENGINEER_MEMBERSHIP' },
-  { title: '💰 Төлбөр', payload: 'ENGINEER_PRICE' },
-  { title: '🏛 Дансны мэдээлэл', payload: 'ENGINEER_BANK' },
-  { title: '📍 Байршил', payload: 'ENGINEER_LOCATION' },
-  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
-  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
-]
 
 const CHANGEMAKERS_FAQ_OPTIONS = [
   { title: '🌟 Хөтөлбөрийн тухай', payload: 'CM_ABOUT' },
@@ -470,7 +451,6 @@ AI агент болон систем бүтээх, бизнесийн урсг�
 }
 
 const PROGRAM_FAQ_MENUS = {
-  engineer: { title: 'AI Engineer — түгээмэл асуултууд', options: ENGINEER_FAQ_OPTIONS },
   changemakers: { title: 'AI Changemakers 100×100 — мэдээлэл', options: CHANGEMAKERS_FAQ_OPTIONS },
   accelerator: { title: 'AI Accelerator Program — түгээмэл асуултууд', options: ACCELERATOR_FAQ_OPTIONS },
 }
@@ -481,7 +461,6 @@ const DETAIL_ACTION_OPTIONS = [
 ]
 
 const MENU_RESPONSES = {
-  PROGRAM_AI_ENGINEER: intentDefaultAnswer('ai_engineer'),
   PROGRAM_CHANGEMAKERS: intentDefaultAnswer('ai_changemakers'),
   PROGRAM_AI_ACCELERATOR: intentDefaultAnswer('ai_accelerator'),
   PAYMENT: intentDefaultAnswer('payment_info'),
@@ -757,7 +736,6 @@ function commentReplyTokenName(channel) {
 }
 
 const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
-const ENGINEER_TEXT_RE = /ai\s*engineer|ai\s*инженер/i
 const ACCELERATOR_TEXT_RE = /accelerator|акс?селератор/i
 const CHANGEMAKERS_TEXT_RE = /changemaker|чейжмэйкер|чейнжмэйкер|100\s*[x×]\s*100|тэтгэлэгт\s*хөтөлбөр/i
 // Only a kids-program question (Cyrillic or Latin), not a general age or adult-program question.
@@ -775,11 +753,14 @@ const WEBSITE_ASK_RE = /вэб\s*сайт|веб\s*сайт|website|web\s*site|�
 const WEBSITE_REPLY = `Манай вэбсайт: ${WEBSITE_URL}
 Дэлгэрэнгүй мэдээлэл авахыг хүсвэл 7505-1055 дугаарт холбогдоорой.`
 
+function normalizeTrack(track) {
+  return track === 'engineer' ? 'accelerator' : track
+}
+
 function trackFromText(text) {
   const matches = [
     CHANGEMAKERS_TEXT_RE.test(text) && 'changemakers',
     ACCELERATOR_TEXT_RE.test(text) && 'accelerator',
-    ENGINEER_TEXT_RE.test(text) && 'engineer',
     ADULT_TEXT_RE.test(text) && 'adult',
   ].filter(Boolean)
   return matches.length === 1 ? matches[0] : null
@@ -790,7 +771,7 @@ async function rememberTrack(channel, userId, track) {
   if (!userId || track === undefined) return
   if (activePage().forcedTrack) return // page is locked to one program
   try {
-    await setProgramTrack(channel, userId, track)
+    await setProgramTrack(channel, userId, normalizeTrack(track))
     logEvent('program_track_set', { channel, userId, track })
   } catch (error) {
     console.error('Program track save failed:', error.message)
@@ -798,10 +779,10 @@ async function rememberTrack(channel, userId, track) {
 }
 
 async function currentTrack(channel, userId) {
-  const forcedTrack = activePage().forcedTrack
+  const forcedTrack = normalizeTrack(activePage().forcedTrack)
   if (forcedTrack) return forcedTrack
   try {
-    return await getProgramTrack(channel, userId)
+    return normalizeTrack(await getProgramTrack(channel, userId))
   } catch (error) {
     console.error('Program track lookup failed:', error.message)
     return null
@@ -1050,7 +1031,7 @@ async function sendWelcomeMenu(object, recipientId) {
     return
   }
 
-  const forcedTrack = activePage().forcedTrack
+  const forcedTrack = normalizeTrack(activePage().forcedTrack)
   if (forcedTrack && PROGRAM_FAQ_MENUS[forcedTrack]) {
     await sendProgramFaqMenu(object, recipientId, forcedTrack)
     await maybeAskForPhone(object, recipientId)
@@ -1153,7 +1134,6 @@ async function sendIntentAnswer(object, recipientId, prediction) {
   }
 
   const answer = (track && prediction.answers?.[track])
-    || (track === 'engineer' && prediction.answers?.adult)
     || prediction.answer
 
   await sendTextChunks(object, recipientId, answer)
@@ -1170,7 +1150,6 @@ const TRACK_MENU_INTENTS = {
 }
 
 const PROGRAM_TRACKS = {
-  PROGRAM_AI_ENGINEER: 'engineer',
   PROGRAM_CHANGEMAKERS: 'changemakers',
   PROGRAM_AI_ACCELERATOR: 'accelerator',
 }
@@ -1183,13 +1162,11 @@ function intentAllowedForTrack(intentId, track) {
 }
 
 const PROGRAM_INTENT_TRACKS = {
-  ai_engineer: 'engineer',
   ai_changemakers: 'changemakers',
   ai_accelerator: 'accelerator',
 }
 
 const PROGRAM_MAIN_SCREENS = {
-  engineer: 'PROGRAM_AI_ENGINEER',
   changemakers: 'PROGRAM_CHANGEMAKERS',
   accelerator: 'PROGRAM_AI_ACCELERATOR',
 }
@@ -1264,7 +1241,7 @@ async function handleMessagingEvent(object, event) {
   }
 
   let payload = message?.quick_reply?.payload || event.postback?.payload
-  const forcedTrack = activePage().forcedTrack
+  const forcedTrack = normalizeTrack(activePage().forcedTrack)
   const eventKey = message?.mid
     || event.postback?.mid
     || (payload && event.timestamp ? `postback:${senderId}:${event.timestamp}:${payload}` : null)

@@ -231,11 +231,11 @@ function isRefusalAnswer(text) {
 
 const SHARED_PROGRAMS = ['general', 'all']
 const TRACK_PROGRAMS = {
-  engineer: ['ai_engineer', ...SHARED_PROGRAMS],
   accelerator: ['ai_accelerator', ...SHARED_PROGRAMS],
 }
 
 function allowedForTrack(program, track) {
+  if (program === 'ai_engineer') return false
   if (TRACK_PROGRAMS[track]) return TRACK_PROGRAMS[track].includes(program)
   return program !== 'junior_ai' && program !== 'corporate_leaders'
 }
@@ -336,9 +336,8 @@ async function retrieveRag(text, options = {}) {
 }
 
 const TRACK_HINTS = {
-  engineer: 'Хэрэглэгч насанд хүрэгчдийн 7 сарын AI Engineer хөтөлбөрийг сонирхож байна. Бүх асуултад (ур чадвар, агуулга, хуваарь, төлбөр, данс, байршил, бүртгэл) ЗӨВХӨН AI Engineer-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
-  adult: 'Хэрэглэгч насанд хүрэгчдийн хөтөлбөр (AI Engineer, AI Accelerator)-ийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН эдгээр хөтөлбөрийн мэдээллийг өг.',
-  accelerator: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator Program (танхим + онлайн хосолсон, 6 долоо хоног · 14 хичээл, эхлэх 11-р сарын 16, Да/Лх 12:00–13:30, үнэ 2,880,000₮ 20% хөнгөлөлттэй, Storepay боломжтой, AI Academy Asia + ITU хос гэрчилгээ)-ийг сонирхож байна. Бүх асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
+  adult: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. AI Engineer-ийг бүү дурд.',
+  accelerator: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator Program (танхим + онлайн хосолсон, 4 долоо хоног · 14 хичээл, эхлэх 11-р сарын 23, Да/Лх 12:00–13:30, үнэ 2,880,000₮ 20% хөнгөлөлттэй, Storepay боломжтой, AI Academy Asia + ITU хос гэрчилгээ)-ийг сонирхож байна. Бүх асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
   changemakers: 'Хэрэглэгч AI Changemakers 100×100 тэтгэлэгт сонгон шалгаруулалтын хөтөлбөрийг сонирхож байна. Бүх асуултад ЗӨВХӨН Changemakers-ийн мэдээллийг өг (бүртгэл 10.19–10.31, хөтөлбөр 11.07–12.26, анкет https://www.ai-academy.asia/mn/anket). Бусад төлбөртэй сургалтыг огт бүү холь.',
 }
 
@@ -357,7 +356,7 @@ async function generateRagAnswer(question, hits, track = null) {
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
 Вэбсайт нийтэд нээлттэй. Хэрэглэгч вэбсайт, сайт, линк гэж асуувал https://ai-academy.asia/mn хаягийг өг. "Вэбсайт нээлттэй биш" гэж хэзээ ч бүү хэл.
-Одоо бүртгэл нээлттэй: AI Engineer, AI Accelerator Program. AI Changemakers 100×100-ийг өөрөө санаачлан бүү дурд — хэрэглэгч шууд асуусан үед л мэдээллийг өг. AI Leaders, Junior AI Engineer, AI Agents, AI for Business хөтөлбөрийг огт бүү дурд.
+Одоо бүртгэл нээлттэй: AI Accelerator Program. AI Engineer, AI Leaders, Junior AI Engineer, AI Agents, AI for Business хөтөлбөрийг огт бүү дурд. AI Changemakers 100×100-ийг өөрөө санаачлан бүү дурд — хэрэглэгч шууд асуусан үед л мэдээллийг өг.
 Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
 ${TRACK_HINTS[track] || ''}
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:

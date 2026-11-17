@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "Organized from data/rag-source.txt. Open: AI Engineer, AI Accelerator. AI Changemakers 100x100 (scholarship) answered only on direct ask.",
+  "notes": "Organized from data/rag-source.txt. Open: AI Accelerator. AI Changemakers 100x100 (scholarship) answered only on direct ask.",
   "chunks": [
     {
       "id": "academy-overview",
@@ -14,77 +14,35 @@
       "category": "overview",
       "program": "all",
       "title": "Сургалтын мэдээлэл — одоогийн хөтөлбөрүүд, юу сурах, хуваарь, үнэ / medeelel",
-      "content": "🎓 СУРГАЛТЫН МЭДЭЭЛЭЛ\n\nAI Academy Asia-ийн хөтөлбөрүүд:\n\n🚀 AI ENGINEER (насанд хүрэгчид · 7 сар)\nАжилд бүрэн бэлэн (Job-Ready) мэргэжлийн AI инженер бэлтгэнэ. Код бичих мэдлэг шаардлагагүй.\n📚 Python → Data Analysis → Machine Learning → Deep Learning (PyTorch) → Computer Vision & NLP → ML Deployment (MLOps) → Capstone\n🗓 2026.11.03 – 2027.05.29 · Даваа, Лхагва, Баасан · 18:30–20:00\n💰 $5,000 (17,900,000₮) — $5,500-аас 10% урамшуулал · 20% урьдчилгаа 3,580,000₮\n🏆 CPD сертификат (100+ улс), GitHub портфолио, Membership Card\n\n⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид · 6 долоо хоног · 14 хичээл)\nКод бичих мэдлэггүйгээр өөрийн 24/7 AI агент ба утаснаас хянадаг Admin Panel бүтээнэ. Танхим + онлайн хосолсон.\n🗓 Эхлэх огноо: 11 сарын 16 · Даваа, Лхагва · 12:00–13:30\n💰 2,880,000₮ (20% хөнгөлөлттэй) · 🛒 Storepay боломжтой\n🏆 AI Academy Asia + ITU AI Skills Coalition хос гэрчилгээ\n\n📍 ITC Tower, 11 давхар (CU-гийн ард талын лифт)\n📞 7505-1055 · 🔗 https://ai-academy.asia/mn"
+      "content": "🎓 СУРГАЛТЫН МЭДЭЭЛЭЛ\n\nAI Academy Asia-ийн хөтөлбөр:\n\n⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид · 4 долоо хоног · 14 хичээл)\nКод бичих мэдлэггүйгээр өөрийн 24/7 AI агент ба утаснаас хянадаг Admin Panel бүтээнэ. Танхим + онлайн хосолсон.\n🗓 Эхлэх огноо: 11 сарын 23 · Даваа, Лхагва · 12:00–13:30\n💰 2,880,000₮ (20% хөнгөлөлттэй) · 🛒 Storepay боломжтой\n🏆 AI Academy Asia + ITU AI Skills Coalition хос гэрчилгээ\n\n📍 ITC Tower, 11 давхар (CU-гийн ард талын лифт)\n📞 7505-1055 · 🔗 https://ai-academy.asia/mn"
     },
     {
       "id": "schedule-both",
       "category": "schedule",
       "program": "all",
       "title": "Хөтөлбөрүүдийн хуваарь / heden udur doloo honog",
-      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n\n🚀 AI Engineer — 2026.11.03-аас (7 сар) · Даваа, Лхагва, Баасан · 18:30–20:00\n⚡ AI Accelerator — 11-р сарын 16-наас (6 долоо хоног · 14 хичээл) · Даваа, Лхагва · 12:00–13:30"
+      "content": "Сургалтын хуваарь (heden udur, heden udaa, doloo honog):\n\n⚡ AI Accelerator — 11-р сарын 23-наас (4 долоо хоног · 14 хичээл) · Даваа, Лхагва · 12:00–13:30"
     },
     {
       "id": "price",
       "category": "price",
       "program": "all",
       "title": "Сургалтын төлбөр / tolbor une",
-      "content": "💳 Сургалтын төлбөр (tolbor, une)\n\n🚀 AI Engineer (7 сар · 2026.11.03 – 2027.05.29):\n💰 Үндсэн төлбөр: $5,500\n🏷️ 10% урамшуулалттай үнэ: $5,000 (17,900,000₮)\n💡 20% урьдчилгаа: 3,580,000₮\n\n⚡ AI Accelerator (6 долоо хоног · 14 хичээл):\n💰 2,880,000₮ (20% хөнгөлөлттэй) · 🛒 Storepay боломжтой\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
+      "content": "💳 Сургалтын төлбөр (tolbor, une)\n\n⚡ AI Accelerator (4 долоо хоног · 14 хичээл):\n💰 2,880,000₮ (20% хөнгөлөлттэй) · 🛒 Storepay боломжтой\n\nТөлбөр хэд вэ? Heden tugrug ve? Tolbor hed ve?"
     },
     {
       "id": "age-requirement",
       "category": "prerequisites",
       "program": "general",
       "title": "Насны ангилал насанд хүрэгчид 18+",
-      "content": "AI Engineer, AI Accelerator хөтөлбөрүүд насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\n📞 Дэлгэрэнгүй: 7505-1055"
+      "content": "AI Accelerator хөтөлбөр насанд хүрэгчдэд зориулагдсан бөгөөд 18-аас дээш насныхан хамрагдах боломжтой.\n\n📞 Дэлгэрэнгүй: 7505-1055"
     },
     {
-      "id": "ai-engineer-overview",
-      "category": "overview",
-      "program": "ai_engineer",
-      "title": "AI Engineer хөтөлбөр юу вэ / AI инженер",
-      "content": "AI Engineer — Энэхүү хөтөлбөр нь салбартаа шууд ажиллах мэргэжлийн AI инженер бэлтгэх 7 сарын цогц сургалт юм. Хөтөлбөрийг амжилттай дуусгаснаар та салбартаа хүлээн зөвшөөрөгдсөн, ажилд бүрэн бэлэн (Job-Ready) AI инженер болж төгсөнө.\n\n📚 7 МОДУЛЬ\n1️⃣ Python Programming\n2️⃣ Data Analysis (Pandas/NumPy)\n3️⃣ Machine Learning\n4️⃣ Deep Learning (PyTorch)\n5️⃣ Computer Vision & NLP (CNN, Transformers)\n6️⃣ ML Deployment (API, Docker, cloud, MLOps)\n7️⃣ Capstone — GitHub дээр бодит AI бүтээгдэхүүн\n\n💡 ДАВУУ ТАЛУУД\n📜 Олон улсын CPD сертификат (100+ улсад зөвшөөрөгдөнө)\n👨‍🏫 Дэлхийн топ багш нар (Stanford, Harvard, Cambridge-ийн төгсөгчид)\n🚀 Анхан шатнаас эхэлнэ (Урьдчилан код бичих мэдлэг шаардлагагүй)"
-    },
-    {
-      "id": "ai-engineer-schedule-price",
-      "category": "schedule",
-      "program": "ai_engineer",
-      "title": "AI Engineer хуваарь төлбөр урьдчилгаа",
-      "content": "🗓 AI ENGINEER — ХУВААРЬ\n\nТус хөтөлбөр нь 7 сарын хугацаанд цогц байдлаар танхимаар явагдана:\n\n🗓️ Хичээллэх огноо: 2026.11.03 – 2027.05.29\n📅 Гараг: Даваа, Лхагва, Баасан\n⏰ Цаг: 18:30 – 20:00 (Ажлын дараах цагаар)\n🏫 Хэлбэр: Танхим\n\n💰 AI ENGINEER — ТӨЛБӨР\n\n💰 Үндсэн төлбөр: $5,500\n🏷️ 10% тусгай урамшуулалттай үнэ: $5,000 (17,900,000₮)\n💡 Урьдчилгаа төлбөр (20%): 3,580,000₮\n\n(Урамшуулалт хугацаа болон суудлын тоо хязгаартай тул та 20%-ийн урьдчилгаа төлж суудлаа баталгаажуулах боломжтой.)\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 7505-1055"
-    },
-    {
-      "id": "ai-engineer-curriculum",
-      "category": "curriculum",
-      "program": "ai_engineer",
-      "title": "AI Engineer 7 модуль хичээлийн агуулга",
-      "content": "AI Engineer — 7 модуль:\n1. Python Programming\n2. Data Analysis (Pandas/NumPy)\n3. Machine Learning\n4. Deep Learning (PyTorch)\n5. Computer Vision & NLP (CNN, Transformers)\n6. ML Deployment (API, Docker, cloud, MLOps)\n7. Capstone — GitHub дээр бодит AI бүтээгдэхүүн\n\nУрьдчилсан мэдлэг шаардлагагүй — 1-р модулиар Python програмчлалыг 0-ээс эхлэн заана."
-    },
-    {
-      "id": "ai-engineer-audience-outcomes",
-      "category": "outcomes",
-      "program": "ai_engineer",
-      "title": "AI Engineer хэнд зориулсан, үр дүн, ажлын байр",
-      "content": "AI Engineer хэнд зориулсан: технологийн салбарт карьераа шинээр эхлүүлэгчид, цалингаа 2–3 дахин нэмэгдүүлэх зорилготой мэргэжил солигчид, стартапдаа AI систем бүтээх бизнес эрхлэгчид.\n\nҮр дүн:\n• GitHub дээр байрших өндөр зэрэглэлийн портфолио төсөл\n• CPD олон улсын итгэмжлэгдсэн сертификат (100+ улс)\n• AIAA Membership Card гишүүнчлэл\n• Төгсөөд ажиллах боломжит ажлын байр: AI Engineer, ML Engineer, Data Scientist, Data Analyst, MLOps Engineer"
-    },
-    {
-      "id": "ai-engineer-location",
-      "category": "location",
-      "program": "ai_engineer",
-      "title": "AI Engineer хаана хичээллэх байршил",
-      "content": "📍 AI ENGINEER — БАЙРШИЛ\n\n📍 Байршил: СБД, 1-р хороо, Олимпийн гудамж, ITC Tower оффис, 11 давхар (CU-гийн ард талын лифт)\n🗺️ Байршлын линк: https://maps.app.goo.gl/RX47gRsFCHb4DB557"
-    },
-    {
-      "id": "ai-engineer-bank",
+      "id": "bank-account",
       "category": "price",
-      "program": "ai_engineer",
-      "title": "AI Engineer дансны дугаар гүйлгээний утга",
-      "content": "🏛️ AI ENGINEER — ДАНСНЫ МЭДЭЭЛЭЛ\n\nТөлбөр шилжүүлэх дансны мэдээлэл:\n🏛️ Банк: Голомт банк\n💳 Дансны дугаар: 3215155471\n👤 Дансны эзэмшигч: Хиймэл Оюун Ухааны Хаб\n🔢 IBAN дугаар: 82 0015 0032 1515 5471\n📝 Гүйлгээний утга: Овог, нэр, мэйл хаяг, утасны дугаар, AI Engineer"
-    },
-    {
-      "id": "ai-engineer-membership",
-      "category": "outcomes",
-      "program": "ai_engineer",
-      "title": "AI Academy Asia Membership Card гишүүнчлэл давуу тал",
-      "content": "💳 AI ACADEMY ASIA MEMBERSHIP CARD\n\nAI Engineer хөтөлбөрт хамрагдсанаар та зөвхөн сургалтад суух биш, AI Academy Asia Private Membership (Inner Circle) гишүүнчлэлийн карттай болно.\n\nЭнэхүү гишүүнчлэлээр:\n\n🏢 Орчин & Тоног төхөөрөмж: GPU тооцоолууртай машинуудтай High-Performance Co-working space орчин, хурлын өрөөг ашиглах (09:00–20:00)\n\n🎓 Олон улсын сургалт: Дэлхийн топ сургуулиудын профессор, багш нарын тусгай мастерклассуудад хамрагдах\n\n🌐 VIP Сүлжээ & Коммунити: Private community, сар бүрийн Founders & Engineers Community уулзалтууд болон олон улсын AI сүлжээнд холбогдох\n\n💼 Карьер дэмжлэг: Тэргүүлэх технологийн компаниудад ажлын байранд нэр дэвших, CEO-гийн хувийн батламж (Recommendation Letter) болон олон улсын хөтөлбөрүүдэд нэгдэх онцгой эрх авна."
+      "program": "general",
+      "title": "Дансны дугаар гүйлгээний утга",
+      "content": "🏛️ ДАНСНЫ МЭДЭЭЛЭЛ\n\nТөлбөр шилжүүлэх дансны мэдээлэл:\n🏛️ Банк: Голомт банк\n💳 Дансны дугаар: 3215155471\n👤 Дансны эзэмшигч: Хиймэл Оюун Ухааны Хаб\n🔢 IBAN дугаар: 82 0015 0032 1515 5471\n📝 Гүйлгээний утга: Овог, нэр, мэйл хаяг, утасны дугаар"
     },
     {
       "id": "location",
@@ -105,14 +63,14 @@
       "category": "schedule",
       "program": "all",
       "title": "Хөтөлбөр хэзээ эхлэх вэ / эхлэх огноо",
-      "content": "📅 ЭХЛЭХ ОГНОО\n\n🚀 AI Engineer: 11-р сарын 3 (2026.11.03 – 2027.05.29) · Даваа, Лхагва, Баасан 18:30–20:00\n⚡ AI Accelerator: 11-р сарын 16 (6 долоо хоног · 14 хичээл) · Даваа, Лхагва 12:00–13:30"
+      "content": "📅 ЭХЛЭХ ОГНОО\n\n⚡ AI Accelerator: 11-р сарын 23 (4 долоо хоног · 14 хичээл) · Даваа, Лхагва 12:00–13:30"
     },
     {
       "id": "registration",
       "category": "registration",
       "program": "general",
       "title": "Бүртгүүлэх",
-      "content": "📝 БҮРТГЭЛ\n\n🚀 AI Engineer (11-р сарын 3-нд эхэлнэ)\n⚡ AI Accelerator Program (11-р сарын 16-нд эхэлнэ · 2,880,000₮, Storepay боломжтой)\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
+      "content": "📝 БҮРТГЭЛ\n\n⚡ AI Accelerator Program (11-р сарын 23-нд эхэлнэ · 2,880,000₮, Storepay боломжтой)\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
     },
     {
       "id": "jobs",
@@ -126,7 +84,7 @@
       "category": "overview",
       "program": "ai_accelerator",
       "title": "AI Accelerator Program юу вэ, хуваарь, төлбөр, үнэ / accelerator",
-      "content": "⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид)\n\nХэзээ ч, хаанаас ч AI-г бодитоор эзэмш. Таны 24/7 тасралтгүй ажиллах AI агент ба утаснаас хянадаг админ самбарыг өөрийн гараар бүтээнэ.\n\n📌 ТОВЧ МЭДЭЭЛЭЛ\n✓ AI Academy Asia + ITU AI Skills Coalition хос гэрчилгээ\n✓ 6 долоо хоног · 14 хичээл (танхим + онлайн хосолсон)\n✓ Үндсэн хичээлүүд: онлайн лайв (бичлэг хадгалагдана)\n✓ Воркшопууд: биечлэн (офлайн)\n✓ Capstone төслийн хамгаалалт: биечлэн (офлайн)\n✓ Урьдчилсан мэдлэг, код бичих чадвар шаардлагагүй\n✓ Төгсөхдөө: өөрийн Admin Panel, контент, мессеж, захиалгын AI агентууд\n\n🗓 ХУВААРЬ\n🗓️ Эхлэх огноо: 11 сарын 16\n📅 Даваа, Лхагва · 12:00–13:30\n\n💰 Үнэ: 2,880,000₮ (20% хөнгөлөлттэй)\n🛒 Storepay боломжтой.\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
+      "content": "⚡ AI ACCELERATOR PROGRAM (насанд хүрэгчид)\n\nХэзээ ч, хаанаас ч AI-г бодитоор эзэмш. Таны 24/7 тасралтгүй ажиллах AI агент ба утаснаас хянадаг админ самбарыг өөрийн гараар бүтээнэ.\n\n📌 ТОВЧ МЭДЭЭЛЭЛ\n✓ AI Academy Asia + ITU AI Skills Coalition хос гэрчилгээ\n✓ 4 долоо хоног · 14 хичээл (танхим + онлайн хосолсон)\n✓ Үндсэн хичээлүүд: онлайн лайв (бичлэг хадгалагдана)\n✓ Воркшопууд: биечлэн (офлайн)\n✓ Capstone төслийн хамгаалалт: биечлэн (офлайн)\n✓ Урьдчилсан мэдлэг, код бичих чадвар шаардлагагүй\n✓ Төгсөхдөө: өөрийн Admin Panel, контент, мессеж, захиалгын AI агентууд\n\n🗓 ХУВААРЬ\n🗓️ Эхлэх огноо: 11 сарын 23\n📅 Даваа, Лхагва · 12:00–13:30\n\n💰 Үнэ: 2,880,000₮ (20% хөнгөлөлттэй)\n🛒 Storepay боломжтой.\n\n🔗 Бүртгүүлэх: https://www.ai-academy.asia/mn/what-we-offer\n📞 Утас: 7505-1055"
     }
   ]
 }
