@@ -752,6 +752,9 @@ const KIDS_PROGRAM_REPLY = 'Хүүхдэд зориулагдсан хөтөлб
 const WEBSITE_ASK_RE = /вэб\s*сайт|веб\s*сайт|website|web\s*site|вэб\s*хаяг|veb\s*sait|web\s*hayg|сайт(?:аа|ын|ыг|ад)?(?:\s|$)|сайтын\s*хаяг/i
 const WEBSITE_REPLY = `Манай вэбсайт: ${WEBSITE_URL}
 Дэлгэрэнгүй мэдээлэл авахыг хүсвэл 7505-1055 дугаарт холбогдоорой.`
+const JOBS_URL = 'https://ai-academy.asia/mn/work-with-us/jobs'
+const JOBS_ASK_RE = /ажлын\s*байр|ажил\s*хай|ажилд\s*ор|ажилд\s*ав|ажилтан\s*ав|нээлттэй\s*ажил|ajliin\s*bai|ajild\s*or|ajild\s*av|open\s*role|hiring|ваканси|vacanc|\bjobs?\b|work\s*with\s*us/i
+const JOBS_REPLY = `Нээлттэй ажлын байр:\n${JOBS_URL}`
 
 function normalizeTrack(track) {
   return track === 'engineer' ? 'accelerator' : track
@@ -1388,6 +1391,13 @@ async function handleMessagingEvent(object, event) {
     if (WEBSITE_ASK_RE.test(message.text)) {
       logEvent('website_reply', { channel: object, senderId })
       await sendTextChunks(object, senderId, WEBSITE_REPLY)
+      await maybeAskForPhone(object, senderId)
+      return
+    }
+
+    if (JOBS_ASK_RE.test(message.text)) {
+      logEvent('jobs_reply', { channel: object, senderId })
+      await sendTextChunks(object, senderId, JOBS_REPLY)
       await maybeAskForPhone(object, senderId)
       return
     }

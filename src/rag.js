@@ -215,7 +215,7 @@ const RESTRICTED_CHUNK_IDS = new Set(['jobs'])
 
 function isExplicitJobQuery(text) {
   const normalized = String(text || '').toLowerCase()
-  return /(ажлын\s*байр|ажил\s*хай|ажилд\s*ор|ажилтан\s*ав|open\s*role|hiring|career|ваканси|\bjob\b|\bjobs\b|work\s*with\s*us)/i
+  return /(ажлын\s*байр|ажил\s*хай|ажилд\s*ор|ажилд\s*ав|ажилтан\s*ав|нээлттэй\s*ажил|ajliin\s*bai|ajild\s*or|ajild\s*av|open\s*role|hiring|ваканси|vacanc|\bjob\b|\bjobs\b|work\s*with\s*us)/i
     .test(normalized)
 }
 
