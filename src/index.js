@@ -315,7 +315,7 @@ function intentDefaultAnswer(intentId) {
   return INTENTS_DATA.intents.find(intent => intent.id === intentId)?.answers?.default || null
 }
 
-const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer(PRIVATE_REPLY_INTENT_ID)
+const PRIVATE_REPLY_MESSAGE = intentDefaultAnswer('ai_accelerator')
 
 // Sent exactly once per user, on their first incoming message (including otherwise-ignored
 // "silent" messages). See claimPhoneAsk() for the one-time guarantee.
@@ -934,7 +934,7 @@ async function processComment({
 
   const recipientId = privateReplyResult?.recipient_id
   if (privateReplyResult) {
-    await rememberTrack(channel, recipientId, 'adult')
+    await rememberTrack(channel, recipientId, 'accelerator')
   }
 
   let publicReplyFailed = false
