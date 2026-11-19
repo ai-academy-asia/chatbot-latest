@@ -231,6 +231,7 @@ function isRefusalAnswer(text) {
 
 const SHARED_PROGRAMS = ['general', 'all']
 const TRACK_PROGRAMS = {
+  junior: ['junior_ai', 'general'],
   accelerator: ['ai_accelerator', ...SHARED_PROGRAMS],
 }
 
@@ -336,7 +337,8 @@ async function retrieveRag(text, options = {}) {
 }
 
 const TRACK_HINTS = {
-  adult: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. AI Engineer-ийг бүү дурд.',
+  junior: 'Хэрэглэгч Junior AI Engineer (10–18 нас, 2026.12.28–2027.01.16, Даваа/Лхагва/Баасан/Бямба, 10–13 нас 09:30–12:30, 14–18 нас 13:00–16:00, 11 өдөр · 22 хичээл = 33 цаг / 44 академик цаг, үнэ 3,600,000₮) хөтөлбөрийг сонирхож байна. Бүх асуултад ЗӨВХӨН Junior AI Engineer-ийн мэдээллийг өг. Насанд хүрэгчдийн хөтөлбөрийг бүү дурд.',
+  adult: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator хөтөлбөрийг сонирхож байна. Хуваарь, төлбөр, бүртгэлийн асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Junior AI Engineer-ийг бүү дурд.',
   accelerator: 'Хэрэглэгч насанд хүрэгчдийн AI Accelerator Program (танхим + онлайн хосолсон, 4 долоо хоног · 14 хичээл, эхлэх 11-р сарын 23, Да/Лх/Ба 12:00–13:30, үнэ 2,880,000₮ 20% хөнгөлөлттэй, Storepay боломжтой, AI Academy Asia + ITU хос гэрчилгээ)-ийг сонирхож байна. Бүх асуултад ЗӨВХӨН AI Accelerator-ийн мэдээллийг өг. Бусад хөтөлбөрийг огт бүү дурд.',
   changemakers: 'Хэрэглэгч AI Changemakers 100×100 тэтгэлэгт сонгон шалгаруулалтын хөтөлбөрийг сонирхож байна. Бүх асуултад ЗӨВХӨН Changemakers-ийн мэдээллийг өг (бүртгэл 10.19–10.31, хөтөлбөр 11.07–12.26, анкет https://www.ai-academy.asia/mn/anket). Бусад төлбөртэй сургалтыг огт бүү холь.',
 }
@@ -356,7 +358,7 @@ async function generateRagAnswer(question, hits, track = null) {
 CONTEXT-ийн мэдээллийг шууд ашигла — үнэ, хуваарь, хаяг, ур чадвар зэргийг орхигдуулж болохгүй.
 URL байвал хариултад үлдээ.
 Вэбсайт нийтэд нээлттэй. Хэрэглэгч вэбсайт, сайт, линк гэж асуувал https://ai-academy.asia/mn хаягийг өг. "Вэбсайт нээлттэй биш" гэж хэзээ ч бүү хэл.
-Одоо бүртгэл нээлттэй: AI Accelerator Program. AI Engineer, AI Leaders, Junior AI Engineer, AI Agents, AI for Business хөтөлбөрийг огт бүү дурд. AI Changemakers 100×100-ийг өөрөө санаачлан бүү дурд — хэрэглэгч шууд асуусан үед л мэдээллийг өг.
+Одоо бүртгэл нээлттэй: AI Accelerator Program, Junior AI Engineer. Junior AI Engineer-ийг зөвхөн хүүхдийн эсвэл Junior хөтөлбөр гэж асуусан үед л дурд. AI Engineer, AI Leaders, AI Agents, AI for Business хөтөлбөрийг огт бүү дурд. AI Changemakers 100×100-ийг өөрөө санаачлан бүү дурд — хэрэглэгч шууд асуусан үед л мэдээллийг өг.
 Нээлттэй ажлын байр / jobs холбоосыг ЗӨВХӨН хэрэглэгч ажлын байр, ажилд орох, hiring гэж шууд асуусан үед л дурд. Бусад асуултад огт бүү дурд.
 ${TRACK_HINTS[track] || ''}
 Зөвхөн CONTEXT-тай ОГТ холбоогүй асуултад л дараах өгүүлбэрийг хэл:

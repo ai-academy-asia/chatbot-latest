@@ -370,6 +370,7 @@ async function handlePhoneLead(channel, userId, phone) {
 }
 
 const MAIN_MENU_OPTIONS = [
+  { title: '🎓 Junior AI', payload: 'PROGRAM_JUNIOR_AI' },
   { title: '⚡ AI Accelerator', payload: 'PROGRAM_AI_ACCELERATOR' },
   { title: '✨ Бусад мэдээлэл', payload: 'MORE_OPTIONS' },
 ]
@@ -387,6 +388,12 @@ const PROGRAM_ACTION_OPTIONS = [
 ]
 
 const PROGRAM_FAQ_BUTTONS = {
+  JUNIOR_AGE: { track: 'junior', intentId: 'age_limit' },
+  JUNIOR_SCHEDULE: { track: 'junior', intentId: 'schedule' },
+  JUNIOR_LOCATION: { track: 'junior', intentId: 'training_format' },
+  JUNIOR_PRICE: { track: 'junior', intentId: 'payment_info' },
+  JUNIOR_BANK: { track: 'junior', intentId: 'bank_account' },
+  JUNIOR_RESULT: { track: 'junior', intentId: 'result' },
   CM_ABOUT: { track: 'changemakers', intentId: 'ai_changemakers' },
   CM_WHO: { track: 'changemakers', answerKey: 'who' },
   CM_DATES: { track: 'changemakers', answerKey: 'dates' },
@@ -396,6 +403,17 @@ const PROGRAM_FAQ_BUTTONS = {
   ACC_FORMAT: { track: 'accelerator', intentId: 'training_format' },
   ACC_PRICE: { track: 'accelerator', intentId: 'payment_info' },
 }
+
+const JUNIOR_FAQ_OPTIONS = [
+  { title: '👦 Насны ангилал', payload: 'JUNIOR_AGE' },
+  { title: '🗓 Хуваарь', payload: 'JUNIOR_SCHEDULE' },
+  { title: '📍 Байршил', payload: 'JUNIOR_LOCATION' },
+  { title: '💰 Төлбөр', payload: 'JUNIOR_PRICE' },
+  { title: '🏛 Дансны мэдээлэл', payload: 'JUNIOR_BANK' },
+  { title: '🏆 Үр дүн', payload: 'JUNIOR_RESULT' },
+  { title: '📝 Бүртгүүлэх', payload: 'REGISTER' },
+  { title: '🏠 Үндсэн цэс', payload: 'MAIN_MENU' },
+]
 
 const CHANGEMAKERS_FAQ_OPTIONS = [
   { title: '🌟 Хөтөлбөрийн тухай', payload: 'CM_ABOUT' },
@@ -451,6 +469,7 @@ AI агент болон систем бүтээх, бизнесийн урсг�
 }
 
 const PROGRAM_FAQ_MENUS = {
+  junior: { title: 'Junior AI Engineer — түгээмэл асуултууд', options: JUNIOR_FAQ_OPTIONS },
   changemakers: { title: 'AI Changemakers 100×100 — мэдээлэл', options: CHANGEMAKERS_FAQ_OPTIONS },
   accelerator: { title: 'AI Accelerator Program — түгээмэл асуултууд', options: ACCELERATOR_FAQ_OPTIONS },
 }
@@ -461,6 +480,7 @@ const DETAIL_ACTION_OPTIONS = [
 ]
 
 const MENU_RESPONSES = {
+  PROGRAM_JUNIOR_AI: intentDefaultAnswer('kids_training'),
   PROGRAM_CHANGEMAKERS: intentDefaultAnswer('ai_changemakers'),
   PROGRAM_AI_ACCELERATOR: intentDefaultAnswer('ai_accelerator'),
   PAYMENT: intentDefaultAnswer('payment_info'),
@@ -735,20 +755,41 @@ function commentReplyTokenName(channel) {
   return activePage() === DEFAULT_PAGE ? 'FB_PRIVATE_REPLY_TOKEN' : 'FB_PRIVATE_REPLY_TOKEN_2'
 }
 
+const JUNIOR_POST_RE = /junior|жуниор|жүниор|хүүхд|huuhd|hvvhd/i
+const postJuniorCache = new Map()
+
+async function isJuniorPost(channel, postId) {
+  if (!postId) return null
+  const cacheKey = `${channel}:${postId}`
+  if (postJuniorCache.has(cacheKey)) return postJuniorCache.get(cacheKey)
+
+  const accessToken = getCommentReplyToken(channel)
+  if (!accessToken) return null
+
+  const field = channel === 'instagram' ? 'caption' : 'message'
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${META_API_VERSION}/${encodeURIComponent(postId)}?fields=${field}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    )
+    if (!response.ok) return null
+    const data = await response.json()
+    const isJunior = JUNIOR_POST_RE.test(String(data[field] || ''))
+    postJuniorCache.set(cacheKey, isJunior)
+    if (postJuniorCache.size > 1000) {
+      postJuniorCache.delete(postJuniorCache.keys().next().value)
+    }
+    return isJunior
+  } catch (error) {
+    console.error(`${channel} post lookup failed:`, error.message)
+    return null
+  }
+}
+
 const ADULT_TEXT_RE = /насанд\s*хүрэгч|бизнес/i
 const ACCELERATOR_TEXT_RE = /accelerator|акс?селератор/i
 const CHANGEMAKERS_TEXT_RE = /changemaker|чейжмэйкер|чейнжмэйкер|100\s*[x×]\s*100|тэтгэлэгт\s*хөтөлбөр/i
-// Only a kids-program question (Cyrillic or Latin), not a general age or adult-program question.
-const KIDS_PROGRAM_RE = new RegExp([
-  'хүүхд\\S{0,12}\\s*(хөтөлбөр|сургалт|хичээл|анги)',
-  '(хөтөлбөр|сургалт)\\S{0,24}хүүхд',
-  'хүүхд\\S{0,8}\\s*зориул',
-  'h[uüv]{2,3}hd\\w{0,8}\\s*(hutulb\\w*|hoto+l?b\\w*|surgalt\\w*|hicheel\\w*|program)',
-  'kids?\\s*(program|course)',
-  "children'?s?\\s*(program|course)",
-  'junior\\s*ai',
-].join('|'), 'i')
-const KIDS_PROGRAM_REPLY = 'Хүүхдэд зориулагдсан хөтөлбөр маань удахгүй зарлагдах тул хүлээгээрэй.'
+const JUNIOR_TEXT_RE = /junior|жуниор|жүниор|хүүхд|хүүхэд|huuhd|hvvhd|huuhed|hvvhed/i
 const WEBSITE_ASK_RE = /вэб\s*сайт|веб\s*сайт|website|web\s*site|вэб\s*хаяг|veb\s*sait|web\s*hayg|сайт(?:аа|ын|ыг|ад)?(?:\s|$)|сайтын\s*хаяг/i
 const WEBSITE_REPLY = `Манай вэбсайт: ${WEBSITE_URL}
 Дэлгэрэнгүй мэдээлэл авахыг хүсвэл 7505-1055 дугаарт холбогдоорой.`
@@ -764,6 +805,7 @@ function trackFromText(text) {
   const matches = [
     CHANGEMAKERS_TEXT_RE.test(text) && 'changemakers',
     ACCELERATOR_TEXT_RE.test(text) && 'accelerator',
+    JUNIOR_TEXT_RE.test(text) && 'junior',
     ADULT_TEXT_RE.test(text) && 'adult',
   ].filter(Boolean)
   return matches.length === 1 ? matches[0] : null
@@ -911,13 +953,20 @@ async function processComment({
     repliedCommentIds.delete(oldest)
   }
 
-  // One private reply per comment, so the phone ask is the next part of that
-  // same message. Same one-time rule as chats: only the first time we see this person.
-  let privateText = PRIVATE_REPLY_MESSAGE
+  // One private reply per comment. Junior posts get the Junior program;
+  // every other comment gets AI Accelerator. Phone ask follows the first time.
+  const forcedTrack = normalizeTrack(activePage().forcedTrack)
+  const juniorPost = forcedTrack
+    ? forcedTrack === 'junior'
+    : JUNIOR_TEXT_RE.test(text || '') || (await isJuniorPost(channel, postId)) === true
+  const replyBody = juniorPost
+    ? (MENU_RESPONSES.PROGRAM_JUNIOR_AI || PRIVATE_REPLY_MESSAGE)
+    : PRIVATE_REPLY_MESSAGE
+  let privateText = replyBody
   if (fromId) {
     try {
       if (await claimPhoneAsk(channel, fromId)) {
-        privateText = `${PRIVATE_REPLY_MESSAGE}\n\n${PHONE_ASK_MESSAGE}`
+        privateText = `${replyBody}\n\n${PHONE_ASK_MESSAGE}`
         logEvent('phone_ask_sent', { channel, senderId: fromId, via: 'comment' })
       }
     } catch (error) {
@@ -934,7 +983,7 @@ async function processComment({
 
   const recipientId = privateReplyResult?.recipient_id
   if (privateReplyResult) {
-    await rememberTrack(channel, recipientId, 'accelerator')
+    await rememberTrack(channel, recipientId, juniorPost ? 'junior' : 'accelerator')
   }
 
   let publicReplyFailed = false
@@ -1153,6 +1202,7 @@ const TRACK_MENU_INTENTS = {
 }
 
 const PROGRAM_TRACKS = {
+  PROGRAM_JUNIOR_AI: 'junior',
   PROGRAM_CHANGEMAKERS: 'changemakers',
   PROGRAM_AI_ACCELERATOR: 'accelerator',
 }
@@ -1165,11 +1215,13 @@ function intentAllowedForTrack(intentId, track) {
 }
 
 const PROGRAM_INTENT_TRACKS = {
+  kids_training: 'junior',
   ai_changemakers: 'changemakers',
   ai_accelerator: 'accelerator',
 }
 
 const PROGRAM_MAIN_SCREENS = {
+  junior: 'PROGRAM_JUNIOR_AI',
   changemakers: 'PROGRAM_CHANGEMAKERS',
   accelerator: 'PROGRAM_AI_ACCELERATOR',
 }
@@ -1378,13 +1430,6 @@ async function handleMessagingEvent(object, event) {
     if (phone) {
       await handlePhoneLead(object, senderId, phone)
       await sendTextChunks(object, senderId, PHONE_SAVED_MESSAGE)
-      return
-    }
-
-    if (KIDS_PROGRAM_RE.test(message.text)) {
-      logEvent('kids_program_reply', { channel: object, senderId })
-      await sendTextChunks(object, senderId, KIDS_PROGRAM_REPLY)
-      await maybeAskForPhone(object, senderId)
       return
     }
 
